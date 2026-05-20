@@ -2947,6 +2947,7 @@ function exportData() {
     equipesQualifiees32Liste: bareme.liste32QualifiesIssuesPoules,
     seiziemeParMatchR32: Object.fromEntries(KNOCK_R32_DEF.map(d => [`M${d.m}`, R32_SIDE[d.m] || {}])),
     etape2Tableau: { ...etape2 },
+    etape2Pick: { ...etape2Pick },
     vainqueursTableauEliminationChoisis: { ...kosWinners },
     phaseFinalePourBareme: bareme,
     bonus: {
