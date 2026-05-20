@@ -1002,19 +1002,29 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   color: var(--gold);
   font-weight: 600;
 }
+.bracket-ladder-section {
+  overflow: visible;
+}
 .bracket-ladder-scroll {
-  overflow-x: auto;
-  padding-bottom: .75rem;
+  overflow: auto;
+  max-width: 100%;
+  padding-bottom: 1.5rem;
   -webkit-overflow-scrolling: touch;
 }
 .bracket-ladder-pretty {
   display: grid;
   grid-template-columns: 240px 200px 180px 160px 140px;
-  grid-auto-rows: minmax(3.25rem, auto);
+  grid-template-rows: 2.25rem repeat(16, minmax(3.75rem, auto));
   gap: .5rem 1.25rem;
   min-width: 980px;
+  padding-bottom: 2rem;
   align-items: center;
   position: relative;
+}
+.bracket-ladder-pretty .bracket-ko-card,
+.bracket-ladder-pretty .bracket-r32-card {
+  align-self: center;
+  max-width: 100%;
 }
 .bracket-ladder-pretty .col-head {
   font-family: 'Bebas Neue', sans-serif;
@@ -1509,7 +1519,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     <div class="etape-round bracket-ladder-section">
       <div class="etape-round-head">
         <div>
-          <div class="etape-round-title">Tableau — étape 2 (comme Excel)</div>
+          <div class="etape-round-title">Tableau — étape 2</div>
           <div class="etape-round-meta">Seizièmes issus de vos poules · cliquez le vainqueur à chaque match pour remplir huitièmes → finale</div>
         </div>
       </div>
@@ -1747,6 +1757,8 @@ const BRACKET_R32_PAIRS = [[74, 77], [73, 75], [76, 78], [79, 80], [83, 84], [81
 const BRACKET_R16_IDS = [89, 90, 91, 92, 93, 94, 95, 96];
 const BRACKET_QF_IDS = [97, 98, 99, 100];
 const BRACKET_SF_IDS = [101, 102];
+/** Lignes corps du tableau (huitièmes × 8 blocs × 2 lignes). */
+const BRACKET_BODY_ROWS = 16;
 
 /** Ligne grille pour le huitième d’index pi (0–7). */
 function bracketRowForR16Index(pi) {
@@ -2511,7 +2523,7 @@ function renderBracketLadderPretty() {
     const slot = bracketSlotForSf(sfMid);
     grid.appendChild(createBracketMatchCard(sfMid, 4, slot.row, slot.span));
   });
-  grid.appendChild(createBracketMatchCard(104, 5, 2, 16, 'Finale'));
+  grid.appendChild(createBracketMatchCard(104, 5, 2, BRACKET_BODY_ROWS, 'Finale'));
 }
 
 function renderFinalePanels() {
