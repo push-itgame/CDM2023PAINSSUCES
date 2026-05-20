@@ -104,22 +104,74 @@ header h1 span { color: var(--text); }
   line-height: 1;
   text-shadow: 0 0 18px rgba(200,168,75,0.35);
 }
-.subtitle {
+.badge-deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(192,57,43,0.15);
+  border: 1px solid rgba(192,57,43,0.4);
+  color: #E74C3C;
   font-family: 'DM Mono', monospace;
-  font-size: .75rem;
-  letter-spacing: .25em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-top: .75rem;
+  font-size: .7rem;
+  letter-spacing: .1em;
+  padding: .3rem .75rem;
+  border-radius: 2px;
+  margin-top: 1rem;
   position: relative;
   z-index: 1;
 }
-.top-actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
-.top-actions a {
-  font-family: 'DM Mono', monospace; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--gold); border: 1px solid var(--border); padding: .5rem 1rem; border-radius: 3px; text-decoration: none;
+nav {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
-.top-actions a:hover { background: rgba(200,168,75,0.1); }
+nav::-webkit-scrollbar { height: 0; }
+nav .tab-link {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: .72rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  padding: 1rem 1.5rem;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
+nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
+.page-subactions {
+  display: flex;
+  gap: .65rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: .75rem 1rem;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.page-subactions a,
+.page-subactions button {
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid var(--border);
+  padding: .45rem .85rem;
+  border-radius: 3px;
+  text-decoration: none;
+  background: transparent;
+  cursor: pointer;
+}
+.page-subactions a:hover,
+.page-subactions button:hover { background: rgba(200,168,75,0.1); }
 .lb-link {
   font-family: 'DM Mono', monospace;
   font-size: .65rem;
@@ -134,7 +186,7 @@ header h1 span { color: var(--text); }
 }
 .lb-link:hover { background: rgba(200,168,75,0.1); }
 @media (max-width: 520px) {
-  header { padding: 1.75rem .85rem 2rem; }
+  header { padding: 1.75rem .85rem 1.25rem; }
   .header-brand { padding-bottom: 0; width: 100%; }
   .edition-badge {
     position: static;
@@ -143,7 +195,7 @@ header h1 span { color: var(--text); }
     left: auto;
     bottom: auto;
   }
-  .subtitle { margin-top: 1rem; }
+  nav .tab-link { padding: .8rem .85rem; font-size: .62rem; letter-spacing: .1em; }
 }
 .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 3rem; }
 .meta { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--muted); margin-bottom: 1.5rem; }
@@ -152,17 +204,22 @@ header h1 span { color: var(--text); }
   background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 2rem; text-align: center; color: var(--muted);
 }
 .leaderboard-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--card); }
-table.lb { width: 100%; border-collapse: collapse; min-width: 720px; }
+table.lb { width: 100%; border-collapse: collapse; min-width: 720px; table-layout: fixed; }
 table.lb th {
   font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase;
   color: var(--muted); text-align: left; padding: .75rem .6rem; border-bottom: 1px solid var(--border); background: var(--surface);
+  vertical-align: bottom;
 }
-table.lb td { padding: .65rem .6rem; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: .9rem; }
+table.lb td { padding: .65rem .6rem; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: .9rem; vertical-align: middle; }
 table.lb tr:hover td { background: rgba(200,168,75,0.04); }
-.rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--gold); width: 2.5rem; }
+table.lb th.col-rank, table.lb td.rank { width: 2.75rem; text-align: center; padding-left: .4rem; padding-right: .4rem; }
+table.lb th.col-name { width: auto; }
+table.lb th.col-pts, table.lb td.pts { text-align: right; padding-right: .85rem; white-space: nowrap; }
+table.lb th.col-detail, table.lb td.col-detail { width: 4.75rem; text-align: center; padding-left: .35rem; padding-right: .35rem; }
+.rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--gold); }
 .name { font-weight: 600; }
 .sub { font-size: .78rem; color: var(--muted); }
-.pts { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--gold); text-align: right; }
+.pts { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--gold); }
 .total { font-size: 1rem; }
 .err { color: #E74C3C; margin-top: 1rem; font-size: .85rem; }
 </style>
@@ -176,13 +233,23 @@ table.lb tr:hover td { background: rgba(200,168,75,0.04); }
       <p class="edition-badge"><span class="edition-label">édition</span><span class="edition-name">Pains sucés</span></p>
     </div>
   </div>
-  <p class="subtitle">Classement live</p>
-  <div class="top-actions">
-    <a href="index.html">← Grille & inscription</a>
-    <a href="mon-score.html">Voir mon score</a>
-    <a href="#" id="btnRefresh">Actualiser</a>
-  </div>
+  <div class="badge-deadline">⏱ Date limite : 11 juin 2026</div>
 </header>
+
+<nav id="tabs">
+  <a href="index.html" class="tab-link">👤 Inscription</a>
+  <a href="index.html#poules" class="tab-link">⚽ Phase de Groupes</a>
+  <a href="index.html#finale" class="tab-link">🎯 Phase Finale</a>
+  <a href="index.html#bonus" class="tab-link">🌟 Questions Bonus</a>
+  <a href="index.html#regles" class="tab-link">📋 Règlement</a>
+  <a href="classement.html" class="tab-link active">🏆 Classement</a>
+</nav>
+
+<div class="page-subactions">
+  <a href="mon-score.html">Voir mon score</a>
+  <button type="button" id="btnRefresh">Actualiser</button>
+</div>
+
 <main class="container">
   <p class="meta" id="metaLine">Chargement…</p>
   <div id="content"></div>
@@ -367,11 +434,17 @@ function renderTable(rows) {
       <td class="pts">${r.tableau}</td>
       <td class="pts">${r.bonus}</td>
       <td class="pts total">${r.total}</td>
-      <td>${detail}</td>
+      <td class="col-detail">${detail}</td>
     </tr>`;
   }).join('');
   return `<div class="leaderboard-wrap"><table class="lb"><thead><tr>
-    <th>#</th><th>Participant</th><th>Poules</th><th>Tableau & KO</th><th>Bonus</th><th>Total</th><th></th>
+    <th class="col-rank">#</th>
+    <th class="col-name">Participant</th>
+    <th class="col-pts">Poules</th>
+    <th class="col-pts">Tableau & finales</th>
+    <th class="col-pts">Bonus</th>
+    <th class="col-pts">Total</th>
+    <th class="col-detail">Détail</th>
   </tr></thead><tbody>${trs}</tbody></table></div>`;
 }
 
