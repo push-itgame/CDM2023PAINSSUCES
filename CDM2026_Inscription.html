@@ -412,17 +412,6 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   border-color: rgba(200,168,75,0.45);
   background: rgba(200,168,75,0.12);
 }
-.score-picker--ko .score-btn {
-  width: 1.85rem;
-  height: 1.85rem;
-  font-size: .78rem;
-}
-.score-picker--ko .score-btn-more {
-  height: 1.45rem;
-  min-width: 2.2rem;
-  font-size: .58rem;
-}
-
 /* Carte type « score TV » (poules + KO) */
 .tv-board {
   background: var(--card);
@@ -461,6 +450,13 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   text-align: left;
 }
 .tv-team-name.tv-team-right { text-align: right; }
+.tv-team-name.is-winner {
+  color: var(--gold);
+  background: rgba(200,168,75,0.1);
+  border-radius: 4px;
+  padding: .15rem .25rem;
+}
+.tv-team-name.is-winner::before { content: '▸ '; opacity: .7; }
 .tv-score-row {
   display: flex;
   align-items: flex-start;
@@ -592,7 +588,6 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   font-size: .75rem;
   cursor: pointer;
 }
-
 .score-sep { display: none; }
 .score-input { display: none; }
 
@@ -680,18 +675,9 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   color: var(--text);
   margin-bottom: .75rem;
 }
-.ko-list { display: flex; flex-direction: column; gap: .5rem; }
-.ko-match {
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  background: var(--card);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 6px;
-  padding: .65rem .75rem;
-  font-size: .85rem;
-}
-.ko-match.ready { border-color: rgba(200,168,75,0.2); }
+.ko-list { display: flex; flex-direction: column; gap: .75rem; }
+.ko-match-card.ready { border-color: rgba(200,168,75,0.25); }
+.ko-match-card.has-winner { border-color: rgba(200,168,75,0.3); }
 .ko-duel {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -813,13 +799,15 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 }
 .bracket-ladder {
   display: flex;
-  gap: .65rem;
-  min-width: 720px;
+  gap: 1rem;
+  min-width: 1500px;
   align-items: stretch;
 }
 .bracket-col {
-  flex: 1;
-  min-width: 148px;
+  flex: 0 0 auto;
+  width: 290px;
+  min-width: 290px;
+  max-width: 290px;
   display: flex;
   flex-direction: column;
 }
@@ -838,21 +826,21 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  gap: .45rem;
+  gap: .65rem;
 }
-.bracket-node {
-  background: var(--card);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 4px;
-  padding: .45rem .5rem;
-  font-size: .72rem;
+.bracket-col .ko-match-card .ko-meta {
+  font-size: .58rem;
+  margin-bottom: .25rem;
 }
-.bracket-node.ready { border-color: rgba(200,168,75,0.25); }
-.bracket-node-meta {
-  font-family: 'DM Mono', monospace;
-  font-size: .55rem;
-  color: var(--muted);
+.bracket-col .ko-match-card .ko-parents-hint {
+  font-size: .58rem;
   margin-bottom: .35rem;
+}
+.ladder-hint-note {
+  font-size: .75rem;
+  color: var(--muted);
+  margin: -.75rem 0 1rem;
+  line-height: 1.45;
 }
 .bracket-team {
   padding: .2rem 0;
@@ -1218,17 +1206,18 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   </div>
 
   <div class="finale-view-toggle">
-    <button type="button" class="finale-view-btn active" data-finale-view="ladder">📊 Tableau escalier</button>
-    <button type="button" class="finale-view-btn" data-finale-view="list">📋 Liste par tour</button>
+    <button type="button" class="finale-view-btn active" data-finale-view="list">📋 Liste par tour</button>
+    <button type="button" class="finale-view-btn" data-finale-view="ladder">📊 Tableau escalier</button>
   </div>
 
-  <div class="finale-view-panel active" id="finale-ladder-panel">
+  <div class="finale-view-panel" id="finale-ladder-panel">
+    <p class="ladder-hint-note">Même saisie que les poules — faites défiler horizontalement pour voir tous les tours.</p>
     <div class="bracket-scroll">
       <div class="bracket-ladder" id="bracket-ladder-root"></div>
     </div>
   </div>
 
-  <div class="finale-view-panel" id="finale-list-panel">
+  <div class="finale-view-panel active" id="finale-list-panel">
   <div class="phase-section">
     <h3>Seizièmes de finale</h3>
     <div class="ko-list" id="ko-r32-root"></div>
@@ -1805,7 +1794,7 @@ function koParentsHint(mid) {
 }
 
 function getActiveFinaleView() {
-  return document.querySelector('.finale-view-btn.active')?.dataset.finaleView || 'ladder';
+  return document.querySelector('.finale-view-btn.active')?.dataset.finaleView || 'list';
 }
 
 function syncScoreToDom(id) {
@@ -1842,33 +1831,43 @@ function createKoMatchElement(mid, compact) {
   const hVal = parseScoreVal(h);
   const aVal = parseScoreVal(a);
   const ready = !!(teamA && teamB);
-  const isDraw = ready && Number.isFinite(hVal) && hVal === aVal;
-  let winnerFromScore = null;
-  if (ready && Number.isFinite(hVal) && Number.isFinite(aVal)) {
-    if (hVal > aVal) winnerFromScore = teamA;
-    else if (aVal > hVal) winnerFromScore = teamB;
+  const bothScores = Number.isFinite(hVal) && Number.isFinite(aVal);
+  const isDraw = ready && bothScores && hVal === aVal;
+  let activeWinner = null;
+  if (ready && bothScores) {
+    if (hVal > aVal) activeWinner = teamA;
+    else if (aVal > hVal) activeWinner = teamB;
+    else activeWinner = pick || null;
   }
-  const activeWinner = pick || winnerFromScore;
 
+  const fillCls = bothScores ? 'has-score' : (h !== '' || a !== '') ? 'partial' : 'incomplete';
   const el = document.createElement('div');
-  el.className = (compact ? 'bracket-node tv-board tv-board--sm' : 'ko-match tv-board') +
+  el.className = 'tv-board match-card ko-match-card ' + fillCls +
     (ready ? ' ready' : ' ko-wait') + (activeWinner ? ' has-winner' : '');
+  el.dataset.koMid = mid;
 
-  const displayScore = (h !== '' || a !== '') ? formatScoreLabel(h) + ' : ' + formatScoreLabel(a) : '— : —';
-  const displayCls = (h !== '' && a !== '') ? 'tv-display' : 'tv-display empty';
+  const displayScore = formatDisplayScore(h, a);
+  const displayCls = (h !== '' || a !== '') ? 'tv-display' : 'tv-display empty';
+  const homeCls = 'tv-team-name' + (activeWinner === teamA && teamA ? ' is-winner' : '');
+  const awayCls = 'tv-team-name tv-team-right' + (activeWinner === teamB && teamB ? ' is-winner' : '');
 
-  let html = `<div class="${compact ? 'bracket-node-meta' : 'ko-meta'}">${metaKo(mid)}</div>`;
+  let html = `<div class="ko-meta">${metaKo(mid)}</div>`;
   const hint = koParentsHint(mid);
   if (hint) html += `<div class="ko-parents-hint">${escapeHtml(hint)}</div>`;
-  html += `<div class="${displayCls}">${displayScore}</div>`;
-  html += `<div class="tv-team-line tv-team-home${activeWinner === teamA && teamA ? ' is-winner' : ''}">${escapeHtml(teamA) || 'En attente…'}</div>`;
+  html += `<div class="${displayCls}" id="display-km${mid}">${displayScore}</div>`;
 
   if (ready) {
-    html += buildTvScoreRow(koInputId(mid, 'h'), koInputId(mid, 'a'), 'ko', teamA, teamB);
-    html += `<div class="tv-team-line tv-team-away${activeWinner === teamB && teamB ? ' is-winner' : ''}">${escapeHtml(teamB)}</div>`;
+    html += `<div class="tv-team-row">
+      <span class="${homeCls}">${escapeHtml(teamA)}</span>
+      <span class="${awayCls}">${escapeHtml(teamB)}</span>
+    </div>`;
+    html += buildTvScoreRow(koInputId(mid, 'h'), koInputId(mid, 'a'), 'group', teamA, teamB);
   } else {
+    html += `<div class="tv-team-row">
+      <span class="tv-team-name">${escapeHtml(teamA) || 'En attente…'}</span>
+      <span class="tv-team-name tv-team-right">…</span>
+    </div>`;
     html += '<div class="ko-wait-msg">En attente du tour précédent</div>';
-    html += `<div class="tv-team-line tv-team-away">…</div>`;
   }
 
   el.innerHTML = html;
@@ -1997,18 +1996,19 @@ function formatScoreLabel(val) {
   return n >= 15 ? '15+' : String(n);
 }
 
+function formatDisplayScore(h, a) {
+  return formatScoreLabel(h) + ' : ' + formatScoreLabel(a);
+}
+
 function buildScorePickerHTML(inputId, variant = 'group', teamLabel = '') {
-  const isKo = variant === 'ko';
-  const pickerCls = isKo ? ' score-picker--ko' : ' score-picker--group';
-  const btnExtra = isKo ? ' score-btn--ko' : '';
   const val = getScoreRaw(inputId);
   const teamAttr = teamLabel ? ' data-team="' + escapeHtml(teamLabel) + '"' : '';
   const quickBtns = QUICK_SCORES.map(n =>
-    `<button type="button" class="score-btn${btnExtra}" data-val="${n}">${n}</button>`
+    `<button type="button" class="score-btn" data-val="${n}">${n}</button>`
   ).join('');
-  return `<div class="score-picker${pickerCls}" data-for="${inputId}"${teamAttr}>
+  return `<div class="score-picker score-picker--group" data-for="${inputId}"${teamAttr}>
     <div class="score-picker-digits">${quickBtns}</div>
-    <button type="button" class="score-btn score-btn-more${btnExtra}" data-action="more">5+</button>
+    <button type="button" class="score-btn score-btn-more" data-action="more">5+</button>
     <input type="hidden" class="score-value" id="${inputId}" value="${val}">
   </div>`;
 }
@@ -2086,6 +2086,7 @@ function openScoreSheet(inputId, teamName) {
   const grid = document.getElementById('score-sheet-grid');
   scoreSheetTarget = { inputId, teamName };
   title.textContent = teamName + ' — choisir le score';
+  grid.className = 'score-sheet-grid';
   grid.innerHTML = MORE_SCORES.map(n => {
     const label = n >= 15 ? '15+' : String(n);
     return `<button type="button" class="score-btn" data-val="${n}">${label}</button>`;
