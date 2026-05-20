@@ -120,6 +120,19 @@ header h1 span { color: var(--text); }
   color: var(--gold); border: 1px solid var(--border); padding: .5rem 1rem; border-radius: 3px; text-decoration: none;
 }
 .top-actions a:hover { background: rgba(200,168,75,0.1); }
+.lb-link {
+  font-family: 'DM Mono', monospace;
+  font-size: .65rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: .25rem .45rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.lb-link:hover { background: rgba(200,168,75,0.1); }
 @media (max-width: 520px) {
   header { padding: 1.75rem .85rem 2rem; }
   .header-brand { padding-bottom: 0; width: 100%; }
@@ -166,6 +179,7 @@ table.lb tr:hover td { background: rgba(200,168,75,0.04); }
   <p class="subtitle">Classement live</p>
   <div class="top-actions">
     <a href="index.html">← Grille & inscription</a>
+    <a href="mon-score.html">Voir mon score</a>
     <a href="#" id="btnRefresh">Actualiser</a>
   </div>
 </header>
@@ -341,7 +355,11 @@ function renderTable(rows) {
   if (!rows.length) {
     return '<div class="empty"><p>Aucun participant pour le moment.</p><p style="margin-top:.75rem">Les joueurs envoient leur grille depuis la page d’inscription (<strong>Envoyer ma grille</strong>).</p></div>';
   }
-  const trs = rows.map((r, i) => `
+  const trs = rows.map((r, i) => {
+    const detail = r.email
+      ? `<a class="lb-link" href="mon-score.html?email=${encodeURIComponent(r.email)}">Détail</a>`
+      : '—';
+    return `
     <tr>
       <td class="rank">${i + 1}</td>
       <td><div class="name">${escapeHtml(r.label)}</div><div class="sub">${escapeHtml(r.sub || '')}</div></td>
@@ -349,9 +367,11 @@ function renderTable(rows) {
       <td class="pts">${r.tableau}</td>
       <td class="pts">${r.bonus}</td>
       <td class="pts total">${r.total}</td>
-    </tr>`).join('');
+      <td>${detail}</td>
+    </tr>`;
+  }).join('');
   return `<div class="leaderboard-wrap"><table class="lb"><thead><tr>
-    <th>#</th><th>Participant</th><th>Poules</th><th>Tableau & KO</th><th>Bonus</th><th>Total</th>
+    <th>#</th><th>Participant</th><th>Poules</th><th>Tableau & KO</th><th>Bonus</th><th>Total</th><th></th>
   </tr></thead><tbody>${trs}</tbody></table></div>`;
 }
 
@@ -388,7 +408,8 @@ async function refresh() {
       const label = [id.prenom, id.nom].filter(Boolean).join(' ') || 'Anonyme';
       const sub = id.equipe || id.email || '';
       const sc = scoreParticipant(p, resultats);
-      return { label, sub, ...sc };
+      const email = (id.email || '').trim();
+      return { label, sub, email, ...sc };
     }).sort((a, b) => b.total - a.total || a.label.localeCompare(b.label, 'fr'));
 
     const maj = resultats.meta?.misAJour || 'non renseignée';

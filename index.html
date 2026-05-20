@@ -267,7 +267,52 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
 /* ───── MATCH GRID ───── */
-.group-block { margin-bottom: 2rem; }
+.group-block { margin-bottom: .85rem; }
+.group-fold {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--card);
+}
+.group-fold-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .7rem .85rem;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+}
+.group-fold.open .group-fold-head {
+  border-bottom-color: rgba(200,168,75,0.15);
+}
+.group-fold-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: .18em;
+  color: var(--text);
+  text-transform: uppercase;
+}
+.group-fold-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: .62rem;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+.group-fold-chevron {
+  font-size: .7rem;
+  color: var(--muted);
+  transition: transform .15s;
+}
+.group-fold.open .group-fold-chevron { transform: rotate(180deg); }
+.group-fold-body {
+  display: none;
+  padding: .65rem .75rem .75rem;
+}
+.group-fold.open .group-fold-body { display: block; }
 .group-label {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1rem;
@@ -304,44 +349,6 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 .match-card.has-score { border-color: rgba(200,168,75,0.25); }
 .match-card.partial { border-color: rgba(231,76,60,0.35); }
 .match-card.incomplete { opacity: .92; }
-.match-card.pred-hit,
-.ko-match-card.pred-hit {
-  border-color: rgba(39,174,96,0.42);
-  background: rgba(39,174,96,0.06);
-  box-shadow: inset 0 0 0 1px rgba(39,174,96,0.12);
-}
-.pred-feedback-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: .35rem;
-  min-height: 1.1rem;
-}
-.pred-pts-badge {
-  display: inline-block;
-  font-family: 'DM Mono', monospace;
-  font-size: .6rem;
-  font-weight: 600;
-  letter-spacing: .04em;
-  color: #6fcf97;
-  background: rgba(39,174,96,0.14);
-  border: 1px solid rgba(39,174,96,0.32);
-  border-radius: 3px;
-  padding: .1rem .38rem;
-  line-height: 1.35;
-}
-.bracket-team-box.pred-hit-team {
-  border-color: rgba(39,174,96,0.48) !important;
-  background: rgba(39,174,96,0.12) !important;
-  color: #b8e6c8 !important;
-}
-.bracket-team-box.pred-hit-team.is-winner-pick {
-  box-shadow: 0 0 0 1px rgba(39,174,96,0.35), 0 0 0 1px rgba(200,168,75,0.25);
-}
-.bracket-team-box .pred-pts-badge {
-  display: block;
-  margin-top: .22rem;
-  font-size: .55rem;
-}
 .match-card.highlight-pulse {
   animation: matchPulse 1.2s ease 2;
   border-color: var(--gold) !important;
@@ -1797,7 +1804,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     <p class="inscription-export-note" style="margin-top:.75rem;font-size:.85rem;color:var(--muted);line-height:1.6">
       À la fin, cliquez sur <strong style="color:var(--text)">Envoyer ma grille</strong> : votre pronostic est enregistré automatiquement (e-mail obligatoire).
       Vous pouvez aussi <strong style="color:var(--text)">télécharger le JSON</strong> en secours.
-      Suivez le <a href="classement.html" style="color:var(--gold)">classement live</a>.
+      Suivez le <a href="classement.html" style="color:var(--gold)">classement live</a> ou <a href="mon-score.html" style="color:var(--gold)">voir votre score</a>.
     </p>
   </div>
 
@@ -1835,6 +1842,9 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     </p>
     <div class="missing-chips" id="missing-chips"></div>
   </div>
+  <p style="font-size:.78rem;color:var(--muted);margin:.75rem 0;line-height:1.45">
+    Cliquez sur un <strong style="color:var(--text)">groupe</strong> pour l’ouvrir ou le refermer. Vos points détaillés : <a href="mon-score.html" style="color:var(--gold)">Voir mon score</a>.
+  </p>
   <div id="groups-container"></div>
 
   <div class="thirds-card" id="thirds-global-wrap" hidden>
@@ -2707,187 +2717,6 @@ function isEtapeUnlocked(n) {
   return effectiveEtapeDebloquee() >= n;
 }
 
-// ─── FEEDBACK PRONOS (vs resultats.json) ─────────────────────────────────────
-function parseIntSafe(v) {
-  const n = parseInt(String(v ?? '').trim(), 10);
-  return Number.isFinite(n) ? n : null;
-}
-
-function normalizeTeamName(s) {
-  return String(s ?? '').trim().toLowerCase();
-}
-
-function matchOutcome(h, a) {
-  if (h == null || a == null) return null;
-  if (h > a) return 'H';
-  if (h < a) return 'A';
-  return 'D';
-}
-
-function formatPtsBadge(pts) {
-  const n = Number(pts);
-  if (!Number.isFinite(n) || n <= 0) return '';
-  const label = Number.isInteger(n) ? String(n) : String(n);
-  return '<span class="pred-pts-badge">+' + label + '</span>';
-}
-
-function getOfficialBareme() {
-  return OFFICIAL.phaseFinalePourBareme || {};
-}
-
-function officialList32() {
-  const b = getOfficialBareme();
-  const list = b.liste32QualifiesIssuesPoules?.length
-    ? b.liste32QualifiesIssuesPoules
-    : (OFFICIAL.equipesQualifiees32Liste || []);
-  return list.filter(Boolean);
-}
-
-const TABLEAU_ROUND_META = {
-  r32: { etapeMin: 2, ptsPer: 3, etape2Key: 'r32', baremeKey: 'liste32QualifiesIssuesPoules' },
-  r16: { etapeMin: 3, ptsPer: 5, etape2Key: 'r16', baremeKey: 'vainqueursSeiziemePourHuitiemes16' },
-  qf: { etapeMin: 4, ptsPer: 12, etape2Key: 'qf', baremeKey: 'vainqueursHuitiemesPourQuarts8' },
-  sf: { etapeMin: 5, ptsPer: 20, etape2Key: 'sf', baremeKey: 'vainqueursQuartsPourDemis4' },
-  finalists: { etapeMin: 6, ptsPer: 35, etape2Key: 'finalists', baremeKey: 'finalistesChoisis' },
-  winner: { etapeMin: 7, ptsPer: 50, etape2Key: 'winner', baremeKey: 'vainqueurFinal' },
-};
-
-function bracketRoundForMid(mid) {
-  mid = Number(mid);
-  if (mid >= 73 && mid <= 88) return 'r32';
-  if (mid >= 89 && mid <= 96) return 'r16';
-  if (mid >= 97 && mid <= 100) return 'qf';
-  if (mid >= 101 && mid <= 102) return 'sf';
-  if (mid === 104) return 'finalists';
-  return null;
-}
-
-function shouldRevealTableauRound(roundKey) {
-  const meta = TABLEAU_ROUND_META[roundKey];
-  if (!meta) return false;
-  if (roundKey === 'r32') {
-    return officialList32().length >= 32 || effectiveEtapeDebloquee() >= meta.etapeMin;
-  }
-  if (roundKey === 'winner') {
-    const w = getOfficialBareme().vainqueurFinal || OFFICIAL.vainqueurFinal || '';
-    return !!w.trim() && effectiveEtapeDebloquee() >= meta.etapeMin;
-  }
-  const realList = getOfficialBareme()[meta.baremeKey] || [];
-  return realList.length > 0 && effectiveEtapeDebloquee() >= meta.etapeMin;
-}
-
-function userTableauList(roundKey) {
-  syncEtape2FromPicks();
-  if (roundKey === 'r32') {
-    return etape2.r32.length === 32 ? etape2.r32 : qualifies32Liste();
-  }
-  if (roundKey === 'winner') {
-    return etape2.winner ? [etape2.winner] : [];
-  }
-  const key = TABLEAU_ROUND_META[roundKey]?.etape2Key;
-  return key ? (etape2[key] || []) : [];
-}
-
-function teamTableauPts(team, roundKey) {
-  if (!team || !roundKey || !shouldRevealTableauRound(roundKey)) return null;
-  const meta = TABLEAU_ROUND_META[roundKey];
-  const nt = normalizeTeamName(team);
-  if (!nt) return null;
-
-  let realList = [];
-  if (roundKey === 'r32') realList = officialList32();
-  else if (roundKey === 'winner') {
-    const w = getOfficialBareme().vainqueurFinal || OFFICIAL.vainqueurFinal || '';
-    if (normalizeTeamName(w) !== nt) return null;
-    return normalizeTeamName(etape2.winner) === nt ? meta.ptsPer : null;
-  } else {
-    realList = getOfficialBareme()[meta.baremeKey] || [];
-  }
-
-  const realSet = new Set(realList.map(normalizeTeamName).filter(Boolean));
-  if (!realSet.has(nt)) return null;
-  const predSet = new Set(userTableauList(roundKey).map(normalizeTeamName).filter(Boolean));
-  return predSet.has(nt) ? meta.ptsPer : null;
-}
-
-function scorePouleMatch(num) {
-  const key = 'Match ' + num;
-  const real = OFFICIAL.matchs?.[key];
-  if (!real) return null;
-  const rh = parseIntSafe(real.scoreHome ?? real.homeScore);
-  const ra = parseIntSafe(real.scoreAway ?? real.awayScore);
-  if (rh == null || ra == null) return null;
-  const ph = parseIntSafe(getScoreRaw('m' + num + '-h'));
-  const pa = parseIntSafe(getScoreRaw('m' + num + '-a'));
-  if (ph == null || pa == null) return null;
-  const ro = matchOutcome(rh, ra);
-  const po = matchOutcome(ph, pa);
-  if (!ro || !po || ro !== po) return { hit: false, pts: 0 };
-  const exact = rh === ph && ra === pa;
-  let base = exact ? 5 : 3;
-  const totalReal = rh + ra;
-  if (totalReal >= 6) base *= 2;
-  else if (totalReal >= 4) base *= 1.5;
-  return { hit: true, pts: Math.round(base * 10) / 10 };
-}
-
-function koEtapeForMid(mid) {
-  const def = ETAPE_KO.find(d => mid >= d.min && mid <= d.max);
-  return def ? def.n : 99;
-}
-
-function scoreKoMatch(mid) {
-  const key = 'Match ' + mid;
-  const realW = OFFICIAL.vainqueursTableauElimination?.[key]
-    || OFFICIAL.vainqueursTableauElimination?.[String(mid)] || '';
-  if (!realW) return null;
-  if (effectiveEtapeDebloquee() < koEtapeForMid(mid)) return null;
-
-  const scReal = OFFICIAL.scoresElimination?.[key] || OFFICIAL.scoresElimination?.[String(mid)];
-  const exactInResultats = scReal && parseIntSafe(scReal.scoreHome) != null && parseIntSafe(scReal.scoreAway) != null;
-
-  if (exactInResultats) {
-    const ph = parseIntSafe(getScoreRaw(koInputId(mid, 'h')));
-    const pa = parseIntSafe(getScoreRaw(koInputId(mid, 'a')));
-    const rh = parseIntSafe(scReal.scoreHome);
-    const ra = parseIntSafe(scReal.scoreAway);
-    if (ph != null && pa != null && ph === rh && pa === ra) {
-      return { hit: true, pts: 10 };
-    }
-  }
-
-  const predW = kosWinners[mid] || '';
-  if (normalizeTeamName(predW) && normalizeTeamName(predW) === normalizeTeamName(realW)) {
-    return { hit: true, pts: 6 };
-  }
-  return { hit: false, pts: 0 };
-}
-
-function applyPredFeedbackToCard(card, result) {
-  if (!card) return;
-  card.querySelector('.pred-feedback-row')?.remove();
-  card.classList.remove('pred-hit');
-  if (!result?.hit) return;
-  card.classList.add('pred-hit');
-  const row = document.createElement('div');
-  row.className = 'pred-feedback-row';
-  row.innerHTML = formatPtsBadge(result.pts);
-  card.insertBefore(row, card.firstChild);
-}
-
-function applyAllPouleFeedback() {
-  for (const rows of Object.values(GROUPS)) {
-    for (const [num] of rows) {
-      const card = document.querySelector('.match-card[data-match="' + num + '"]');
-      applyPredFeedbackToCard(card, scorePouleMatch(num));
-    }
-  }
-}
-
-function applyKoPredFeedback(card, mid) {
-  applyPredFeedbackToCard(card, scoreKoMatch(mid));
-}
-
 function etape2PoolForKey(key) {
   if (key === 'r32') return [...NATIONS];
   if (key === 'r16') return [...etape2.r32];
@@ -3124,7 +2953,6 @@ function createOfficialScoreCard(mid, editable) {
     });
     el.appendChild(tie);
   }
-  applyKoPredFeedback(el, mid);
   return el;
 }
 
@@ -3144,19 +2972,9 @@ function countEtapeScoreProgress(min, max) {
 function mkBracketTeamBtn(mid, team, locked) {
   if (!team) return '<span class="bracket-team-box">—</span>';
   const pick = etape2Pick[mid];
-  const round = bracketRoundForMid(mid);
-  let pts = null;
-  if (mid === 104) {
-    if (pick === team) pts = teamTableauPts(team, 'winner') ?? teamTableauPts(team, 'finalists');
-    else pts = teamTableauPts(team, 'finalists');
-  } else {
-    pts = round ? teamTableauPts(team, round) : null;
-  }
-  let cls = 'bracket-team-box clickable' + (pick === team ? ' is-winner-pick' : '');
-  if (pts != null) cls += ' pred-hit-team';
+  const cls = 'bracket-team-box clickable' + (pick === team ? ' is-winner-pick' : '');
   const dis = locked ? ' disabled' : '';
-  const badge = pts != null ? formatPtsBadge(pts) : '';
-  return `<button type="button" class="${cls}" data-bracket-mid="${mid}" data-bracket-team="${escapeHtml(team)}"${dis}>${escapeHtml(team)}${badge}</button>`;
+  return `<button type="button" class="${cls}" data-bracket-mid="${mid}" data-bracket-team="${escapeHtml(team)}"${dis}>${escapeHtml(team)}</button>`;
 }
 
 function wireBracketCard(card, mid) {
@@ -3452,7 +3270,6 @@ function updateKoMatchDisplay(mid) {
   if (!card) return;
   card.classList.toggle('has-score', both);
   card.classList.toggle('partial', (h !== '' || a !== '') && !both);
-  applyKoPredFeedback(card, mid);
 }
 
 function setScore(inputId, value) {
@@ -3535,12 +3352,59 @@ function wireScorePickers(root) {
 }
 
 // ─── BUILD GROUPS ────────────────────────────────────────────────────────────
+function groupFillSummary(matches) {
+  let complete = 0;
+  for (const [num] of matches) {
+    if (getMatchFillStatus(num) === 'complete') complete++;
+  }
+  return complete + '/' + matches.length;
+}
+
+function wireGroupFolds(container) {
+  container.querySelectorAll('.group-fold').forEach(fold => {
+    const head = fold.querySelector('.group-fold-head');
+    if (!head || head.dataset.wired) return;
+    head.dataset.wired = '1';
+    const toggle = () => {
+      fold.classList.toggle('open');
+      head.setAttribute('aria-expanded', fold.classList.contains('open') ? 'true' : 'false');
+    };
+    head.addEventListener('click', toggle);
+    head.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+}
+
+function updateGroupFoldMeta() {
+  document.querySelectorAll('.group-fold').forEach(fold => {
+    const gname = fold.dataset.groupName;
+    const matches = GROUPS[gname];
+    if (!matches) return;
+    const meta = fold.querySelector('.group-fold-meta');
+    if (meta) meta.textContent = groupFillSummary(matches) + ' matchs remplis';
+  });
+}
+
 function buildGroups() {
   const container = document.getElementById('groups-container');
+  let idx = 0;
   for (const [gname, matches] of Object.entries(GROUPS)) {
     const block = document.createElement('div');
     block.className = 'group-block';
-    block.innerHTML = `<div class="group-label">${escapeHtml(gname)}</div>`;
+    const openCls = idx === 0 ? ' open' : '';
+    block.innerHTML = `
+      <div class="group-fold${openCls}" data-group-name="${escapeAttr(gname)}">
+        <div class="group-fold-head" role="button" tabindex="0" aria-expanded="${idx === 0 ? 'true' : 'false'}">
+          <div>
+            <div class="group-fold-title">${escapeHtml(gname)}</div>
+            <div class="group-fold-meta">${groupFillSummary(matches)} matchs remplis</div>
+          </div>
+          <span class="group-fold-chevron">▼</span>
+        </div>
+        <div class="group-fold-body"></div>
+      </div>`;
+    const body = block.querySelector('.group-fold-body');
     for (const [num, home, away] of matches) {
       const row = document.createElement('div');
       row.className = 'match-row';
@@ -3551,14 +3415,16 @@ function buildGroups() {
           ${buildScoreboardHTML('display-m' + num, home, away)}
           ${buildTvScoreRow(keyH, keyA, 'group', home, away)}
         </div>`;
-      block.appendChild(row);
+      body.appendChild(row);
     }
     const st = document.createElement('div');
     st.className = 'standings-mount';
     st.dataset.groupTitle = gname;
-    block.appendChild(st);
+    body.appendChild(st);
     container.appendChild(block);
+    idx++;
   }
+  wireGroupFolds(container);
   wireScorePickers(container);
 }
 
@@ -3585,6 +3451,11 @@ function getAllMatchStatuses() {
 
 function scrollToMatch(num) {
   const card = document.querySelector('.match-card[data-match="' + num + '"]');
+  const fold = card?.closest('.group-fold');
+  if (fold && !fold.classList.contains('open')) {
+    fold.classList.add('open');
+    fold.querySelector('.group-fold-head')?.setAttribute('aria-expanded', 'true');
+  }
   card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   card?.classList.add('highlight-pulse');
   setTimeout(() => card?.classList.remove('highlight-pulse'), 2400);
@@ -3612,7 +3483,7 @@ function renderMissingMatches() {
     }
   }
 
-  applyAllPouleFeedback();
+  updateGroupFoldMeta();
 
   if (complete.length === 72) {
     chips.innerHTML = R32_VALIDATION.ok
