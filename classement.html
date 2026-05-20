@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDM2026 — Classement live</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C8A84B;
+  --gold-light: #E5C97A;
+  --dark: #0A0A0F;
+  --surface: #111118;
+  --card: #17171F;
+  --border: rgba(200,168,75,0.2);
+  --text: #F0EDE5;
+  --muted: #8A8880;
+  --green: #27AE60;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--dark); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+header {
+  padding: 2.5rem 1.5rem 2rem; text-align: center;
+  border-bottom: 1px solid var(--border);
+  background: radial-gradient(ellipse 120% 80% at 50% 0%, rgba(200,168,75,0.12) 0%, transparent 70%);
+}
+header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 8vw, 4.5rem); color: var(--gold); letter-spacing: .08em; }
+header p { font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; margin-top: .5rem; }
+.top-actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+.top-actions a {
+  font-family: 'DM Mono', monospace; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gold); border: 1px solid var(--border); padding: .5rem 1rem; border-radius: 3px; text-decoration: none;
+}
+.top-actions a:hover { background: rgba(200,168,75,0.1); }
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+.meta { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--muted); margin-bottom: 1.5rem; }
+.meta strong { color: var(--text); }
+.empty {
+  background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 2rem; text-align: center; color: var(--muted);
+}
+.leaderboard-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--card); }
+table.lb { width: 100%; border-collapse: collapse; min-width: 720px; }
+table.lb th {
+  font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); text-align: left; padding: .75rem .6rem; border-bottom: 1px solid var(--border); background: var(--surface);
+}
+table.lb td { padding: .65rem .6rem; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: .9rem; }
+table.lb tr:hover td { background: rgba(200,168,75,0.04); }
+.rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--gold); width: 2.5rem; }
+.name { font-weight: 600; }
+.sub { font-size: .78rem; color: var(--muted); }
+.pts { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--gold); text-align: right; }
+.total { font-size: 1rem; }
+.err { color: #E74C3C; margin-top: 1rem; font-size: .85rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Classement live</h1>
+  <p>CDM2026 — Concours de pronostics</p>
+  <div class="top-actions">
+    <a href="index.html">← Grille & inscription</a>
+    <a href="#" id="btnRefresh">Actualiser</a>
+  </div>
+</header>
+<main class="container">
+  <p class="meta" id="metaLine">Chargement…</p>
+  <div id="content"></div>
+  <p class="err" id="errLine" hidden></p>
+</main>
+<script>
+const BONUS_NUMERIC_TOLERANCE = 3;
+const KO_MATCH_MIN = 73;
+const KO_MATCH_MAX = 104;
+
+function parseIntSafe(v) {
+  const n = parseInt(String(v ?? '').trim(), 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+function matchOutcome(h, a) {
+  if (h == null || a == null) return null;
+  if (h > a) return 'H';
+  if (h < a) return 'A';
+  return 'D';
+}
+
+function normalizeTeam(s) {
+  return String(s ?? '').trim().toLowerCase();
+}
+
+function setIntersectionScore(predList, realList, ptsPer) {
+  const real = new Set((realList || []).map(normalizeTeam).filter(Boolean));
+  let pts = 0;
+  for (const t of predList || []) {
+    if (real.has(normalizeTeam(t))) pts += ptsPer;
+  }
+  return pts;
+}
+
+function scoreGroupMatches(predMatchs, realMatchs) {
+  let pts = 0;
+  for (const [key, real] of Object.entries(realMatchs || {})) {
+    const pred = (predMatchs || {})[key];
+    if (!pred || !real) continue;
+    const rh = parseIntSafe(real.scoreHome ?? real.homeScore);
+    const ra = parseIntSafe(real.scoreAway ?? real.awayScore);
+    const ph = parseIntSafe(pred.scoreHome);
+    const pa = parseIntSafe(pred.scoreAway);
+    if (rh == null || ra == null || ph == null || pa == null) continue;
+    const ro = matchOutcome(rh, ra);
+    const po = matchOutcome(ph, pa);
+    if (!ro || !po || ro !== po) continue;
+    const exact = rh === ph && ra === pa;
+    let base = exact ? 5 : 3;
+    const totalReal = rh + ra;
+    if (totalReal >= 6) base *= 2;
+    else if (totalReal >= 4) base *= 1.5;
+    pts += base;
+  }
+  return Math.round(pts * 10) / 10;
+}
+
+function scoreTableau(participant, resultats) {
+  const pred = participant.phaseFinalePourBareme || {};
+  const real = resultats.phaseFinalePourBareme || {};
+  const list32Pred = pred.liste32QualifiesIssuesPoules?.length
+    ? pred.liste32QualifiesIssuesPoules
+    : (participant.equipesQualifiees32Liste || []);
+  const list32Real = real.liste32QualifiesIssuesPoules?.length
+    ? real.liste32QualifiesIssuesPoules
+    : (resultats.equipesQualifiees32Liste || []);
+
+  let pts = 0;
+  pts += setIntersectionScore(list32Pred, list32Real, 3);
+  pts += setIntersectionScore(pred.vainqueursSeiziemePourHuitiemes16, real.vainqueursSeiziemePourHuitiemes16, 5);
+  pts += setIntersectionScore(pred.vainqueursHuitiemesPourQuarts8, real.vainqueursHuitiemesPourQuarts8, 12);
+  pts += setIntersectionScore(pred.vainqueursQuartsPourDemis4, real.vainqueursQuartsPourDemis4, 20);
+  pts += setIntersectionScore(pred.finalistesChoisis, real.finalistesChoisis, 35);
+  if (normalizeTeam(pred.vainqueurFinal) && normalizeTeam(pred.vainqueurFinal) === normalizeTeam(real.vainqueurFinal)) {
+    pts += 50;
+  }
+  return pts;
+}
+
+function koWinnerFromScores(sc) {
+  if (!sc) return '';
+  const h = parseIntSafe(sc.scoreHome ?? sc.home);
+  const a = parseIntSafe(sc.scoreAway ?? sc.away);
+  if (h == null || a == null) return '';
+  if (h > a) return sc.homeTeam || sc.homeName || sc.home || '';
+  if (a > h) return sc.awayTeam || sc.awayName || sc.away || '';
+  return '';
+}
+
+function scoreEliminationKO(participant, resultats) {
+  const predWinners = participant.vainqueursTableauEliminationChoisis || {};
+  const realWinners = resultats.vainqueursTableauElimination || {};
+  const realScores = resultats.scoresElimination || {};
+  let pts = 0;
+
+  for (let m = KO_MATCH_MIN; m <= KO_MATCH_MAX; m++) {
+    const key = String(m);
+    const keyM = 'M' + m;
+    const realW = realWinners[key] || realWinners[keyM] || '';
+    if (!realW) continue;
+    const predW = predWinners[key] || predWinners[keyM] || '';
+    const scReal = realScores[key] || realScores[keyM];
+    const exactInResultats = scReal && parseIntSafe(scReal.scoreHome) != null && parseIntSafe(scReal.scoreAway) != null;
+
+    if (exactInResultats) {
+      const predSc = (participant.matchs || {})['Match ' + m] || participant.scoresElimination?.[key] || participant.scoresElimination?.[keyM];
+      const ph = parseIntSafe(predSc?.scoreHome);
+      const pa = parseIntSafe(predSc?.scoreAway);
+      const rh = parseIntSafe(scReal.scoreHome);
+      const ra = parseIntSafe(scReal.scoreAway);
+      if (ph != null && pa != null && ph === rh && pa === ra) {
+        pts += 10;
+        continue;
+      }
+    }
+    if (normalizeTeam(predW) && normalizeTeam(predW) === normalizeTeam(realW)) pts += 6;
+  }
+  return pts;
+}
+
+function bonusMatch(predVal, realVal, key) {
+  const p = String(predVal ?? '').trim();
+  const r = String(realVal ?? '').trim();
+  if (!p || !r) return 0;
+  if (key === 'nbButs') {
+    const pn = parseIntSafe(p);
+    const rn = parseIntSafe(r);
+    if (pn == null || rn == null) return 0;
+    if (Math.abs(pn - rn) <= BONUS_NUMERIC_TOLERANCE) return 25;
+    return 0;
+  }
+  return normalizeTeam(p) === normalizeTeam(r) ? 25 : 0;
+}
+
+function scoreBonus(predBonus, realBonus) {
+  if (!predBonus || !realBonus) return 0;
+  const keys = Object.keys(realBonus);
+  let pts = 0;
+  for (const k of keys) {
+    pts += bonusMatch(predBonus[k], realBonus[k], k);
+  }
+  return pts;
+}
+
+function scoreParticipant(participant, resultats) {
+  const poules = scoreGroupMatches(participant.matchs, resultats.matchs);
+  const tableau = scoreTableau(participant, resultats) + scoreEliminationKO(participant, resultats);
+  const bonus = scoreBonus(participant.bonus, resultats.bonus);
+  const total = Math.round((poules + tableau + bonus) * 10) / 10;
+  return { poules, tableau, bonus, total };
+}
+
+function renderTable(rows) {
+  if (!rows.length) {
+    return '<div class="empty"><p>Aucun participant pour le moment.</p><p style="margin-top:.75rem">Exportez vos grilles JSON, placez-les dans <code>data/grilles/</code>, puis exécutez <code>scripts/merge_grilles.py</code>.</p></div>';
+  }
+  const trs = rows.map((r, i) => `
+    <tr>
+      <td class="rank">${i + 1}</td>
+      <td><div class="name">${escapeHtml(r.label)}</div><div class="sub">${escapeHtml(r.sub || '')}</div></td>
+      <td class="pts">${r.poules}</td>
+      <td class="pts">${r.tableau}</td>
+      <td class="pts">${r.bonus}</td>
+      <td class="pts total">${r.total}</td>
+    </tr>`).join('');
+  return `<div class="leaderboard-wrap"><table class="lb"><thead><tr>
+    <th>#</th><th>Participant</th><th>Poules</th><th>Tableau & KO</th><th>Bonus</th><th>Total</th>
+  </tr></thead><tbody>${trs}</tbody></table></div>`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function loadJson(path) {
+  const res = await fetch(path + '?t=' + Date.now());
+  if (!res.ok) throw new Error(path + ' (' + res.status + ')');
+  return res.json();
+}
+
+async function refresh() {
+  const errEl = document.getElementById('errLine');
+  const metaEl = document.getElementById('metaLine');
+  const content = document.getElementById('content');
+  errEl.hidden = true;
+  try {
+    const [participantsData, resultats] = await Promise.all([
+      loadJson('data/participants.json'),
+      loadJson('data/resultats.json'),
+    ]);
+    const participants = participantsData.participants || [];
+    const rows = participants.map(p => {
+      const id = p.identite || {};
+      const label = [id.prenom, id.nom].filter(Boolean).join(' ') || 'Anonyme';
+      const sub = id.equipe || id.email || '';
+      const sc = scoreParticipant(p, resultats);
+      return { label, sub, ...sc };
+    }).sort((a, b) => b.total - a.total || a.label.localeCompare(b.label, 'fr'));
+
+    const maj = resultats.meta?.misAJour || 'non renseignée';
+    metaEl.innerHTML = 'Dernière mise à jour officielle : <strong>' + escapeHtml(maj) + '</strong> — ' + participants.length + ' participant(s). Rafraîchissement auto toutes les 5 min.';
+    content.innerHTML = renderTable(rows);
+  } catch (e) {
+    errEl.textContent = 'Erreur de chargement : ' + e.message + '. Ouvrez la page via un serveur local si les JSON sont bloqués (file://).';
+    errEl.hidden = false;
+    metaEl.textContent = 'Impossible de charger les données.';
+    content.innerHTML = '<div class="empty"><p>En attente de données valides.</p></div>';
+  }
+}
+
+document.getElementById('btnRefresh').addEventListener('click', e => { e.preventDefault(); refresh(); });
+refresh();
+setInterval(refresh, 5 * 60 * 1000);
+</script>
+</body>
+</html>

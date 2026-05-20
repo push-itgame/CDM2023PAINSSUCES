@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "misAJour": "",
+    "note": "Remplir par l organisateur"
+  },
+  "matchs": {},
+  "equipesQualifiees32Liste": [],
+  "phaseFinalePourBareme": {
+    "liste32QualifiesIssuesPoules": [],
+    "vainqueursSeiziemePourHuitiemes16": [],
+    "vainqueursHuitiemesPourQuarts8": [],
+    "vainqueursQuartsPourDemis4": [],
+    "finalistesChoisis": [],
+    "troisiemePlaceChoix": "",
+    "vainqueurFinal": ""
+  },
+  "vainqueursTableauElimination": {},
+  "scoresElimination": {},
+  "bonus": {
+    "meilleureAttaque": "",
+    "matchs00": "",
+    "nationsA9pts": "",
+    "nbCSC": "",
+    "meilleurButeur": "",
+    "meilleurJoueur": "",
+    "meilleurGardien": "",
+    "nbButs": "",
+    "nbCartonsRouges": "",
+    "nbProlongations": ""
+  }
+}
