@@ -1105,8 +1105,8 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 .bracket-ladder-pretty {
   display: grid;
   grid-template-columns: 168px 128px 108px 96px 88px;
-  grid-template-rows: 2.25rem repeat(17, minmax(3.25rem, auto));
-  gap: .35rem .32rem;
+  grid-template-rows: 2.25rem repeat(17, minmax(5rem, auto));
+  gap: .5rem .32rem;
   column-gap: .32rem;
   min-width: 0;
   width: max-content;
@@ -1114,7 +1114,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   min-height: 100%;
   padding-bottom: 1.5rem;
   padding-right: .25rem;
-  align-items: center;
+  align-items: start;
   position: relative;
   margin: 0 auto;
 }
@@ -1136,8 +1136,9 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 }
 .bracket-ladder-pretty .bracket-ko-card,
 .bracket-ladder-pretty .bracket-r32-card {
-  align-self: center;
+  align-self: start;
   max-width: 100%;
+  min-height: 0;
 }
 .bracket-ladder-pretty .col-head {
   font-family: 'Bebas Neue', sans-serif;
@@ -1153,12 +1154,14 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   background: linear-gradient(180deg, rgba(200,168,75,0.06) 0%, var(--card) 100%);
   border: 1px solid rgba(200,168,75,0.22);
   border-radius: 6px;
-  padding: .38rem .45rem;
+  padding: .35rem .4rem;
   font-size: .7rem;
 }
 .bracket-r32-card .bracket-match-meta {
-  font-size: .46rem;
-  margin-bottom: .2rem;
+  display: none;
+}
+.bracket-r32-card .bracket-duel {
+  gap: .25rem;
 }
 @media (min-width: 960px) {
   .bracket-ladder-scroll {
@@ -1167,7 +1170,9 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     padding-right: .5rem;
   }
   .bracket-ladder-pretty {
-    grid-template-columns: 176px 134px 114px 102px 94px;
+    grid-template-columns: 178px 136px 116px 104px 96px;
+    grid-template-rows: 2.25rem repeat(17, minmax(5.15rem, auto));
+    gap: .55rem .38rem;
     transform: translateX(-1.25%);
   }
   .bracket-ladder-pretty .bracket-col-finale {
@@ -1222,10 +1227,10 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   font-size: .72rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: .25rem;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 .bracket-ko-card.bracket-ko-card--tall {
   padding: .35rem .45rem;
@@ -1633,9 +1638,6 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   .bracket-ladder-pretty .bracket-r32-card,
   .bracket-ladder-pretty .bracket-ko-card {
     align-self: start;
-  }
-  .bracket-r32-card .bracket-match-meta {
-    display: none;
   }
   .bracket-r32-card {
     padding: .32rem .36rem;
