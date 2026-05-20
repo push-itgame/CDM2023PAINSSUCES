@@ -592,6 +592,39 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   font-size: .75rem;
   cursor: pointer;
 }
+.score-sheet-grid.ko-duel-mode {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  align-items: stretch;
+  grid-template-columns: unset;
+}
+.ko-sheet-duel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: .75rem;
+}
+.ko-sheet-block {
+  flex: 1;
+  min-width: 0;
+}
+.ko-sheet-team {
+  font-size: .82rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: .45rem;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+.ko-sheet-sep {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.75rem;
+  color: var(--gold);
+  padding-top: 1.75rem;
+  flex-shrink: 0;
+}
+.ko-sheet-block .score-picker--ko { justify-content: center; }
 
 .score-sep { display: none; }
 .score-input { display: none; }
@@ -813,13 +846,16 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 }
 .bracket-ladder {
   display: flex;
-  gap: .65rem;
-  min-width: 720px;
+  gap: .85rem;
+  min-width: 920px;
   align-items: stretch;
 }
 .bracket-col {
-  flex: 1;
-  min-width: 148px;
+  flex: 0 0 auto;
+  width: 172px;
+  min-width: 172px;
+  max-width: 172px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -846,6 +882,40 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   border-radius: 4px;
   padding: .45rem .5rem;
   font-size: .72rem;
+}
+.bracket-node.ladder-compact {
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.bracket-node.ladder-compact .ladder-hint {
+  font-size: .58rem;
+  line-height: 1.25;
+  margin-bottom: .25rem;
+  opacity: .85;
+}
+.bracket-node.ladder-compact .ladder-edit-btn {
+  display: block;
+  width: 100%;
+  margin-top: .4rem;
+  padding: .35rem .4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(200,168,75,0.08);
+  border: 1px solid rgba(200,168,75,0.25);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.bracket-node.ladder-compact .ko-tie-break { margin-top: .35rem; }
+.bracket-node.ladder-compact .ko-tie-btn { font-size: .65rem; padding: .25rem .4rem; }
+.ladder-hint-note {
+  font-size: .75rem;
+  color: var(--muted);
+  margin: -.75rem 0 1rem;
+  line-height: 1.45;
 }
 .bracket-node.ready { border-color: rgba(200,168,75,0.25); }
 .bracket-node-meta {
@@ -1218,17 +1288,18 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   </div>
 
   <div class="finale-view-toggle">
-    <button type="button" class="finale-view-btn active" data-finale-view="ladder">📊 Tableau escalier</button>
-    <button type="button" class="finale-view-btn" data-finale-view="list">📋 Liste par tour</button>
+    <button type="button" class="finale-view-btn active" data-finale-view="list">📋 Liste par tour</button>
+    <button type="button" class="finale-view-btn" data-finale-view="ladder">📊 Tableau escalier</button>
   </div>
 
-  <div class="finale-view-panel active" id="finale-ladder-panel">
+  <div class="finale-view-panel" id="finale-ladder-panel">
+    <p class="ladder-hint-note">Touchez une carte pour saisir ou modifier le score (90 min).</p>
     <div class="bracket-scroll">
       <div class="bracket-ladder" id="bracket-ladder-root"></div>
     </div>
   </div>
 
-  <div class="finale-view-panel" id="finale-list-panel">
+  <div class="finale-view-panel active" id="finale-list-panel">
   <div class="phase-section">
     <h3>Seizièmes de finale</h3>
     <div class="ko-list" id="ko-r32-root"></div>
@@ -1805,7 +1876,7 @@ function koParentsHint(mid) {
 }
 
 function getActiveFinaleView() {
-  return document.querySelector('.finale-view-btn.active')?.dataset.finaleView || 'ladder';
+  return document.querySelector('.finale-view-btn.active')?.dataset.finaleView || 'list';
 }
 
 function syncScoreToDom(id) {
@@ -1825,6 +1896,8 @@ function applyKoFromScores(mid) {
 function onKoScoreChanged(mid) {
   applyKoFromScores(mid);
   saveState();
+  const sheet = document.getElementById('score-sheet');
+  if (sheet?.classList.contains('open') && scoreSheetTarget?.mode === 'ko-duel') return;
   refreshKnockoutOnly();
 }
 
@@ -1842,36 +1915,55 @@ function createKoMatchElement(mid, compact) {
   const hVal = parseScoreVal(h);
   const aVal = parseScoreVal(a);
   const ready = !!(teamA && teamB);
-  const isDraw = ready && Number.isFinite(hVal) && hVal === aVal;
-  let winnerFromScore = null;
-  if (ready && Number.isFinite(hVal) && Number.isFinite(aVal)) {
-    if (hVal > aVal) winnerFromScore = teamA;
-    else if (aVal > hVal) winnerFromScore = teamB;
+  const bothScores = Number.isFinite(hVal) && Number.isFinite(aVal);
+  const isDraw = ready && bothScores && hVal === aVal;
+  let activeWinner = null;
+  if (ready && bothScores) {
+    if (hVal > aVal) activeWinner = teamA;
+    else if (aVal > hVal) activeWinner = teamB;
+    else activeWinner = pick || null;
   }
-  const activeWinner = pick || winnerFromScore;
 
   const el = document.createElement('div');
-  el.className = (compact ? 'bracket-node tv-board tv-board--sm' : 'ko-match tv-board') +
+  el.className = (compact ? 'bracket-node tv-board tv-board--sm ladder-compact' : 'ko-match tv-board') +
     (ready ? ' ready' : ' ko-wait') + (activeWinner ? ' has-winner' : '');
 
-  const displayScore = (h !== '' || a !== '') ? formatScoreLabel(h) + ' : ' + formatScoreLabel(a) : '— : —';
-  const displayCls = (h !== '' && a !== '') ? 'tv-display' : 'tv-display empty';
+  const displayScore = formatDisplayScore(h, a);
+  const displayCls = (h !== '' || a !== '') ? 'tv-display' : 'tv-display empty';
 
   let html = `<div class="${compact ? 'bracket-node-meta' : 'ko-meta'}">${metaKo(mid)}</div>`;
   const hint = koParentsHint(mid);
-  if (hint) html += `<div class="ko-parents-hint">${escapeHtml(hint)}</div>`;
+  if (hint) html += `<div class="ko-parents-hint${compact ? ' ladder-hint' : ''}">${escapeHtml(hint)}</div>`;
   html += `<div class="${displayCls}">${displayScore}</div>`;
   html += `<div class="tv-team-line tv-team-home${activeWinner === teamA && teamA ? ' is-winner' : ''}">${escapeHtml(teamA) || 'En attente…'}</div>`;
 
   if (ready) {
-    html += buildTvScoreRow(koInputId(mid, 'h'), koInputId(mid, 'a'), 'ko', teamA, teamB);
-    html += `<div class="tv-team-line tv-team-away${activeWinner === teamB && teamB ? ' is-winner' : ''}">${escapeHtml(teamB)}</div>`;
+    if (compact) {
+      html += `<div class="tv-team-line tv-team-away${activeWinner === teamB && teamB ? ' is-winner' : ''}">${escapeHtml(teamB)}</div>`;
+      html += `<button type="button" class="ladder-edit-btn">${(h !== '' || a !== '') ? 'Modifier' : 'Score'}</button>`;
+      html += `<input type="hidden" class="score-value" id="${koInputId(mid, 'h')}" value="${escapeHtml(h)}">`;
+      html += `<input type="hidden" class="score-value" id="${koInputId(mid, 'a')}" value="${escapeHtml(a)}">`;
+    } else {
+      html += buildTvScoreRow(koInputId(mid, 'h'), koInputId(mid, 'a'), 'ko', teamA, teamB);
+      html += `<div class="tv-team-line tv-team-away${activeWinner === teamB && teamB ? ' is-winner' : ''}">${escapeHtml(teamB)}</div>`;
+    }
   } else {
     html += '<div class="ko-wait-msg">En attente du tour précédent</div>';
     html += `<div class="tv-team-line tv-team-away">…</div>`;
   }
 
   el.innerHTML = html;
+
+  if (compact && ready) {
+    el.addEventListener('click', e => {
+      if (e.target.closest('.ko-tie-btn')) return;
+      openKoScoreSheet(mid);
+    });
+    el.querySelector('.ladder-edit-btn')?.addEventListener('click', e => {
+      e.stopPropagation();
+      openKoScoreSheet(mid);
+    });
+  }
 
   if (isDraw) {
     const tie = document.createElement('div');
@@ -1931,7 +2023,6 @@ function renderBracketLadder() {
     col.appendChild(inner);
     root.appendChild(col);
   });
-  wireScorePickers(root);
 }
 
 function clearKoContainers() {
@@ -1995,6 +2086,10 @@ function formatScoreLabel(val) {
   const n = parseInt(String(val), 10);
   if (!Number.isFinite(n)) return '—';
   return n >= 15 ? '15+' : String(n);
+}
+
+function formatDisplayScore(h, a) {
+  return formatScoreLabel(h) + ' : ' + formatScoreLabel(a);
 }
 
 function buildScorePickerHTML(inputId, variant = 'group', teamLabel = '') {
@@ -2086,6 +2181,7 @@ function openScoreSheet(inputId, teamName) {
   const grid = document.getElementById('score-sheet-grid');
   scoreSheetTarget = { inputId, teamName };
   title.textContent = teamName + ' — choisir le score';
+  grid.className = 'score-sheet-grid';
   grid.innerHTML = MORE_SCORES.map(n => {
     const label = n >= 15 ? '15+' : String(n);
     return `<button type="button" class="score-btn" data-val="${n}">${label}</button>`;
@@ -2100,11 +2196,42 @@ function openScoreSheet(inputId, teamName) {
   sheet.setAttribute('aria-hidden', 'false');
 }
 
+function openKoScoreSheet(mid) {
+  const [teamA, teamB] = koSides(mid);
+  if (!teamA || !teamB) return;
+  const sheet = document.getElementById('score-sheet');
+  const title = document.getElementById('score-sheet-title');
+  const grid = document.getElementById('score-sheet-grid');
+  scoreSheetTarget = { mid, mode: 'ko-duel' };
+  title.textContent = metaKo(mid);
+  grid.className = 'score-sheet-grid ko-duel-mode';
+  grid.innerHTML = `<div class="ko-sheet-duel">
+    <div class="ko-sheet-block">
+      <div class="ko-sheet-team">${escapeHtml(teamA)}</div>
+      ${buildScorePickerHTML(koInputId(mid, 'h'), 'ko', teamA)}
+    </div>
+    <div class="ko-sheet-sep">:</div>
+    <div class="ko-sheet-block">
+      <div class="ko-sheet-team">${escapeHtml(teamB)}</div>
+      ${buildScorePickerHTML(koInputId(mid, 'a'), 'ko', teamB)}
+    </div>
+  </div>`;
+  wireScorePickers(grid);
+  updatePickerUI(koInputId(mid, 'h'));
+  updatePickerUI(koInputId(mid, 'a'));
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+}
+
 function closeScoreSheet() {
+  const wasKoDuel = scoreSheetTarget?.mode === 'ko-duel';
   const sheet = document.getElementById('score-sheet');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
   scoreSheetTarget = null;
+  const grid = document.getElementById('score-sheet-grid');
+  if (grid) grid.className = 'score-sheet-grid';
+  if (wasKoDuel) refreshKnockoutOnly();
 }
 
 function initScoreSheet() {
