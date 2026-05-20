@@ -230,7 +230,7 @@ function renderGroupSection(gname, matches, predMatchs, realMatchs, openDefault)
 function renderTableauSection(participant, resultats) {
   const rounds = S.tableauRoundDetails(participant, resultats);
   if (!rounds.length) {
-    return '<p style="font-size:.82rem;color:var(--muted)">Tableau étape 2 — résultats officiels pas encore publiés.</p>';
+    return '<p style="font-size:.82rem;color:var(--muted)">Phase finale — tableau : résultats officiels pas encore publiés.</p>';
   }
   return rounds.map(r => {
     const chips = r.teams.length
@@ -320,8 +320,8 @@ function renderParticipant(participant, resultats) {
       <div class="sub">${escapeHtml(id.equipe || id.email || '')}</div>
       <div class="summary-grid">
         <div><span>Poules</span><strong>${sc.poules}</strong></div>
-        <div><span>Tableau ét.2</span><strong>${sc.tableauE2}</strong></div>
-        <div><span>Finales 3–7</span><strong>${sc.finales}</strong></div>
+        <div><span>Ph. fin. tableau</span><strong>${sc.tableauE2}</strong></div>
+        <div><span>Ph. fin. scores</span><strong>${sc.finales}</strong></div>
         <div><span>Bonus</span><strong>${sc.bonus}</strong></div>
         <div><span>Total</span><strong>${sc.total}</strong></div>
       </div>
@@ -329,9 +329,9 @@ function renderParticipant(participant, resultats) {
     <h2 class="section-title">Phase de groupes</h2>
     <p style="font-size:.82rem;color:var(--muted);margin:-.35rem 0 .85rem">Vert = bon pronostic (résultat officiel publié).</p>
     ${groupsHtml}
-    <h2 class="section-title">Tableau — étape 2</h2>
+    <h2 class="section-title">Phase finale — tableau (étape 2)</h2>
     ${renderTableauSection(participant, resultats)}
-    <h2 class="section-title">Scores finales — étapes 3 à 7</h2>
+    <h2 class="section-title">Phase finale — scores (étapes 3 à 7)</h2>
     ${renderFinalesSection(participant, resultats)}
     <h2 class="section-title">Questions bonus</h2>
     ${renderBonusSection(participant, resultats)}

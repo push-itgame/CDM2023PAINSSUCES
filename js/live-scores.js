@@ -3,6 +3,7 @@
  * Appelle une Edge Function Supabase qui proxy API-Football (clé côté serveur).
  */
 (function (global) {
+  const FIFA_SCORES_URL = 'https://www.fifa.com/fr/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures?country=FR&wtw-filter=ALL';
   const REFRESH_MS = 5.5 * 60 * 1000; // 5 min 30 — limite quota API-Football (100/jour)
   const CDM_WINDOW_START = new Date('2026-06-01T00:00:00');
   const CDM_WINDOW_END = new Date('2026-07-31T23:59:59');
@@ -18,7 +19,7 @@
         <h2 class="live-scores-title">⚽ Scores FIFA (info live)</h2>
       </div>
       <p class="live-scores-msg">Scores live disponibles pendant la CDM (juin–juillet 2026). Les points du concours restent sur le classement officiel.</p>
-      <p class="live-scores-foot"><a href="https://www.fifa.com/fr/tournaments/mens/worldcup/canadamexicousa2026" target="_blank" rel="noopener">Calendrier FIFA →</a></p>`;
+      <p class="live-scores-foot"><a href="${FIFA_SCORES_URL}" target="_blank" rel="noopener">Scores & calendrier FIFA →</a></p>`;
   }
 
   /** Noms API-Football → libellés français du concours */
@@ -194,7 +195,7 @@
       root.innerHTML = `
         <div class="live-scores-head"><h2 class="live-scores-title">⚽ Scores FIFA (info live)</h2></div>
         <p class="live-scores-msg">Scores live indisponibles (${escapeHtml(e.message)}). Déployez l’Edge Function <code>live-scores</code> (voir scripts/LIVE_SCORES_SETUP.md).</p>
-        <p class="live-scores-foot"><a href="https://www.fifa.com/fr/tournaments/mens/worldcup/canadamexicousa2026" target="_blank" rel="noopener">Scores sur FIFA.com →</a></p>`;
+        <p class="live-scores-foot"><a href="${FIFA_SCORES_URL}" target="_blank" rel="noopener">Scores & calendrier FIFA →</a></p>`;
     } finally {
       root.classList.remove('loading');
     }

@@ -1894,8 +1894,8 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 <nav id="tabs">
   <button class="active" data-tab="identity">👤 Inscription</button>
   <button data-tab="poules" data-step="1">⚽ Poules</button>
-  <button data-tab="tableau" data-step="2">🏆 Tableau</button>
-  <button data-tab="scores-finales" data-step="3" class="tab-scores">⚽ Scores finales</button>
+  <button data-tab="tableau" data-step="2">🎯 Phase finale — tableau</button>
+  <button data-tab="scores-finales" data-step="3" class="tab-scores">🎯 Phase finale — scores</button>
   <button data-tab="bonus">🌟 Bonus</button>
   <button data-tab="envoyer">📤 Envoyer</button>
   <button data-tab="regles">📋 Règlement</button>
@@ -1938,8 +1938,8 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
     <p style="margin-bottom:.5rem">Ce concours se joue en <strong style="color:var(--text)">7 étapes</strong> du 11 juin au 18 juillet 2026.</p>
     <ul style="list-style:disc; padding-left:1.5rem; line-height:2">
       <li>Pronostiquer les <strong style="color:var(--text)">72 matchs de groupes</strong> (étape 1 · avant le 11/06)</li>
-      <li>Choisir votre <strong style="color:var(--text)">tableau d’équipes</strong> 32→1 (étape 2 · avant le 11/06)</li>
-      <li>Saisir les <strong style="color:var(--text)">scores des finales</strong> tour par tour (étapes 3–7 · après chaque phase réelle)</li>
+      <li><strong style="color:var(--text)">Phase finale — tableau</strong> : choisir les équipes 32→1 (étape 2 · avant le 11/06)</li>
+      <li><strong style="color:var(--text)">Phase finale — scores</strong> : saisir les scores tour par tour (étapes 3–7 · après chaque phase réelle)</li>
       <li>Répondre à <strong style="color:var(--text)">10 questions bonus</strong> (25 pts chacune)</li>
     </ul>
   </div>
@@ -1986,11 +1986,11 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 <!-- ═══════════════════════════════════════ TABLEAU (ÉTAPE 2) ════════════════════════════════════════ -->
 <div id="tab-tableau" class="panel">
 <div class="container">
-  <h2 class="section-title">Tableau — étape 2</h2>
-  <p class="ladder-hint-note" style="margin-top:-.5rem">Onglet consultable même verrouillé · les bons choix s’affichent en <strong style="color:#6fcf97">vert</strong> après publication officielle.</p>
+  <h2 class="section-title">Phase finale — tableau</h2>
+  <p class="ladder-hint-note" style="margin-top:-.5rem">Étape 2 · onglet consultable même verrouillé · les bons choix en <strong style="color:#6fcf97">vert</strong> après publication officielle.</p>
   <div id="finale-status" class="finale-status wait"></div>
   <div class="bracket-note" id="bracket-note-dynamic">
-    <strong>Avant le 11/06</strong> : choisissez les équipes du tableau (32 → vainqueur).
+    <strong>Avant le 11/06</strong> (étape 2) : choisissez les équipes du tableau (32 → vainqueur).
     Les points étape 2 continuent d’être comptés au fil de la CDM via le <a href="classement.html" style="color:var(--gold)">classement</a>.
   </div>
 
@@ -2000,7 +2000,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   </div>
 
   <div id="tableau-unlocked-content" hidden>
-    <div class="stage-lock-banner" id="etape2-lock-banner" hidden>🔒 Tableau verrouillé — étape passée ou compétition commencée (consultation seule).</div>
+    <div class="stage-lock-banner" id="etape2-lock-banner" hidden>🔒 Phase finale — tableau verrouillée — étape passée ou compétition commencée (consultation seule).</div>
     <div class="etape2-actions">
       <span class="etape-round-meta" id="etape2-deadline-note">Date limite tableau : 11/06/2026</span>
       <span class="etape-round-meta" id="etape2-progress-note"></span>
@@ -2009,7 +2009,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
     <div class="etape-round bracket-ladder-section">
       <div class="etape-round-head">
         <div>
-          <div class="etape-round-title">Tableau — étape 2</div>
+          <div class="etape-round-title">Phase finale — tableau (étape 2)</div>
           <div class="etape-round-meta">Seizièmes issus de vos poules · cliquez le vainqueur à chaque match pour remplir huitièmes → finale</div>
         </div>
       </div>
@@ -2026,9 +2026,10 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 <!-- ═══════════════════════════════════════ SCORES FINALES (ÉTAPES 3–7) ════════════════════════════════════════ -->
 <div id="tab-scores-finales" class="panel">
 <div class="container">
-  <h2 class="section-title">Scores finales — étapes 3 à 7</h2>
+  <h2 class="section-title">Phase finale — scores</h2>
+  <p class="ladder-hint-note" style="margin-top:-.5rem">Étapes 3 à 7 · scores des vrais matchs, débloqués tour par tour.</p>
   <div id="scores-finales-lock" class="finale-status wait" hidden>
-    Complétez d’abord les <strong>72 scores</strong> en phase de groupes.
+    Complétez d’abord les <strong>72 scores</strong> en phase de groupes pour accéder à la phase finale — scores.
     <div style="margin-top:.75rem"><button type="button" class="btn-etape2" onclick="goToTab('poules')">Aller aux poules →</button></div>
   </div>
   <div id="scores-finales-content" hidden>
@@ -3267,10 +3268,10 @@ function getCurrentPlayerStep() {
 
 const STEP_BANNER_TEXT = {
   poules: '📍 C’est ici cette semaine — complétez vos <strong>72 matchs de poules</strong> (avant le 11/06).',
-  tableau: '📍 C’est ici cette semaine — remplissez votre <strong>tableau</strong> jusqu’au vainqueur (étape 2).',
+  tableau: '📍 C’est ici cette semaine — <strong>Phase finale · tableau</strong> : choisissez les équipes jusqu’au vainqueur (étape 2).',
   bonus: '📍 C’est ici cette semaine — répondez aux <strong>questions bonus</strong> (25 pts chacune).',
   envoyer: '📍 C’est ici — vérifiez votre récap et <strong>envoyez votre grille</strong>.',
-  'scores-finales': '📍 C’est ici cette semaine — saisissez les <strong>scores des finales</strong> (étape en cours).',
+  'scores-finales': '📍 C’est ici cette semaine — <strong>Phase finale · scores</strong> (étape en cours).',
 };
 
 function updateNavStepHighlight() {
