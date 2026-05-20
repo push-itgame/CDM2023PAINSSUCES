@@ -1,0 +1,5 @@
+# Secrets — ne jamais committer
+supabase/.env.local
+.env
+.env.local
+*.pem

@@ -169,7 +169,14 @@ nav button {
   position: relative;
 }
 nav button.active { color: var(--gold); border-color: var(--gold); }
-nav button:hover:not(.active) { color: var(--text); }
+nav button:hover:not(.active):not(.tab-past) { color: var(--text); }
+nav button.tab-past { opacity: .45; color: var(--muted); }
+nav button.tab-future { opacity: .65; }
+nav button.tab-current:not(.active) {
+  color: var(--gold-light);
+  border-color: rgba(200,168,75,0.35);
+}
+nav button.tab-scores { font-size: .78rem; letter-spacing: .12em; }
 nav .tab-link {
   flex-shrink: 0;
   color: var(--muted);
@@ -187,7 +194,57 @@ nav .tab-link {
 }
 nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
-
+.stage-current-banner {
+  background: rgba(200,168,75,0.1);
+  border-bottom: 1px solid rgba(200,168,75,0.25);
+  color: var(--gold-light);
+  font-size: .82rem;
+  line-height: 1.5;
+  padding: .65rem 1rem;
+  text-align: center;
+}
+.stage-current-banner strong { color: var(--text); }
+.send-recap-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.send-recap-card h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: .1em;
+  color: var(--gold);
+  margin-bottom: .75rem;
+}
+.send-checklist { list-style: none; display: flex; flex-direction: column; gap: .55rem; }
+.send-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: .55rem;
+  font-size: .88rem;
+  line-height: 1.45;
+}
+.send-checklist .chk { flex-shrink: 0; width: 1.25rem; text-align: center; }
+.send-checklist .ok { color: #6fcf97; }
+.send-checklist .warn { color: #f0ad4e; }
+.send-checklist .miss { color: var(--muted); }
+.send-attention {
+  background: rgba(240,173,78,0.1);
+  border: 1px solid rgba(240,173,78,0.35);
+  border-radius: 4px;
+  padding: .85rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: .85rem;
+  line-height: 1.55;
+  color: #f0d9a8;
+}
+.send-attention strong { color: #f0ad4e; }
+.send-identity-line { font-size: .85rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.5; }
+.send-identity-line strong { color: var(--text); }
+#tab-scores-finales .section-title { font-size: 2.25rem; }
+#tab-scores-finales .etape-score-section-head strong { font-size: 1.05rem; }
 
 /* ───── CONTAINER ───── */
 .container { max-width: 860px; margin: 0 auto; padding: 2rem 1rem; }
@@ -1795,11 +1852,15 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   <div class="badge-deadline">⏱ Date limite : 11 juin 2026</div>
 </header>
 
+<div id="current-step-banner" class="stage-current-banner" hidden></div>
+
 <nav id="tabs">
   <button class="active" data-tab="identity">👤 Inscription</button>
-  <button data-tab="poules">⚽ Phase de Groupes</button>
-  <button data-tab="finale">🎯 Phase Finale</button>
-  <button data-tab="bonus">🌟 Questions Bonus</button>
+  <button data-tab="poules" data-step="1">⚽ Poules</button>
+  <button data-tab="tableau" data-step="2">🏆 Tableau</button>
+  <button data-tab="scores-finales" data-step="3" class="tab-scores">⚽ Scores finales</button>
+  <button data-tab="bonus">🌟 Bonus</button>
+  <button data-tab="envoyer">📤 Envoyer</button>
   <button data-tab="regles">📋 Règlement</button>
   <a href="classement.html" class="tab-link">🏆 Classement</a>
 </nav>
@@ -1829,7 +1890,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
       <input type="text" id="equipe" placeholder="France, OL, …">
     </div>
     <p class="inscription-export-note" style="margin-top:.75rem;font-size:.85rem;color:var(--muted);line-height:1.6">
-      À la fin, cliquez sur <strong style="color:var(--text)">Envoyer ma grille</strong> : votre pronostic est enregistré automatiquement (e-mail obligatoire).
+      À la fin, onglet <strong style="color:var(--text)">📤 Envoyer</strong> : votre pronostic est enregistré automatiquement (e-mail obligatoire).
       Vous pouvez aussi <strong style="color:var(--text)">télécharger le JSON</strong> en secours.
       Suivez le <a href="classement.html" style="color:var(--gold)">classement live</a> ou <a href="mon-score.html" style="color:var(--gold)">voir votre score</a>.
     </p>
@@ -1885,29 +1946,22 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 </div>
 </div>
 
-<!-- ═══════════════════════════════════════ PHASE FINALE ════════════════════════════════════════ -->
-<div id="tab-finale" class="panel">
+<!-- ═══════════════════════════════════════ TABLEAU (ÉTAPE 2) ════════════════════════════════════════ -->
+<div id="tab-tableau" class="panel">
 <div class="container">
-  <h2 class="section-title">Phase Finale</h2>
+  <h2 class="section-title">Tableau — étape 2</h2>
   <div id="finale-status" class="finale-status wait"></div>
   <div class="bracket-note" id="bracket-note-dynamic">
-    <strong>Étape 2</strong> (avant le 11/06) : choisissez les équipes du tableau (32 → vainqueur).
-    <strong>Étapes 3 à 7</strong> : scores des vrais matchs, débloqués tour par tour après la compétition.
+    <strong>Avant le 11/06</strong> : choisissez les équipes du tableau (32 → vainqueur).
     Les points étape 2 continuent d’être comptés au fil de la CDM via le <a href="classement.html" style="color:var(--gold)">classement</a>.
   </div>
 
   <div id="finale-poules-lock" class="finale-status wait" hidden>
-    Complétez les <strong>72 scores</strong> en phase de groupes pour débloquer le tableau de phase finale (sans saisie des scores finales pour l’instant).
+    Complétez les <strong>72 scores</strong> en phase de groupes pour débloquer le tableau.
     <div style="margin-top:.75rem"><button type="button" class="btn-etape2" onclick="goToTab('poules')">Aller aux poules →</button></div>
   </div>
 
-  <div id="finale-unlocked-content" hidden>
-  <div class="etape-main-toggle finale-view-toggle">
-    <button type="button" class="finale-view-btn active" data-finale-mode="etape2">🏆 Étape 2 — Tableau équipes</button>
-    <button type="button" class="finale-view-btn" data-finale-mode="scores">⚽ Étapes 3–7 — Scores finales</button>
-  </div>
-
-  <div class="finale-view-panel active" id="finale-etape2-panel">
+  <div id="tableau-unlocked-content" hidden>
     <div class="stage-lock-banner" id="etape2-lock-banner" hidden>🔒 Tableau verrouillé — étape passée ou compétition commencée (consultation seule).</div>
     <div class="etape2-actions">
       <span class="etape-round-meta" id="etape2-deadline-note">Date limite tableau : 11/06/2026</span>
@@ -1928,11 +1982,20 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
       </div>
     </div>
   </div>
+</div>
+</div>
 
-  <div class="finale-view-panel" id="finale-scores-panel">
-    <p class="ladder-hint-note" id="etape-scores-hint">Scores des finales débloqués après la compétition réelle (<code style="color:var(--gold)">resultats.json</code>). Vos poules suffisent pour l’étape 2.</p>
-    <div id="etape-scores-root"></div>
+<!-- ═══════════════════════════════════════ SCORES FINALES (ÉTAPES 3–7) ════════════════════════════════════════ -->
+<div id="tab-scores-finales" class="panel">
+<div class="container">
+  <h2 class="section-title">Scores finales — étapes 3 à 7</h2>
+  <div id="scores-finales-lock" class="finale-status wait" hidden>
+    Complétez d’abord les <strong>72 scores</strong> en phase de groupes.
+    <div style="margin-top:.75rem"><button type="button" class="btn-etape2" onclick="goToTab('poules')">Aller aux poules →</button></div>
   </div>
+  <div id="scores-finales-content" hidden>
+    <p class="ladder-hint-note" id="etape-scores-hint">Scores des finales débloqués tour par tour après la compétition réelle. Vos points concours viennent de <code style="color:var(--gold)">resultats.json</code> (organisateur).</p>
+    <div id="etape-scores-root"></div>
   </div>
 </div>
 </div>
@@ -2003,11 +2066,29 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
       <input type="number" class="bonus-answer" id="b10" min="0" max="32" placeholder="ex: 6">
     </div>
   </div>
+</div>
+</div>
 
+<!-- ═══════════════════════════════════════ ENVOYER ════════════════════════════════════════ -->
+<div id="tab-envoyer" class="panel">
+<div class="container">
+  <h2 class="section-title">Envoyer ma grille</h2>
+  <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.55">
+    Votre pronostic est enregistré sur le serveur (Supabase). Vous pouvez renvoyer à tout moment pour mettre à jour votre grille.
+  </p>
+  <div class="send-identity-line" id="send-identity-line">—</div>
+  <div class="send-attention" id="send-attention" hidden></div>
+  <div class="send-recap-card">
+    <h3>Récapitulatif</h3>
+    <ul class="send-checklist" id="send-checklist"></ul>
+  </div>
   <div class="submit-wrap submit-actions">
     <button class="btn-submit" id="btnSubmitGrille" onclick="submitGrille()">📤 Envoyer ma grille</button>
     <button class="btn-submit btn-submit-secondary" onclick="exportData()">Télécharger JSON (secours)</button>
   </div>
+  <p style="font-size:.78rem;color:var(--muted);margin-top:1rem;line-height:1.45">
+    Suivez le <a href="classement.html" style="color:var(--gold)">classement</a> ou <a href="mon-score.html" style="color:var(--gold)">voir votre score</a> après envoi.
+  </p>
 </div>
 </div>
 
@@ -2778,7 +2859,7 @@ function syncStageLockUI() {
   const poulesBanner = document.getElementById('poules-lock-banner');
   if (poulesBanner) poulesBanner.hidden = !poulesLocked;
 
-  document.getElementById('finale-etape2-panel')?.classList.toggle('stage-locked', et2Locked);
+  document.getElementById('tableau-unlocked-content')?.classList.toggle('stage-locked', et2Locked);
   const et2LockNote = document.getElementById('etape2-lock-banner');
   if (et2LockNote) et2LockNote.hidden = !et2Locked;
 
@@ -2929,6 +3010,8 @@ function updateEtape2ProgressNote() {
   if (!el) return;
   const p = countEtape2Progress();
   el.textContent = `Progression : 32 seizièmes · ${p.r16}/16 huitièmes · ${p.qf}/8 quarts · ${p.sf}/4 demis · ${p.finalists}/2 finalistes · ${p.winner}/1 vainqueur`;
+  renderSendRecap();
+  updateNavStepHighlight();
 }
 
 function buildPhaseFinalePourBareme() {
@@ -3115,10 +3198,128 @@ function renderBracketLadderPretty() {
   grid.appendChild(createBracketMatchCard(104, 5, 2, BRACKET_BODY_ROWS, 'Finale'));
 }
 
-function renderFinalePanels() {
+function countBonusFilled() {
+  let n = 0;
+  for (let i = 1; i <= 10; i++) {
+    const el = document.getElementById('b' + i);
+    if (el && String(el.value ?? '').trim() !== '') n++;
+  }
+  return n;
+}
+
+function isEtape2Complete() {
+  const p = countEtape2Progress();
+  return p.r32 >= 32 && p.r16 >= 16 && p.qf >= 8 && p.sf >= 4 && p.finalists >= 2 && p.winner >= 1;
+}
+
+function getCurrentPlayerStep() {
+  const etape = effectiveEtapeDebloquee();
+  if (etape >= 3 && etape <= 7) return 'scores-finales';
+  if (new Date() <= ETAPE2_DEADLINE && etape < 3) {
+    if (!allPoulesComplete()) return 'poules';
+    if (!isEtape2Complete()) return 'tableau';
+    if (countBonusFilled() < 10) return 'bonus';
+    return 'envoyer';
+  }
+  if (!allPoulesComplete()) return 'poules';
+  if (!isEtape2Complete()) return 'tableau';
+  return 'scores-finales';
+}
+
+const STEP_BANNER_TEXT = {
+  poules: '📍 C’est ici cette semaine — complétez vos <strong>72 matchs de poules</strong> (avant le 11/06).',
+  tableau: '📍 C’est ici cette semaine — remplissez votre <strong>tableau</strong> jusqu’au vainqueur (étape 2).',
+  bonus: '📍 C’est ici cette semaine — répondez aux <strong>questions bonus</strong> (25 pts chacune).',
+  envoyer: '📍 C’est ici — vérifiez votre récap et <strong>envoyez votre grille</strong>.',
+  'scores-finales': '📍 C’est ici cette semaine — saisissez les <strong>scores des finales</strong> (étape en cours).',
+};
+
+function updateNavStepHighlight() {
+  const current = getCurrentPlayerStep();
+  const etape = effectiveEtapeDebloquee();
+  const preComp = new Date() <= ETAPE2_DEADLINE && etape < 3;
+
+  document.querySelectorAll('#tabs button[data-tab]').forEach(btn => {
+    const tab = btn.dataset.tab;
+    btn.classList.remove('tab-past', 'tab-current', 'tab-future');
+    if (tab === current) btn.classList.add('tab-current');
+    if (tab === 'poules' && isPoulesLocked()) btn.classList.add('tab-past');
+    if (tab === 'tableau' && isEtape2Locked()) btn.classList.add('tab-past');
+    if (tab === 'bonus' && isBonusLocked()) btn.classList.add('tab-past');
+    if (tab === 'scores-finales' && etape < 3 && preComp) btn.classList.add('tab-future');
+  });
+
+  const banner = document.getElementById('current-step-banner');
+  if (banner) {
+    const text = STEP_BANNER_TEXT[current];
+    if (text) {
+      banner.innerHTML = text;
+      banner.hidden = false;
+    } else {
+      banner.hidden = true;
+    }
+  }
+}
+
+function renderSendRecap() {
+  const listEl = document.getElementById('send-checklist');
+  const attnEl = document.getElementById('send-attention');
+  const idLine = document.getElementById('send-identity-line');
+  if (!listEl) return;
+
+  const prenom = document.getElementById('prenom')?.value?.trim() || '';
+  const nom = document.getElementById('nom')?.value?.trim() || '';
+  const email = document.getElementById('email')?.value?.trim() || '';
+  const poulesN = countFilledMatches();
+  const et2 = isEtape2Complete();
+  const bonusN = countBonusFilled();
+  const preComp = new Date() <= ETAPE2_DEADLINE && effectiveEtapeDebloquee() < 3;
+
+  if (idLine) {
+    idLine.innerHTML = email
+      ? `<strong>${escapeHtml([prenom, nom].filter(Boolean).join(' ') || 'Participant')}</strong> · ${escapeHtml(email)}`
+      : 'Renseignez votre <strong>e-mail</strong> dans l’onglet Inscription (obligatoire pour l’envoi).';
+  }
+
+  const items = [];
+  const chk = (ok, warn, label) => {
+    const cls = ok ? 'ok' : (warn ? 'warn' : 'miss');
+    const icon = ok ? '✓' : (warn ? '!' : '○');
+    items.push(`<li><span class="chk ${cls}">${icon}</span><span>${label}</span></li>`);
+  };
+
+  chk(!!email, !email, email ? `E-mail renseigné : ${escapeHtml(email)}` : 'E-mail obligatoire');
+  if (preComp) {
+    chk(poulesN >= 72, poulesN > 0 && poulesN < 72, `Poules : ${poulesN}/72 matchs`);
+    chk(et2, !et2 && poulesN >= 72, et2 ? 'Tableau complet (32 → vainqueur)' : 'Tableau incomplet (recommandé avant le 11/06)');
+    chk(bonusN >= 10, bonusN > 0 && bonusN < 10, `Bonus : ${bonusN}/10 (recommandé, non bloquant)`);
+  } else {
+    chk(poulesN >= 72, false, `Poules : ${poulesN}/72`);
+    chk(et2, false, et2 ? 'Tableau complété' : 'Tableau incomplet');
+    chk(bonusN >= 10, bonusN > 0, `Bonus : ${bonusN}/10`);
+  }
+
+  listEl.innerHTML = items.join('');
+
+  if (attnEl) {
+    const warnings = [];
+    if (!email) warnings.push('E-mail manquant — indispensable pour le classement.');
+    if (preComp && poulesN < 72) warnings.push(`Poules incomplètes (${poulesN}/72) — vous pouvez quand même envoyer, mais complétez avant le 11/06.`);
+    if (preComp && !et2) warnings.push('Tableau incomplet — recommandé avant la date limite.');
+    if (preComp && bonusN < 10) warnings.push(`Bonus ${bonusN}/10 — optionnel mais 25 pts par bonne réponse.`);
+    if (warnings.length) {
+      attnEl.innerHTML = '<strong>Attention</strong> — ' + warnings.join(' ');
+      attnEl.hidden = false;
+    } else {
+      attnEl.hidden = true;
+    }
+  }
+}
+
+function renderTableauPanel() {
   rebuildEngine();
   const lockEl = document.getElementById('finale-poules-lock');
-  const contentEl = document.getElementById('finale-unlocked-content');
+  const contentEl = document.getElementById('tableau-unlocked-content');
   const poulesOk = allPoulesComplete();
   if (lockEl) {
     lockEl.hidden = poulesOk;
@@ -3136,9 +3337,23 @@ function renderFinalePanels() {
   }
   autoSyncEtape2R32FromPoules();
   renderBracketLadderPretty();
-  renderEtapeScores();
   updateEtape2ProgressNote();
   updateFinaleStatus();
+}
+
+function renderScoresFinalesPanel() {
+  const lockEl = document.getElementById('scores-finales-lock');
+  const contentEl = document.getElementById('scores-finales-content');
+  const poulesOk = allPoulesComplete();
+  if (lockEl) lockEl.hidden = poulesOk;
+  if (contentEl) contentEl.hidden = !poulesOk;
+  if (!poulesOk) return;
+  renderEtapeScores();
+}
+
+function renderFinalePanels() {
+  renderTableauPanel();
+  renderScoresFinalesPanel();
 }
 
 function renderEtapeScores() {
@@ -3192,6 +3407,8 @@ function fullRefreshDerived() {
   syncBanner();
   syncStageLockUI();
   renderFinalePanels();
+  updateNavStepHighlight();
+  renderSendRecap();
 }
 
 function qualifies32Liste() {
@@ -3215,27 +3432,22 @@ async function loadOfficialResultats() {
   } catch (e) { /* offline / file:// */ }
 }
 
-function initFinaleModeToggle() {
-  document.querySelectorAll('[data-finale-mode]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-finale-mode]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const mode = btn.dataset.finaleMode;
-      document.getElementById('finale-etape2-panel')?.classList.toggle('active', mode === 'etape2');
-      document.getElementById('finale-scores-panel')?.classList.toggle('active', mode === 'scores');
-    });
-  });
-}
-
 // ─── TAB SWITCHING ───────────────────────────────────────────────────────────
+const TAB_HASH_ALIASES = { finale: 'tableau', etape2: 'tableau', scores: 'scores-finales', send: 'envoyer' };
+
 function goToTab(name) {
+  name = TAB_HASH_ALIASES[name] || name;
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
+  const panel = document.getElementById('tab-' + name);
+  if (!panel) return;
+  panel.classList.add('active');
   const tabBtn = document.querySelector(`[data-tab="${name}"]`);
   if (tabBtn) tabBtn.classList.add('active');
   if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
-  if (name === 'finale') fullRefreshDerived();
+  if (name === 'tableau' || name === 'scores-finales') fullRefreshDerived();
+  else if (name === 'envoyer') renderSendRecap();
+  else updateNavStepHighlight();
 }
 document.getElementById('tabs').addEventListener('click', e => {
   if (e.target.dataset.tab) goToTab(e.target.dataset.tab);
@@ -3383,7 +3595,10 @@ function onScoreChanged() {
   updateProgress();
   updateFinaleStatus();
   saveState();
-  if (document.getElementById('tab-finale').classList.contains('active')) renderFinalePanels();
+  if (document.getElementById('tab-tableau')?.classList.contains('active')
+    || document.getElementById('tab-scores-finales')?.classList.contains('active')) renderFinalePanels();
+  updateNavStepHighlight();
+  renderSendRecap();
 }
 
 function openScoreSheet(inputId, teamName) {
@@ -3610,6 +3825,8 @@ function updateProgress() {
   document.getElementById('poules-progress').style.width = pct + '%';
   document.getElementById('poules-label').textContent = matchesDone + ' / 72 matchs complets';
   renderMissingMatches();
+  updateNavStepHighlight();
+  renderSendRecap();
 }
 
 // ─── LOCAL STORAGE ───────────────────────────────────────────────────────────
@@ -3644,6 +3861,12 @@ function saveState() {
     },
   };
   try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* quota */ }
+  const em = state.identite?.email?.trim();
+  if (em) {
+    try { localStorage.setItem('cdm2026_email', em); } catch (e) { /* quota */ }
+  }
+  renderSendRecap();
+  updateNavStepHighlight();
 }
 
 function loadState() {
@@ -3834,12 +4057,12 @@ async function submitGrille() {
 buildGroups();
 populateSelects();
 initScoreSheet();
-initFinaleModeToggle();
 loadState();
 wireAutoSave();
 updateProgress();
 if (location.hash) {
-  const tab = location.hash.replace(/^#/, '');
+  const raw = location.hash.replace(/^#/, '');
+  const tab = TAB_HASH_ALIASES[raw] || raw;
   if (document.getElementById('tab-' + tab)) goToTab(tab);
 }
 loadOfficialResultats().then(() => fullRefreshDerived());

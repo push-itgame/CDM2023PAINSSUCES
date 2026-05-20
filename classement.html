@@ -222,6 +222,122 @@ table.lb th.col-detail, table.lb td.col-detail { width: 4.75rem; text-align: cen
 .pts { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--gold); }
 .total { font-size: 1rem; }
 .err { color: #E74C3C; margin-top: 1rem; font-size: .85rem; }
+.my-score-card {
+  background: var(--card);
+  border: 1px solid rgba(200,168,75,0.35);
+  border-radius: 4px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.my-score-card h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: .1em;
+  color: var(--gold);
+  margin-bottom: .75rem;
+}
+.my-score-form { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.my-score-form input {
+  flex: 1;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: .55rem .65rem;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: .88rem;
+}
+.my-score-form button {
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  background: rgba(200,168,75,0.15);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  padding: .55rem .85rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.my-score-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: center;
+  font-size: .88rem;
+}
+.my-score-summary .rank-big {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  color: var(--gold);
+  line-height: 1;
+}
+.my-score-summary .pts-big {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.25rem;
+  color: var(--gold);
+  font-weight: 600;
+}
+.my-score-hint { font-size: .78rem; color: var(--muted); margin-top: .65rem; line-height: 1.45; }
+table.lb tr.lb-row-me td {
+  background: rgba(200,168,75,0.12) !important;
+  border-bottom-color: rgba(200,168,75,0.25);
+}
+table.lb tr.lb-row-me .rank { color: var(--gold-light); }
+.live-scores-widget {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.5rem;
+}
+.live-scores-widget.loading { opacity: .7; }
+.live-scores-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+.live-scores-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: .08em;
+  color: var(--gold);
+}
+.live-scores-updated {
+  font-family: 'DM Mono', monospace;
+  font-size: .62rem;
+  color: var(--muted);
+  letter-spacing: .06em;
+}
+.live-scores-list { list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+.live-scores-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem 1rem;
+  align-items: center;
+  padding: .45rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: .88rem;
+}
+.live-scores-item.is-live .live-scores-status { color: #e74c3c; }
+.live-scores-status {
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  min-width: 4.5rem;
+}
+.live-scores-teams strong { color: var(--gold); margin: 0 .35rem; }
+.live-scores-msg, .live-scores-foot {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.live-scores-foot { margin-top: .65rem; }
+.live-scores-foot a { color: var(--gold); }
+.live-scores-foot code { color: var(--gold); font-size: .72rem; }
 </style>
 </head>
 <body>
@@ -238,9 +354,11 @@ table.lb th.col-detail, table.lb td.col-detail { width: 4.75rem; text-align: cen
 
 <nav id="tabs">
   <a href="index.html" class="tab-link">👤 Inscription</a>
-  <a href="index.html#poules" class="tab-link">⚽ Phase de Groupes</a>
-  <a href="index.html#finale" class="tab-link">🎯 Phase Finale</a>
-  <a href="index.html#bonus" class="tab-link">🌟 Questions Bonus</a>
+  <a href="index.html#poules" class="tab-link">⚽ Poules</a>
+  <a href="index.html#tableau" class="tab-link">🏆 Tableau</a>
+  <a href="index.html#scores-finales" class="tab-link">⚽ Scores finales</a>
+  <a href="index.html#bonus" class="tab-link">🌟 Bonus</a>
+  <a href="index.html#envoyer" class="tab-link">📤 Envoyer</a>
   <a href="index.html#regles" class="tab-link">📋 Règlement</a>
   <a href="classement.html" class="tab-link active">🏆 Classement</a>
 </nav>
@@ -251,13 +369,28 @@ table.lb th.col-detail, table.lb td.col-detail { width: 4.75rem; text-align: cen
 </div>
 
 <main class="container">
+  <div id="live-scores-root" class="live-scores-widget" aria-live="polite"></div>
+
+  <div class="my-score-card" id="myScoreCard">
+    <h2>Votre score en direct</h2>
+    <div class="my-score-form">
+      <input type="email" id="myEmailInput" placeholder="Votre e-mail d'inscription" autocomplete="email">
+      <button type="button" id="btnMyEmail">Afficher mon score</button>
+    </div>
+    <div id="myScoreSummary" class="my-score-summary" hidden></div>
+    <p class="my-score-hint">Même e-mail que sur la grille. Enregistré localement sur cet appareil.</p>
+  </div>
+
   <p class="meta" id="metaLine">Chargement…</p>
   <div id="content"></div>
   <p class="err" id="errLine" hidden></p>
 </main>
 <script src="js/config.js"></script>
 <script src="js/supabase-api.js"></script>
+<script src="js/live-scores.js"></script>
 <script>
+const LS_EMAIL_KEY = 'cdm2026_email';
+let highlightEmail = '';
 const BONUS_NUMERIC_TOLERANCE = 3;
 const KO_MATCH_MIN = 73;
 const KO_MATCH_MAX = 104;
@@ -420,16 +553,18 @@ function scoreParticipant(participant, resultats) {
 
 function renderTable(rows) {
   if (!rows.length) {
-    return '<div class="empty"><p>Aucun participant pour le moment.</p><p style="margin-top:.75rem">Les joueurs envoient leur grille depuis la page d’inscription (<strong>Envoyer ma grille</strong>).</p></div>';
+    return '<div class="empty"><p>Aucun participant pour le moment.</p><p style="margin-top:.75rem">Les joueurs envoient leur grille depuis l’onglet <strong>📤 Envoyer</strong>.</p></div>';
   }
+  const normHighlight = normalizeTeam(highlightEmail);
   const trs = rows.map((r, i) => {
     const detail = r.email
       ? `<a class="lb-link" href="mon-score.html?email=${encodeURIComponent(r.email)}">Détail</a>`
       : '—';
+    const isMe = normHighlight && normalizeTeam(r.email) === normHighlight;
     return `
-    <tr>
+    <tr class="${isMe ? 'lb-row-me' : ''}">
       <td class="rank">${i + 1}</td>
-      <td><div class="name">${escapeHtml(r.label)}</div><div class="sub">${escapeHtml(r.sub || '')}</div></td>
+      <td><div class="name">${escapeHtml(r.label)}${isMe ? ' <span style="color:var(--gold);font-size:.75rem">← vous</span>' : ''}</div><div class="sub">${escapeHtml(r.sub || '')}</div></td>
       <td class="pts">${r.poules}</td>
       <td class="pts">${r.tableau}</td>
       <td class="pts">${r.bonus}</td>
@@ -446,6 +581,49 @@ function renderTable(rows) {
     <th class="col-pts">Total</th>
     <th class="col-detail">Détail</th>
   </tr></thead><tbody>${trs}</tbody></table></div>`;
+}
+
+function renderMyScoreSummary(rows) {
+  const el = document.getElementById('myScoreSummary');
+  if (!el || !highlightEmail) {
+    if (el) el.hidden = true;
+    return;
+  }
+  const norm = normalizeTeam(highlightEmail);
+  const idx = rows.findIndex(r => normalizeTeam(r.email) === norm);
+  if (idx < 0) {
+    el.innerHTML = '<span style="color:var(--muted)">Aucune grille trouvée pour cet e-mail. Vérifiez l’orthographe ou envoyez votre grille.</span>';
+    el.hidden = false;
+    return;
+  }
+  const r = rows[idx];
+  const detailLink = r.email
+    ? `<a class="lb-link" href="mon-score.html?email=${encodeURIComponent(r.email)}">Voir le détail →</a>`
+    : '';
+  el.innerHTML = `
+    <span class="rank-big">#${idx + 1}</span>
+    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${r.poules} · Tableau ${r.tableau} · Bonus ${r.bonus}</span></span>
+    <span class="pts-big">${r.total} pts</span>
+    ${detailLink}`;
+  el.hidden = false;
+}
+
+function loadStoredEmail() {
+  try {
+    const direct = localStorage.getItem(LS_EMAIL_KEY);
+    if (direct) return direct.trim();
+    const grid = localStorage.getItem('cdm2026_grid');
+    if (grid) {
+      const st = JSON.parse(grid);
+      return (st.identite?.email || '').trim();
+    }
+  } catch (e) { /* ignore */ }
+  return '';
+}
+
+function saveHighlightEmail(email) {
+  highlightEmail = (email || '').trim();
+  try { localStorage.setItem(LS_EMAIL_KEY, highlightEmail); } catch (e) { /* ignore */ }
 }
 
 function escapeHtml(s) {
@@ -492,6 +670,7 @@ async function refresh() {
     metaEl.innerHTML = 'Dernière mise à jour officielle : <strong>' + escapeHtml(maj) + '</strong> — '
       + participants.length + ' participant(s) (' + escapeHtml(src) + '). Rafraîchissement auto toutes les 5 min.';
     content.innerHTML = renderTable(rows);
+    renderMyScoreSummary(rows);
   } catch (e) {
     errEl.textContent = 'Erreur de chargement : ' + e.message + '. Ouvrez la page via un serveur local si les JSON sont bloqués (file://).';
     errEl.hidden = false;
@@ -501,6 +680,22 @@ async function refresh() {
 }
 
 document.getElementById('btnRefresh').addEventListener('click', e => { e.preventDefault(); refresh(); });
+
+const emailInput = document.getElementById('myEmailInput');
+const btnMyEmail = document.getElementById('btnMyEmail');
+highlightEmail = loadStoredEmail();
+if (emailInput && highlightEmail) emailInput.value = highlightEmail;
+
+function applyMyEmail() {
+  saveHighlightEmail(emailInput?.value || '');
+  refresh();
+}
+
+btnMyEmail?.addEventListener('click', applyMyEmail);
+emailInput?.addEventListener('keydown', e => { if (e.key === 'Enter') applyMyEmail(); });
+
+if (window.CDM_LIVE_SCORES?.mount) CDM_LIVE_SCORES.mount('live-scores-root');
+
 refresh();
 setInterval(refresh, 5 * 60 * 1000);
 </script>
