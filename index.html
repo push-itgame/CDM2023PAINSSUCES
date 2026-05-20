@@ -985,42 +985,108 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   color: var(--gold);
   font-weight: 600;
 }
-.bracket-grid-wrap {
+.bracket-ladder-scroll {
   overflow-x: auto;
-  padding-bottom: .5rem;
+  padding-bottom: .75rem;
+  -webkit-overflow-scrolling: touch;
 }
-.bracket-grid {
+.bracket-ladder-pretty {
   display: grid;
-  grid-template-columns: repeat(5, 200px);
-  grid-auto-rows: minmax(52px, auto);
-  gap: .35rem 1rem;
-  min-width: 1100px;
+  grid-template-columns: 240px 200px 180px 160px 140px;
+  grid-auto-rows: minmax(3.25rem, auto);
+  gap: .5rem 1.25rem;
+  min-width: 980px;
   align-items: center;
+  position: relative;
 }
-.bracket-slot {
-  background: var(--card);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 4px;
-  padding: .4rem .5rem;
-  font-size: .72rem;
+.bracket-ladder-pretty .col-head {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .9rem;
+  letter-spacing: .14em;
+  color: var(--gold);
   text-align: center;
-  min-height: 2.5rem;
+  padding-bottom: .35rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: .25rem;
+}
+.bracket-r32-card {
+  background: linear-gradient(180deg, rgba(200,168,75,0.06) 0%, var(--card) 100%);
+  border: 1px solid rgba(200,168,75,0.22);
+  border-radius: 6px;
+  padding: .5rem .6rem;
+  font-size: .72rem;
+}
+.bracket-r32-card .bracket-match-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: .55rem;
+  color: var(--muted);
+  letter-spacing: .06em;
+  margin-bottom: .35rem;
+  text-transform: uppercase;
+}
+.bracket-duel {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+.bracket-team-box {
+  display: block;
+  padding: .35rem .45rem;
+  border-radius: 4px;
+  background: rgba(90, 60, 140, 0.35);
+  border: 1px solid rgba(140, 100, 200, 0.35);
+  color: #f0ebff;
+  font-weight: 600;
+  font-size: .74rem;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  text-align: center;
+}
+.bracket-team-box.in-r32 {
+  border-color: rgba(200,168,75,0.45);
+  background: rgba(200,168,75,0.12);
+  color: var(--gold);
+}
+.bracket-team-box.clickable {
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.bracket-team-box.clickable:hover {
+  border-color: var(--gold);
+}
+.bracket-advance-slot {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: .55rem .5rem;
+  text-align: center;
+  font-size: .74rem;
+  font-weight: 600;
+  min-height: 2.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow-wrap: break-word;
 }
-.bracket-slot.empty { color: var(--muted); font-style: italic; font-size: .65rem; }
-.bracket-slot.highlight { border-color: rgba(200,168,75,0.35); color: var(--gold); }
-.bracket-col-label {
-  grid-column: span 1;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: .85rem;
-  letter-spacing: .12em;
-  color: var(--gold);
-  text-align: center;
-  padding-bottom: .25rem;
+.bracket-advance-slot.empty {
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 500;
+  font-size: .68rem;
 }
+.bracket-advance-slot.filled {
+  border-color: rgba(200,168,75,0.4);
+  background: rgba(200,168,75,0.1);
+  color: var(--gold);
+}
+.bracket-advance-slot.winner-slot {
+  border-color: rgba(200,168,75,0.55);
+  background: rgba(200,168,75,0.15);
+  font-size: .82rem;
+}
+details.collapsible-etape2 > summary::-webkit-details-marker { display: none; }
+details.collapsible-etape2 > summary::before { content: '▸ '; color: var(--gold); }
+details.collapsible-etape2[open] > summary::before { content: '▾ '; }
 .bracket-team {
   padding: .2rem 0;
   line-height: 1.25;
@@ -1385,6 +1451,12 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     Les points étape 2 continuent d’être comptés au fil de la CDM via le <a href="classement.html" style="color:var(--gold)">classement</a>.
   </div>
 
+  <div id="finale-poules-lock" class="finale-status wait" hidden>
+    Complétez les <strong>72 scores</strong> en phase de groupes pour débloquer le tableau de phase finale (sans saisie de scores KO pour l’instant).
+    <div style="margin-top:.75rem"><button type="button" class="btn-etape2" onclick="goToTab('poules')">Aller aux poules →</button></div>
+  </div>
+
+  <div id="finale-unlocked-content" hidden>
   <div class="etape-main-toggle finale-view-toggle">
     <button type="button" class="finale-view-btn active" data-finale-mode="etape2">🏆 Étape 2 — Tableau équipes</button>
     <button type="button" class="finale-view-btn" data-finale-mode="scores">⚽ Étapes 3–7 — Scores KO</button>
@@ -1395,20 +1467,29 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
       <button type="button" class="btn-etape2" id="btn-fill-etape2-poules">Pré-remplir les 32 depuis mes poules</button>
       <span class="etape-round-meta" id="etape2-deadline-note">Date limite tableau : 11/06/2026</span>
     </div>
-    <div id="etape2-rounds-root"></div>
-    <div class="etape-round" style="margin-top:1.25rem">
+
+    <div class="etape-round bracket-ladder-section">
       <div class="etape-round-head">
-        <span class="etape-round-title">Vue escalier (vos choix)</span>
+        <div>
+          <div class="etape-round-title">Tableau — seizièmes issus de vos poules</div>
+          <div class="etape-round-meta">Affrontements calculés · pas de score ici (étapes 3–7 plus tard)</div>
+        </div>
       </div>
-      <div class="bracket-grid-wrap">
-        <div class="bracket-grid" id="etape2-bracket-grid"></div>
+      <div class="bracket-ladder-scroll">
+        <div class="bracket-ladder-pretty" id="etape2-bracket-ladder"></div>
       </div>
     </div>
+
+    <details class="etape-round collapsible-etape2" open>
+      <summary class="etape-round-title" style="cursor:pointer;list-style:none">Sélection des équipes par tour (étape 2)</summary>
+      <div id="etape2-rounds-root" style="margin-top:.85rem"></div>
+    </details>
   </div>
 
   <div class="finale-view-panel" id="finale-scores-panel">
-    <p class="ladder-hint-note" id="etape-scores-hint">Les affrontements officiels apparaissent ici quand l’organisateur met à jour <code style="color:var(--gold)">data/resultats.json</code>. Il ne reste plus qu’à saisir les scores.</p>
+    <p class="ladder-hint-note" id="etape-scores-hint">Scores KO débloqués après la compétition réelle (<code style="color:var(--gold)">resultats.json</code>). Vos poules suffisent pour l’étape 2.</p>
     <div id="etape-scores-root"></div>
+  </div>
   </div>
 </div>
 </div>
@@ -1609,6 +1690,7 @@ const MORE_SCORES = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 let scoreSheetTarget = null;
 
 let OFFICIAL = { etapeDebloquee: 0, matchsEliminationOfficiels: {} };
+const ORG_PIN_HASH = '9b1deeca6dfd86994f88772ed54864fffe1d4f910bbf3670bc1bd1cf6de9f51a';
 const ETAPE2_DEADLINE = new Date('2026-06-11T23:59:59');
 const ETAPE_KO = [
   { n: 3, title: 'Étape 3 — Seizièmes de finale (16 matchs)', deadline: '28/06/2026', min: 73, max: 88 },
@@ -1882,13 +1964,13 @@ function updateFinaleStatus() {
   if (!el) return;
   const filled = countFilledMatches();
   const e2 = countEtape2Progress();
-  const off = OFFICIAL.etapeDebloquee || 0;
+  const off = effectiveEtapeDebloquee();
   if (allPoulesComplete()) {
     el.className = 'finale-status ok';
     el.innerHTML = `✓ Poules 72/72 · Tableau étape 2 : <strong>${e2.r32}/32</strong> seizièmes · Scores KO débloqués jusqu’à l’<strong>étape ${off || '—'}</strong>.`;
   } else {
     el.className = 'finale-status wait';
-    el.innerHTML = `Poules <strong>${filled}/72</strong> · Complétez l’étape 2 (tableau) avant le 11/06 · Les scores KO (étapes 3–7) s’ouvrent après chaque tour réel.`;
+    el.innerHTML = `Poules <strong>${filled}/72</strong> — complétez toutes les poules pour débloquer le tableau de phase finale (sans scores KO).`;
   }
 }
 
@@ -1997,8 +2079,23 @@ function isEtape2Locked() {
   return new Date() > ETAPE2_DEADLINE;
 }
 
+function isOrganizerSessionActive() {
+  try {
+    const until = parseInt(localStorage.getItem('cdm_org_until') || '0', 10);
+    const tok = localStorage.getItem('cdm_org_token') || '';
+    return Date.now() < until && tok === ORG_PIN_HASH;
+  } catch (e) { return false; }
+}
+
+function effectiveEtapeDebloquee() {
+  const pub = OFFICIAL.etapeDebloquee || 0;
+  if (!isOrganizerSessionActive()) return pub;
+  const preview = parseInt(localStorage.getItem('cdm_org_preview_etape') || '0', 10);
+  return Math.max(pub, Number.isFinite(preview) ? preview : 0);
+}
+
 function isEtapeUnlocked(n) {
-  return (OFFICIAL.etapeDebloquee || 0) >= n;
+  return effectiveEtapeDebloquee() >= n;
 }
 
 function etape2PoolForKey(key) {
@@ -2248,66 +2345,107 @@ function renderEtape2Rounds() {
   });
 }
 
-function renderEtape2BracketGrid() {
-  const grid = document.getElementById('etape2-bracket-grid');
+function createR32PreviewCard(mid, row) {
+  const sides = R32_SIDE[mid] || {};
+  const left = sides.left || '';
+  const right = sides.right || '';
+  const card = document.createElement('div');
+  card.className = 'bracket-r32-card';
+  card.style.gridColumn = '1';
+  card.style.gridRow = String(row);
+  const inR32 = (t) => t && etape2.r32.includes(t);
+  const mkTeam = (team) => {
+    if (!team) return '<span class="bracket-team-box">En attente…</span>';
+    const cls = 'bracket-team-box clickable' + (inR32(team) ? ' in-r32' : '');
+    return `<button type="button" class="${cls}" data-et2-r32="${escapeHtml(team)}">${escapeHtml(team)}</button>`;
+  };
+  card.innerHTML = `
+    <div class="bracket-match-meta">${metaKo(mid)}</div>
+    <div class="bracket-duel">${mkTeam(left)}${mkTeam(right)}</div>`;
+  if (!isEtape2Locked()) {
+    card.querySelectorAll('[data-et2-r32]').forEach(btn => {
+      btn.addEventListener('click', () => toggleEtape2Team('r32', btn.dataset.et2R32));
+    });
+  }
+  return card;
+}
+
+function renderBracketLadderPretty() {
+  const grid = document.getElementById('etape2-bracket-ladder');
   if (!grid) return;
   grid.innerHTML = '';
-  const cols = ['Seizièmes', 'Huitièmes', 'Quarts', 'Demis', 'Finale'];
+  const cols = ['Seizièmes', 'Huitièmes', 'Quarts', 'Demi-finales', 'Finale'];
   cols.forEach((t, ci) => {
-    const lbl = document.createElement('div');
-    lbl.className = 'bracket-col-label';
-    lbl.style.gridColumn = String(ci + 1);
-    lbl.style.gridRow = '1';
-    lbl.textContent = t;
-    grid.appendChild(lbl);
+    const h = document.createElement('div');
+    h.className = 'col-head';
+    h.style.gridColumn = String(ci + 1);
+    h.style.gridRow = '1';
+    h.textContent = t;
+    grid.appendChild(h);
   });
-  const r32flat = BRACKET_R32_PAIRS.flat();
-  r32flat.forEach((mid, i) => {
-    const slot = document.createElement('div');
-    slot.className = 'bracket-slot empty';
-    slot.style.gridColumn = '1';
-    slot.style.gridRow = String(i + 2);
-    slot.textContent = 'M' + mid;
-    grid.appendChild(slot);
+  BRACKET_R32_PAIRS.forEach((pair, pi) => {
+    const r16Row = pi * 2 + 2;
+    pair.forEach((mid, ji) => {
+      grid.appendChild(createR32PreviewCard(mid, r16Row + ji));
+    });
+    const r16 = document.createElement('div');
+    r16.className = 'bracket-advance-slot' + (etape2.r16[pi] ? ' filled' : ' empty');
+    r16.style.gridColumn = '2';
+    r16.style.gridRow = r16Row + ' / span 2';
+    r16.textContent = etape2.r16[pi] || (ordinalFr(pi + 1) + ' huitième');
+    grid.appendChild(r16);
   });
-  BRACKET_R16_IDS.forEach((mid, i) => {
-    const slot = document.createElement('div');
-    slot.className = 'bracket-slot';
-    slot.style.gridColumn = '2';
-    slot.style.gridRow = String(i * 2 + 2);
-    slot.style.gridRowEnd = 'span 2';
-    const t = etape2.r16[i] || '—';
-    slot.textContent = t;
-    slot.classList.toggle('empty', !etape2.r16[i]);
-    slot.classList.toggle('highlight', !!etape2.r16[i]);
-    grid.appendChild(slot);
+  const qfRows = [2, 6, 10, 14];
+  qfRows.forEach((row, i) => {
+    const el = document.createElement('div');
+    el.className = 'bracket-advance-slot' + (etape2.qf[i] ? ' filled' : ' empty');
+    el.style.gridColumn = '3';
+    el.style.gridRow = row + ' / span 4';
+    el.textContent = etape2.qf[i] || (ordinalFr(i + 1) + ' quart');
+    grid.appendChild(el);
   });
-  etape2.qf.forEach((t, i) => {
-    const slot = document.createElement('div');
-    slot.className = 'bracket-slot' + (t ? ' highlight' : ' empty');
-    slot.style.gridColumn = '3';
-    slot.style.gridRow = String(i * 4 + 2);
-    slot.style.gridRowEnd = 'span 4';
-    slot.textContent = t || '—';
-    grid.appendChild(slot);
+  [2, 10].forEach((row, i) => {
+    const el = document.createElement('div');
+    el.className = 'bracket-advance-slot' + (etape2.sf[i] ? ' filled' : ' empty');
+    el.style.gridColumn = '4';
+    el.style.gridRow = row + ' / span 8';
+    el.textContent = etape2.sf[i] || (ordinalFr(i + 1) + ' demi');
+    grid.appendChild(el);
   });
-  etape2.sf.forEach((t, i) => {
-    const slot = document.createElement('div');
-    slot.className = 'bracket-slot' + (t ? ' highlight' : ' empty');
-    slot.style.gridColumn = '4';
-    slot.style.gridRow = String(i * 8 + 2);
-    slot.style.gridRowEnd = 'span 8';
-    slot.textContent = t || '—';
-    grid.appendChild(slot);
-  });
-  const finSlot = document.createElement('div');
-  finSlot.className = 'bracket-slot' + (etape2.finalists.length ? ' highlight' : ' empty');
-  finSlot.style.gridColumn = '5';
-  finSlot.style.gridRow = '2';
-  finSlot.style.gridRowEnd = 'span 16';
-  finSlot.innerHTML = etape2.finalists.map(escapeHtml).join('<br>') + (etape2.winner ? '<br><strong>🏆 ' + escapeHtml(etape2.winner) + '</strong>' : '');
-  if (!etape2.finalists.length) finSlot.textContent = '—';
-  grid.appendChild(finSlot);
+  const fin = document.createElement('div');
+  fin.className = 'bracket-advance-slot' + (etape2.finalists.length || etape2.winner ? ' filled winner-slot' : ' empty');
+  fin.style.gridColumn = '5';
+  fin.style.gridRow = '2 / span 16';
+  if (etape2.winner) {
+    fin.innerHTML = etape2.finalists.map(escapeHtml).join('<br>') + '<br><strong>🏆 ' + escapeHtml(etape2.winner) + '</strong>';
+  } else if (etape2.finalists.length) {
+    fin.innerHTML = etape2.finalists.map(escapeHtml).join('<br>');
+  } else {
+    fin.textContent = 'Finaliste & vainqueur';
+  }
+  grid.appendChild(fin);
+}
+
+function renderFinalePanels() {
+  rebuildEngine();
+  const lockEl = document.getElementById('finale-poules-lock');
+  const contentEl = document.getElementById('finale-unlocked-content');
+  const poulesOk = allPoulesComplete();
+  if (lockEl) lockEl.hidden = poulesOk;
+  if (contentEl) contentEl.hidden = !poulesOk;
+  if (!poulesOk) {
+    updateFinaleStatus();
+    return;
+  }
+  if (etape2.r32.length === 0 && qualifies32Liste().length === 32) {
+    etape2.r32 = qualifies32Liste();
+    sanitizeEtape2Cascade();
+    saveState();
+  }
+  renderBracketLadderPretty();
+  renderEtape2Rounds();
+  renderEtapeScores();
+  updateFinaleStatus();
 }
 
 function renderEtapeScores() {
@@ -2345,13 +2483,6 @@ function renderEtapeScores() {
     });
     root.appendChild(section);
   });
-}
-
-function renderFinalePanels() {
-  renderEtape2Rounds();
-  renderEtape2BracketGrid();
-  renderEtapeScores();
-  updateFinaleStatus();
 }
 
 function fullRefreshDerived() {

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Organisateur — CDM2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C8A84B; --dark: #0A0A0F; --surface: #111118; --card: #17171F;
+  --border: rgba(200,168,75,0.22); --text: #F0EDE5; --muted: #8A8880; --green: #27AE60;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--dark); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--gold); letter-spacing: .08em; margin-bottom: .35rem; }
+.sub { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 1.5rem; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 1rem; }
+.card h2 { font-size: 1rem; margin-bottom: .75rem; color: var(--gold); }
+label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .35rem; }
+input[type="password"], input[type="text"], select {
+  width: 100%; padding: .55rem .65rem; border-radius: 4px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-family: inherit; font-size: .88rem;
+}
+.btn {
+  display: inline-block; margin-top: .75rem; padding: .55rem 1rem; border-radius: 4px; border: 1px solid var(--border);
+  background: rgba(200,168,75,0.12); color: var(--gold); font-family: 'DM Mono', monospace; font-size: .72rem;
+  letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+}
+.btn:hover { background: rgba(200,168,75,0.22); }
+.btn-primary { background: rgba(39,174,96,0.15); border-color: rgba(39,174,96,0.45); color: #6fcf97; }
+.btn-danger { background: rgba(231,76,60,0.1); border-color: rgba(231,76,60,0.35); color: #e88; }
+.err { color: #E74C3C; font-size: .82rem; margin-top: .5rem; }
+.ok { color: var(--green); font-size: .82rem; margin-top: .5rem; }
+.hidden { display: none !important; }
+.etape-btns { display: flex; flex-wrap: wrap; gap: .45rem; margin: .5rem 0; }
+.etape-btns button {
+  min-width: 2.4rem; padding: .45rem .55rem; border-radius: 4px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); cursor: pointer; font-family: 'DM Mono', monospace; font-size: .78rem;
+}
+.etape-btns button.active { border-color: var(--gold); background: rgba(200,168,75,0.18); color: var(--gold); font-weight: 600; }
+.match-grid { display: grid; gap: .65rem; margin-top: .75rem; }
+.match-row {
+  display: grid; grid-template-columns: 3rem 1fr 1fr; gap: .5rem; align-items: center;
+  padding: .45rem .5rem; border-radius: 4px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+}
+.match-row .mid { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--muted); }
+.section-head { font-size: .85rem; font-weight: 600; margin: 1rem 0 .35rem; color: var(--text); }
+.hint { font-size: .78rem; color: var(--muted); line-height: 1.5; margin-top: .5rem; }
+.hint code { color: var(--gold); font-size: .74rem; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.status-pill {
+  display: inline-block; padding: .25rem .55rem; border-radius: 99px; font-size: .72rem;
+  font-family: 'DM Mono', monospace; background: rgba(200,168,75,0.12); color: var(--gold); margin-left: .5rem;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Espace organisateur</h1>
+  <p class="sub">Non référencé · réservé au responsable du concours</p>
+
+  <div id="login-panel" class="card">
+    <h2>Accès</h2>
+    <label for="org-pin">Code organisateur</label>
+    <input type="password" id="org-pin" autocomplete="current-password" placeholder="Code secret">
+    <button type="button" class="btn btn-primary" id="btn-login">Entrer</button>
+    <p class="err" id="login-err" hidden></p>
+  </div>
+
+  <div id="admin-panel" class="hidden">
+    <div class="card">
+      <h2>Étape débloquée pour tous <span class="status-pill" id="pub-etape">—</span></h2>
+      <p class="hint">Les participants voient les scores KO des étapes ≤ à cette valeur (via <code>data/resultats.json</code> sur GitHub).</p>
+      <div class="etape-btns" id="etape-picker"></div>
+      <p class="hint"><strong>0–2</strong> : poules / tableau équipes · <strong>3</strong> seizièmes · <strong>4</strong> huitièmes · <strong>5</strong> quarts · <strong>6</strong> demis · <strong>7</strong> finale</p>
+    </div>
+
+    <div class="card">
+      <h2>Affrontements officiels KO</h2>
+      <p class="hint">Renseignez les équipes réelles avant de débloquer l’étape correspondante.</p>
+      <div id="match-sections"></div>
+    </div>
+
+    <div class="card">
+      <h2>Publier ou tester</h2>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-download">Télécharger resultats.json</button>
+        <button type="button" class="btn" id="btn-preview">Aperçu local (votre navigateur)</button>
+        <button type="button" class="btn btn-danger" id="btn-clear-preview">Effacer aperçu local</button>
+        <button type="button" class="btn" id="btn-logout">Déconnexion</button>
+      </div>
+      <p class="ok" id="action-msg" hidden></p>
+      <div class="hint" style="margin-top:1rem">
+        <strong>Pour tout le monde :</strong> remplacez <code>data/resultats.json</code> dans le dépôt GitHub puis attendez 1–2 min (GitHub Pages).<br>
+        <strong>Aperçu local :</strong> teste le déblocage sur votre machine sans commit (les autres ne voient rien).
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const ORG_PIN_HASH = '9b1deeca6dfd86994f88772ed54864fffe1d4f910bbf3670bc1bd1cf6de9f51a';
+const ORG_SESSION_DAYS = 30;
+const ETAPE_KO = [
+  { n: 3, title: 'Étape 3 — Seizièmes (M73–M88)', min: 73, max: 88 },
+  { n: 4, title: 'Étape 4 — Huitièmes (M89–M96)', min: 89, max: 96 },
+  { n: 5, title: 'Étape 5 — Quarts (M97–M100)', min: 97, max: 100 },
+  { n: 6, title: 'Étape 6 — Demis (M101–M102)', min: 101, max: 102 },
+  { n: 7, title: 'Étape 7 — Petite finale & Finale (M103–M104)', min: 103, max: 104 },
+];
+
+let state = null;
+let draftEtape = 0;
+
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function isSessionOk() {
+  const until = parseInt(localStorage.getItem('cdm_org_until') || '0', 10);
+  const tok = localStorage.getItem('cdm_org_token') || '';
+  return Date.now() < until && tok === ORG_PIN_HASH;
+}
+
+function setSession() {
+  localStorage.setItem('cdm_org_token', ORG_PIN_HASH);
+  localStorage.setItem('cdm_org_until', String(Date.now() + ORG_SESSION_DAYS * 86400000));
+}
+
+function clearSession() {
+  localStorage.removeItem('cdm_org_token');
+  localStorage.removeItem('cdm_org_until');
+  localStorage.removeItem('cdm_org_preview_etape');
+}
+
+async function tryLogin() {
+  const pin = document.getElementById('org-pin').value;
+  const err = document.getElementById('login-err');
+  const hash = await sha256(pin);
+  if (hash !== ORG_PIN_HASH) {
+    err.textContent = 'Code incorrect.';
+    err.hidden = false;
+    return;
+  }
+  err.hidden = true;
+  setSession();
+  showAdmin();
+}
+
+function showAdmin() {
+  document.getElementById('login-panel').classList.add('hidden');
+  document.getElementById('admin-panel').classList.remove('hidden');
+  renderAll();
+}
+
+async function loadState() {
+  try {
+    const r = await fetch('data/resultats.json?' + Date.now());
+    if (r.ok) state = await r.json();
+  } catch (e) { /* offline */ }
+  if (!state) {
+    state = {
+      meta: { misAJour: '', note: '' },
+      etapeDebloquee: 0,
+      matchs: {},
+      equipesQualifiees32Liste: [],
+      matchsEliminationOfficiels: {},
+      seiziemeParMatchR32: {},
+      phaseFinalePourBareme: {},
+      vainqueursTableauElimination: {},
+      scoresElimination: {},
+      bonus: {}
+    };
+  }
+  if (!state.matchsEliminationOfficiels) state.matchsEliminationOfficiels = {};
+  draftEtape = state.etapeDebloquee || 0;
+}
+
+function ensureMatchIds() {
+  for (let m = 73; m <= 104; m++) {
+    if (!state.matchsEliminationOfficiels[String(m)]) {
+      state.matchsEliminationOfficiels[String(m)] = { home: '', away: '' };
+    }
+  }
+}
+
+function renderEtapePicker() {
+  const root = document.getElementById('etape-picker');
+  root.innerHTML = '';
+  for (let n = 0; n <= 7; n++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = String(n);
+    b.classList.toggle('active', n === draftEtape);
+    b.addEventListener('click', () => {
+      draftEtape = n;
+      renderEtapePicker();
+      document.getElementById('pub-etape').textContent = String(draftEtape);
+    });
+    root.appendChild(b);
+  }
+  document.getElementById('pub-etape').textContent = String(draftEtape);
+}
+
+function renderMatchSections() {
+  const root = document.getElementById('match-sections');
+  root.innerHTML = '';
+  ETAPE_KO.forEach(def => {
+    const h = document.createElement('div');
+    h.className = 'section-head';
+    h.textContent = def.title;
+    root.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'match-grid';
+    for (let m = def.min; m <= def.max; m++) {
+      const key = String(m);
+      const pair = state.matchsEliminationOfficiels[key] || { home: '', away: '' };
+      const row = document.createElement('div');
+      row.className = 'match-row';
+      row.innerHTML = `
+        <span class="mid">M${m}</span>
+        <input type="text" data-mid="${m}" data-side="home" value="${escapeAttr(pair.home || '')}" placeholder="Domicile">
+        <input type="text" data-mid="${m}" data-side="away" value="${escapeAttr(pair.away || '')}" placeholder="Extérieur">`;
+      grid.appendChild(row);
+    }
+    root.appendChild(grid);
+  });
+  root.querySelectorAll('input[data-mid]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const mid = String(inp.dataset.mid);
+      const side = inp.dataset.side;
+      if (!state.matchsEliminationOfficiels[mid]) state.matchsEliminationOfficiels[mid] = { home: '', away: '' };
+      state.matchsEliminationOfficiels[mid][side] = inp.value.trim();
+    });
+  });
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function buildExportJson() {
+  state.etapeDebloquee = draftEtape;
+  state.meta = state.meta || {};
+  state.meta.misAJour = new Date().toISOString().slice(0, 10);
+  state.meta.note = 'Mis à jour via organisateur.html';
+  return JSON.stringify(state, null, 2);
+}
+
+function downloadJson() {
+  const blob = new Blob([buildExportJson()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'resultats.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showMsg('Fichier téléchargé — remplacez data/resultats.json sur GitHub puis commit.');
+}
+
+function applyPreview() {
+  localStorage.setItem('cdm_org_preview_etape', String(draftEtape));
+  showMsg('Aperçu local actif (étape ' + draftEtape + '). Ouvrez index.html dans ce navigateur.');
+}
+
+function clearPreview() {
+  localStorage.removeItem('cdm_org_preview_etape');
+  showMsg('Aperçu local effacé.');
+}
+
+function showMsg(text) {
+  const el = document.getElementById('action-msg');
+  el.textContent = text;
+  el.hidden = false;
+  setTimeout(() => { el.hidden = true; }, 8000);
+}
+
+function renderAll() {
+  ensureMatchIds();
+  renderEtapePicker();
+  renderMatchSections();
+}
+
+document.getElementById('btn-login').addEventListener('click', tryLogin);
+document.getElementById('org-pin').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+document.getElementById('btn-download').addEventListener('click', downloadJson);
+document.getElementById('btn-preview').addEventListener('click', applyPreview);
+document.getElementById('btn-clear-preview').addEventListener('click', clearPreview);
+document.getElementById('btn-logout').addEventListener('click', () => {
+  clearSession();
+  location.reload();
+});
+
+loadState().then(() => {
+  if (isSessionOk()) showAdmin();
+});
+</script>
+</body>
+</html>
