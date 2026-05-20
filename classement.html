@@ -120,6 +120,18 @@ header h1 span { color: var(--text); }
   color: var(--gold); border: 1px solid var(--border); padding: .5rem 1rem; border-radius: 3px; text-decoration: none;
 }
 .top-actions a:hover { background: rgba(200,168,75,0.1); }
+@media (max-width: 520px) {
+  header { padding: 1.75rem .85rem 2rem; }
+  .header-brand { padding-bottom: 0; width: 100%; }
+  .edition-badge {
+    position: static;
+    transform: none;
+    margin-top: .6rem;
+    left: auto;
+    bottom: auto;
+  }
+  .subtitle { margin-top: 1rem; }
+}
 .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 3rem; }
 .meta { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--muted); margin-bottom: 1.5rem; }
 .meta strong { color: var(--text); }

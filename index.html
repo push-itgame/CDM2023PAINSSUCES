@@ -938,6 +938,15 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   margin: -.75rem 0 1rem;
   line-height: 1.45;
 }
+.bracket-swipe-hint {
+  display: none;
+  font-family: 'DM Mono', monospace;
+  font-size: .62rem;
+  color: var(--muted);
+  text-align: center;
+  margin: 0 0 .4rem;
+  letter-spacing: .06em;
+}
 .etape-main-toggle {
   display: flex;
   gap: .5rem;
@@ -1508,7 +1517,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 }
 @media (max-width: 520px) {
   header {
-    padding: 1.75rem .85rem 1.35rem;
+    padding: 1.75rem .85rem 2rem;
   }
   header h1 {
     font-size: clamp(2.4rem, 13vw, 3.25rem);
@@ -1517,25 +1526,33 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     font-size: 1.85rem;
     margin-bottom: .25rem;
   }
+  .header-hero {
+    width: 100%;
+  }
   .header-brand {
-    padding-bottom: .95rem;
+    padding-bottom: 0;
     max-width: 100%;
+    width: 100%;
   }
   .edition-badge {
-    left: 52%;
-    bottom: -.25rem;
-    transform: translateX(-5%) rotate(-22deg);
-    max-width: calc(100vw - 2rem);
-    padding: .32rem .7rem .38rem;
+    position: static;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    margin-top: .6rem;
+    max-width: none;
+    padding: .35rem .85rem .42rem;
   }
   .edition-badge .edition-label,
   .edition-badge .edition-name {
     font-size: .9rem;
   }
   .badge-deadline {
+    display: block;
     font-size: .62rem;
     padding: .28rem .55rem;
-    margin-top: .75rem;
+    margin: 1.2rem auto 0;
+    width: fit-content;
   }
   .container {
     padding: 1.15rem .55rem 2rem;
@@ -1603,14 +1620,33 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     max-height: min(70vh, 780px);
     padding: .2rem .35rem 1.5rem;
   }
+  .bracket-swipe-hint {
+    display: block;
+  }
   .bracket-ladder-pretty {
-    grid-template-columns: 148px 112px 96px 88px 80px;
-    gap: .3rem .28rem;
+    grid-template-columns: 140px 106px 92px 84px 76px;
+    grid-template-rows: 2rem repeat(17, minmax(4.85rem, auto));
+    gap: .5rem .28rem;
+    align-items: start;
     transform: none;
+  }
+  .bracket-ladder-pretty .bracket-r32-card,
+  .bracket-ladder-pretty .bracket-ko-card {
+    align-self: start;
+  }
+  .bracket-r32-card .bracket-match-meta {
+    display: none;
+  }
+  .bracket-r32-card {
+    padding: .32rem .36rem;
+  }
+  .bracket-r32-card .bracket-duel {
+    gap: .22rem;
   }
   .bracket-team-box {
     font-size: .66rem;
     padding: .28rem .35rem;
+    line-height: 1.2;
   }
 }
 
@@ -1779,6 +1815,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
           <div class="etape-round-meta">Seizièmes issus de vos poules · cliquez le vainqueur à chaque match pour remplir huitièmes → finale</div>
         </div>
       </div>
+      <p class="bracket-swipe-hint">← Glissez pour parcourir le tableau →</p>
       <div class="bracket-ladder-scroll">
         <div class="bracket-ladder-pretty" id="etape2-bracket-ladder"></div>
       </div>
@@ -2715,6 +2752,7 @@ function createBracketMatchCard(mid, gridCol, gridRow, rowSpan, label) {
   card.style.gridColumn = String(gridCol);
   card.style.gridRow = rowSpan ? (gridRow + ' / span ' + rowSpan) : String(gridRow);
   if (gridCol === 5) card.classList.add('bracket-col-finale');
+  if (r32) card.classList.add('bracket-col-r32');
   const meta = label || metaKo(mid, !label);
   if (left && right) {
     card.innerHTML = `
