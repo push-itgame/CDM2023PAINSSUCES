@@ -428,6 +428,9 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   align-items: center;
   gap: .35rem;
 }
+.score-picker[data-team]::before {
+  display: none;
+}
 .score-picker-digits {
   display: flex;
   gap: .28rem;
@@ -485,39 +488,71 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 .tv-board.match-card.has-score { border-color: rgba(200,168,75,0.3); }
 .tv-board.match-card.partial { border-color: rgba(231,76,60,0.35); }
 .tv-board.ko-wait { opacity: .55; }
-.tv-display {
+.tv-scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .4rem;
+  margin-bottom: .6rem;
+  padding: .55rem .6rem;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(200, 168, 75, 0.18);
+  border-radius: 6px;
+}
+.tv-scoreboard.empty {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+.tv-sb-team {
+  flex: 1;
+  min-width: 0;
+  font-size: .78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: var(--text);
+}
+.tv-sb-team.home { text-align: left; padding-right: .15rem; }
+.tv-sb-team.away { text-align: right; padding-left: .15rem; }
+.tv-sb-team.is-leading {
+  color: var(--gold);
+}
+.tv-sb-center {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: .2rem;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 2rem;
-  letter-spacing: .12em;
+  font-size: 1.85rem;
+  letter-spacing: .04em;
   color: var(--gold);
   line-height: 1;
-  margin-bottom: .65rem;
-  min-height: 1.2em;
+  padding: 0 .15rem;
 }
-.tv-board--sm .tv-display { font-size: 1.35rem; margin-bottom: .45rem; }
-.tv-display.empty { color: var(--muted); font-size: 1.1rem; font-family: 'DM Mono', monospace; }
-.tv-team-row {
-  display: flex;
-  justify-content: space-between;
-  gap: .5rem;
-  margin-bottom: .55rem;
+.tv-scoreboard.empty .tv-sb-center {
+  color: var(--muted);
+  font-size: 1rem;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: .08em;
 }
-.tv-team-name {
-  flex: 1;
-  font-size: .84rem;
-  font-weight: 600;
-  line-height: 1.25;
-  overflow-wrap: break-word;
-  text-align: left;
+.tv-sb-num {
+  min-width: 1.15em;
+  text-align: center;
 }
-.tv-team-name.tv-team-right { text-align: right; }
-.tv-team-name.is-winner {
-  color: var(--gold);
-  background: rgba(200,168,75,0.1);
-  border-radius: 4px;
-  padding: .15rem .25rem;
+.tv-sb-sep {
+  color: var(--muted);
+  font-size: 1.15rem;
+  line-height: 1;
 }
-.tv-team-name.is-winner::before { content: '▸ '; opacity: .7; }
+.tv-board--sm .tv-scoreboard { padding: .45rem .5rem; margin-bottom: .45rem; }
+.tv-board--sm .tv-sb-center { font-size: 1.45rem; }
+.tv-board--sm .tv-sb-team { font-size: .7rem; }
+/* legacy alias */
+.tv-display { display: none; }
 .tv-score-row {
   display: flex;
   align-items: flex-start;
@@ -1082,16 +1117,13 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 }
 .bracket-match-meta {
   font-family: 'DM Mono', monospace;
-  font-size: .48rem;
+  font-size: .52rem;
   color: var(--muted);
-  letter-spacing: .03em;
+  letter-spacing: .02em;
   margin-bottom: .22rem;
-  text-transform: uppercase;
   text-align: center;
   line-height: 1.15;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .bracket-ladder-pretty .bracket-ko-card,
 .bracket-ladder-pretty .bracket-r32-card {
@@ -1126,7 +1158,14 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     padding-right: .5rem;
   }
   .bracket-ladder-pretty {
-    transform: translateX(-2%);
+    grid-template-columns: 176px 134px 114px 102px 94px;
+    transform: translateX(-1.25%);
+  }
+  .bracket-ladder-pretty .bracket-col-finale {
+    margin-left: -1rem;
+  }
+  .bracket-ladder-pretty .col-head.col-finale {
+    margin-left: -1rem;
   }
 }
 .bracket-duel {
@@ -1463,7 +1502,10 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   margin-top: .35rem;
 }
 
-/* ───── MOBILE (poules, header, nav) ───── */
+@media (min-width: 521px) {
+  .tv-sb-center { font-size: 2rem; }
+  .tv-scoreboard { padding: .6rem .75rem; margin-bottom: .65rem; }
+}
 @media (max-width: 520px) {
   header {
     padding: 1.75rem .85rem 1.35rem;
@@ -1515,12 +1557,15 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     padding: .55rem .45rem .6rem;
     overflow: hidden;
   }
-  .tv-display {
-    font-size: 1.55rem;
-    margin-bottom: .4rem;
+  .tv-scoreboard {
+    padding: .5rem .45rem;
+    margin-bottom: .45rem;
   }
-  .tv-board.match-card .tv-team-row {
-    display: none;
+  .tv-sb-center {
+    font-size: 1.55rem;
+  }
+  .tv-sb-team {
+    font-size: .68rem;
   }
   .tv-score-row {
     flex-direction: column;
@@ -1533,20 +1578,6 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   .score-picker {
     width: 100%;
     max-width: 100%;
-  }
-  .score-picker[data-team]::before {
-    content: attr(data-team);
-    display: block;
-    font-size: .68rem;
-    font-weight: 600;
-    color: var(--text);
-    text-align: center;
-    margin-bottom: .28rem;
-    line-height: 1.2;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 0 .15rem;
   }
   .score-picker-digits {
     display: grid;
@@ -1567,13 +1598,6 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     max-width: none;
     height: 1.7rem;
     margin-top: .08rem;
-  }
-  .ko-match-card .tv-team-row {
-    display: flex;
-    margin-bottom: .4rem;
-  }
-  .ko-match-card .tv-team-name {
-    font-size: .68rem;
   }
   .bracket-ladder-scroll {
     max-height: min(70vh, 780px);
@@ -2606,35 +2630,6 @@ function onKoScoreChanged(mid) {
   updateKoMatchDisplay(mid);
 }
 
-function updateKoMatchDisplay(mid) {
-  const [teamA, teamB] = getOfficialMatchTeams(mid);
-  const h = getScoreRaw(koInputId(mid, 'h'));
-  const a = getScoreRaw(koInputId(mid, 'a'));
-  const el = document.getElementById('display-km' + mid);
-  const card = document.querySelector('.ko-match-card[data-ko-mid="' + mid + '"]');
-  if (el) {
-    el.textContent = formatDisplayScore(h, a);
-    el.className = (h !== '' || a !== '') ? 'tv-display' : 'tv-display empty';
-  }
-  if (!card) return;
-  const hVal = parseScoreVal(h);
-  const aVal = parseScoreVal(a);
-  const both = Number.isFinite(hVal) && Number.isFinite(aVal);
-  card.classList.toggle('has-score', both);
-  card.classList.toggle('partial', (h !== '' || a !== '') && !both);
-  const pick = kosWinners[mid];
-  let w = null;
-  if (both) {
-    if (hVal > aVal) w = teamA;
-    else if (aVal > hVal) w = teamB;
-    else w = pick || null;
-  }
-  card.querySelectorAll('.tv-team-name').forEach((span, i) => {
-    const t = i === 0 ? teamA : teamB;
-    span.classList.toggle('is-winner', w === t && !!t);
-  });
-}
-
 function createOfficialScoreCard(mid, editable) {
   const [teamA, teamB] = getOfficialMatchTeams(mid);
   const pick = kosWinners[mid];
@@ -2655,18 +2650,16 @@ function createOfficialScoreCard(mid, editable) {
   const el = document.createElement('div');
   el.className = 'tv-board match-card ko-match-card ' + fillCls + (ready ? ' ready' : ' ko-wait');
   el.dataset.koMid = mid;
-  const homeCls = 'tv-team-name' + (activeWinner === teamA && teamA ? ' is-winner' : '');
-  const awayCls = 'tv-team-name tv-team-right' + (activeWinner === teamB && teamB ? ' is-winner' : '');
   let html = `<div class="ko-meta">${metaKo(mid)}</div>`;
-  html += `<div class="tv-display${(h !== '' || a !== '') ? '' : ' empty'}" id="display-km${mid}">${formatDisplayScore(h, a)}</div>`;
+  html += buildScoreboardHTML('display-km' + mid, teamA || '—', teamB || '—', h, a);
   if (ready) {
-    html += `<div class="tv-team-row"><span class="${homeCls}">${escapeHtml(teamA)}</span><span class="${awayCls}">${escapeHtml(teamB)}</span></div>`;
     if (editable) html += buildTvScoreRow(koInputId(mid, 'h'), koInputId(mid, 'a'), 'group', teamA, teamB);
     else html += '<p class="ko-wait-msg">Saisie ouverte quand l’étape est débloquée.</p>';
   } else {
     html += '<p class="ko-wait-msg">Affrontement officiel pas encore publié.</p>';
   }
   el.innerHTML = html;
+  updateScoreboardEl(el.querySelector('#display-km' + mid), h, a, activeWinner === teamA && !!activeWinner, activeWinner === teamB && !!activeWinner);
   if (isDraw) {
     const tie = document.createElement('div');
     tie.className = 'ko-tie-break';
@@ -2728,7 +2721,7 @@ function createBracketMatchCard(mid, gridCol, gridRow, rowSpan, label) {
       <div class="bracket-match-meta">${meta}</div>
       <div class="bracket-duel">${mkBracketTeamBtn(mid, left, locked)}${mkBracketTeamBtn(mid, right, locked)}</div>`;
   } else {
-    const hint = mid <= 88 ? 'Poules incomplètes' : 'Choisissez les seizièmes d’abord';
+    const hint = mid <= 88 ? 'Poules…' : 'En attente';
     card.innerHTML = `<div class="bracket-match-meta">${meta}</div><span class="bracket-team-box" style="opacity:.6">${hint}</span>`;
   }
   wireBracketCard(card, mid);
@@ -2886,6 +2879,43 @@ function formatDisplayScore(h, a) {
   return formatScoreLabel(h) + ' : ' + formatScoreLabel(a);
 }
 
+function buildScoreboardHTML(id, home, away, hVal = '', aVal = '') {
+  const empty = hVal === '' && aVal === '';
+  return `<div class="tv-scoreboard${empty ? ' empty' : ''}" id="${id}" data-home="${escapeAttr(home)}" data-away="${escapeAttr(away)}">
+    <span class="tv-sb-team home">${escapeHtml(home)}</span>
+    <div class="tv-sb-center">
+      <span class="tv-sb-num tv-sb-home">${formatScoreLabel(hVal)}</span>
+      <span class="tv-sb-sep">:</span>
+      <span class="tv-sb-num tv-sb-away">${formatScoreLabel(aVal)}</span>
+    </div>
+    <span class="tv-sb-team away">${escapeHtml(away)}</span>
+  </div>`;
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function updateScoreboardEl(rootEl, h, a, winnerHome, winnerAway) {
+  if (!rootEl) return;
+  const empty = h === '' && a === '';
+  rootEl.classList.toggle('empty', empty);
+  const homeNum = rootEl.querySelector('.tv-sb-home');
+  const awayNum = rootEl.querySelector('.tv-sb-away');
+  if (homeNum) homeNum.textContent = formatScoreLabel(h);
+  if (awayNum) awayNum.textContent = formatScoreLabel(a);
+  const homeTeam = rootEl.querySelector('.tv-sb-team.home');
+  const awayTeam = rootEl.querySelector('.tv-sb-team.away');
+  if (homeTeam) homeTeam.classList.toggle('is-leading', !!winnerHome);
+  if (awayTeam) awayTeam.classList.toggle('is-leading', !!winnerAway);
+  const card = rootEl.closest('.match-card, .ko-match-card');
+  const complete = h !== '' && a !== '';
+  const partial = (h !== '' || a !== '') && !complete;
+  card?.classList.toggle('has-score', complete);
+  card?.classList.toggle('partial', partial);
+  if (empty) card?.classList.remove('has-score');
+}
+
 function buildScorePickerHTML(inputId, variant = 'group', teamLabel = '') {
   const val = getScoreRaw(inputId);
   const teamAttr = teamLabel ? ' data-team="' + escapeHtml(teamLabel) + '"' : '';
@@ -2928,18 +2958,29 @@ function updatePickerUI(inputId) {
 function updateMatchDisplayScore(matchNum) {
   const h = getScoreRaw('m' + matchNum + '-h');
   const a = getScoreRaw('m' + matchNum + '-a');
-  const el = document.getElementById('display-m' + matchNum);
-  const card = document.querySelector('.match-card[data-match="' + matchNum + '"]');
-  if (!el) return;
-  if (h === '' && a === '') {
-    el.textContent = '— : —';
-    el.className = 'tv-display empty';
-    card?.classList.remove('has-score');
-  } else {
-    el.textContent = formatScoreLabel(h) + ' : ' + formatScoreLabel(a);
-    el.className = 'tv-display';
-    card?.classList.toggle('has-score', h !== '' && a !== '');
+  updateScoreboardEl(document.getElementById('display-m' + matchNum), h, a, false, false);
+}
+
+function updateKoMatchDisplay(mid) {
+  const [teamA, teamB] = getOfficialMatchTeams(mid);
+  const h = getScoreRaw(koInputId(mid, 'h'));
+  const a = getScoreRaw(koInputId(mid, 'a'));
+  const el = document.getElementById('display-km' + mid);
+  const card = document.querySelector('.ko-match-card[data-ko-mid="' + mid + '"]');
+  const hVal = parseScoreVal(h);
+  const aVal = parseScoreVal(a);
+  const both = Number.isFinite(hVal) && Number.isFinite(aVal);
+  const pick = kosWinners[mid];
+  let w = null;
+  if (both) {
+    if (hVal > aVal) w = teamA;
+    else if (aVal > hVal) w = teamB;
+    else w = pick || null;
   }
+  updateScoreboardEl(el, h, a, w === teamA && !!teamA, w === teamB && !!teamB);
+  if (!card) return;
+  card.classList.toggle('has-score', both);
+  card.classList.toggle('partial', (h !== '' || a !== '') && !both);
 }
 
 function setScore(inputId, value) {
@@ -3034,12 +3075,8 @@ function buildGroups() {
       const keyH = `m${num}-h`;
       const keyA = `m${num}-a`;
       row.innerHTML = `
-        <div class="tv-board match-card incomplete" data-match="${num}">
-          <div class="tv-display empty" id="display-m${num}">— : —</div>
-          <div class="tv-team-row">
-            <span class="tv-team-name">${escapeHtml(home)}</span>
-            <span class="tv-team-name tv-team-right">${escapeHtml(away)}</span>
-          </div>
+        <div class="tv-board match-card incomplete" data-match="${num}" data-home="${escapeAttr(home)}" data-away="${escapeAttr(away)}">
+          ${buildScoreboardHTML('display-m' + num, home, away)}
           ${buildTvScoreRow(keyH, keyA, 'group', home, away)}
         </div>`;
       block.appendChild(row);
