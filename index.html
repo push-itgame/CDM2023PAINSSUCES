@@ -304,6 +304,44 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 .match-card.has-score { border-color: rgba(200,168,75,0.25); }
 .match-card.partial { border-color: rgba(231,76,60,0.35); }
 .match-card.incomplete { opacity: .92; }
+.match-card.pred-hit,
+.ko-match-card.pred-hit {
+  border-color: rgba(39,174,96,0.42);
+  background: rgba(39,174,96,0.06);
+  box-shadow: inset 0 0 0 1px rgba(39,174,96,0.12);
+}
+.pred-feedback-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: .35rem;
+  min-height: 1.1rem;
+}
+.pred-pts-badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: #6fcf97;
+  background: rgba(39,174,96,0.14);
+  border: 1px solid rgba(39,174,96,0.32);
+  border-radius: 3px;
+  padding: .1rem .38rem;
+  line-height: 1.35;
+}
+.bracket-team-box.pred-hit-team {
+  border-color: rgba(39,174,96,0.48) !important;
+  background: rgba(39,174,96,0.12) !important;
+  color: #b8e6c8 !important;
+}
+.bracket-team-box.pred-hit-team.is-winner-pick {
+  box-shadow: 0 0 0 1px rgba(39,174,96,0.35), 0 0 0 1px rgba(200,168,75,0.25);
+}
+.bracket-team-box .pred-pts-badge {
+  display: block;
+  margin-top: .22rem;
+  font-size: .55rem;
+}
 .match-card.highlight-pulse {
   animation: matchPulse 1.2s ease 2;
   border-color: var(--gold) !important;
@@ -2669,6 +2707,187 @@ function isEtapeUnlocked(n) {
   return effectiveEtapeDebloquee() >= n;
 }
 
+// ─── FEEDBACK PRONOS (vs resultats.json) ─────────────────────────────────────
+function parseIntSafe(v) {
+  const n = parseInt(String(v ?? '').trim(), 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+function normalizeTeamName(s) {
+  return String(s ?? '').trim().toLowerCase();
+}
+
+function matchOutcome(h, a) {
+  if (h == null || a == null) return null;
+  if (h > a) return 'H';
+  if (h < a) return 'A';
+  return 'D';
+}
+
+function formatPtsBadge(pts) {
+  const n = Number(pts);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  const label = Number.isInteger(n) ? String(n) : String(n);
+  return '<span class="pred-pts-badge">+' + label + '</span>';
+}
+
+function getOfficialBareme() {
+  return OFFICIAL.phaseFinalePourBareme || {};
+}
+
+function officialList32() {
+  const b = getOfficialBareme();
+  const list = b.liste32QualifiesIssuesPoules?.length
+    ? b.liste32QualifiesIssuesPoules
+    : (OFFICIAL.equipesQualifiees32Liste || []);
+  return list.filter(Boolean);
+}
+
+const TABLEAU_ROUND_META = {
+  r32: { etapeMin: 2, ptsPer: 3, etape2Key: 'r32', baremeKey: 'liste32QualifiesIssuesPoules' },
+  r16: { etapeMin: 3, ptsPer: 5, etape2Key: 'r16', baremeKey: 'vainqueursSeiziemePourHuitiemes16' },
+  qf: { etapeMin: 4, ptsPer: 12, etape2Key: 'qf', baremeKey: 'vainqueursHuitiemesPourQuarts8' },
+  sf: { etapeMin: 5, ptsPer: 20, etape2Key: 'sf', baremeKey: 'vainqueursQuartsPourDemis4' },
+  finalists: { etapeMin: 6, ptsPer: 35, etape2Key: 'finalists', baremeKey: 'finalistesChoisis' },
+  winner: { etapeMin: 7, ptsPer: 50, etape2Key: 'winner', baremeKey: 'vainqueurFinal' },
+};
+
+function bracketRoundForMid(mid) {
+  mid = Number(mid);
+  if (mid >= 73 && mid <= 88) return 'r32';
+  if (mid >= 89 && mid <= 96) return 'r16';
+  if (mid >= 97 && mid <= 100) return 'qf';
+  if (mid >= 101 && mid <= 102) return 'sf';
+  if (mid === 104) return 'finalists';
+  return null;
+}
+
+function shouldRevealTableauRound(roundKey) {
+  const meta = TABLEAU_ROUND_META[roundKey];
+  if (!meta) return false;
+  if (roundKey === 'r32') {
+    return officialList32().length >= 32 || effectiveEtapeDebloquee() >= meta.etapeMin;
+  }
+  if (roundKey === 'winner') {
+    const w = getOfficialBareme().vainqueurFinal || OFFICIAL.vainqueurFinal || '';
+    return !!w.trim() && effectiveEtapeDebloquee() >= meta.etapeMin;
+  }
+  const realList = getOfficialBareme()[meta.baremeKey] || [];
+  return realList.length > 0 && effectiveEtapeDebloquee() >= meta.etapeMin;
+}
+
+function userTableauList(roundKey) {
+  syncEtape2FromPicks();
+  if (roundKey === 'r32') {
+    return etape2.r32.length === 32 ? etape2.r32 : qualifies32Liste();
+  }
+  if (roundKey === 'winner') {
+    return etape2.winner ? [etape2.winner] : [];
+  }
+  const key = TABLEAU_ROUND_META[roundKey]?.etape2Key;
+  return key ? (etape2[key] || []) : [];
+}
+
+function teamTableauPts(team, roundKey) {
+  if (!team || !roundKey || !shouldRevealTableauRound(roundKey)) return null;
+  const meta = TABLEAU_ROUND_META[roundKey];
+  const nt = normalizeTeamName(team);
+  if (!nt) return null;
+
+  let realList = [];
+  if (roundKey === 'r32') realList = officialList32();
+  else if (roundKey === 'winner') {
+    const w = getOfficialBareme().vainqueurFinal || OFFICIAL.vainqueurFinal || '';
+    if (normalizeTeamName(w) !== nt) return null;
+    return normalizeTeamName(etape2.winner) === nt ? meta.ptsPer : null;
+  } else {
+    realList = getOfficialBareme()[meta.baremeKey] || [];
+  }
+
+  const realSet = new Set(realList.map(normalizeTeamName).filter(Boolean));
+  if (!realSet.has(nt)) return null;
+  const predSet = new Set(userTableauList(roundKey).map(normalizeTeamName).filter(Boolean));
+  return predSet.has(nt) ? meta.ptsPer : null;
+}
+
+function scorePouleMatch(num) {
+  const key = 'Match ' + num;
+  const real = OFFICIAL.matchs?.[key];
+  if (!real) return null;
+  const rh = parseIntSafe(real.scoreHome ?? real.homeScore);
+  const ra = parseIntSafe(real.scoreAway ?? real.awayScore);
+  if (rh == null || ra == null) return null;
+  const ph = parseIntSafe(getScoreRaw('m' + num + '-h'));
+  const pa = parseIntSafe(getScoreRaw('m' + num + '-a'));
+  if (ph == null || pa == null) return null;
+  const ro = matchOutcome(rh, ra);
+  const po = matchOutcome(ph, pa);
+  if (!ro || !po || ro !== po) return { hit: false, pts: 0 };
+  const exact = rh === ph && ra === pa;
+  let base = exact ? 5 : 3;
+  const totalReal = rh + ra;
+  if (totalReal >= 6) base *= 2;
+  else if (totalReal >= 4) base *= 1.5;
+  return { hit: true, pts: Math.round(base * 10) / 10 };
+}
+
+function koEtapeForMid(mid) {
+  const def = ETAPE_KO.find(d => mid >= d.min && mid <= d.max);
+  return def ? def.n : 99;
+}
+
+function scoreKoMatch(mid) {
+  const key = 'Match ' + mid;
+  const realW = OFFICIAL.vainqueursTableauElimination?.[key]
+    || OFFICIAL.vainqueursTableauElimination?.[String(mid)] || '';
+  if (!realW) return null;
+  if (effectiveEtapeDebloquee() < koEtapeForMid(mid)) return null;
+
+  const scReal = OFFICIAL.scoresElimination?.[key] || OFFICIAL.scoresElimination?.[String(mid)];
+  const exactInResultats = scReal && parseIntSafe(scReal.scoreHome) != null && parseIntSafe(scReal.scoreAway) != null;
+
+  if (exactInResultats) {
+    const ph = parseIntSafe(getScoreRaw(koInputId(mid, 'h')));
+    const pa = parseIntSafe(getScoreRaw(koInputId(mid, 'a')));
+    const rh = parseIntSafe(scReal.scoreHome);
+    const ra = parseIntSafe(scReal.scoreAway);
+    if (ph != null && pa != null && ph === rh && pa === ra) {
+      return { hit: true, pts: 10 };
+    }
+  }
+
+  const predW = kosWinners[mid] || '';
+  if (normalizeTeamName(predW) && normalizeTeamName(predW) === normalizeTeamName(realW)) {
+    return { hit: true, pts: 6 };
+  }
+  return { hit: false, pts: 0 };
+}
+
+function applyPredFeedbackToCard(card, result) {
+  if (!card) return;
+  card.querySelector('.pred-feedback-row')?.remove();
+  card.classList.remove('pred-hit');
+  if (!result?.hit) return;
+  card.classList.add('pred-hit');
+  const row = document.createElement('div');
+  row.className = 'pred-feedback-row';
+  row.innerHTML = formatPtsBadge(result.pts);
+  card.insertBefore(row, card.firstChild);
+}
+
+function applyAllPouleFeedback() {
+  for (const rows of Object.values(GROUPS)) {
+    for (const [num] of rows) {
+      const card = document.querySelector('.match-card[data-match="' + num + '"]');
+      applyPredFeedbackToCard(card, scorePouleMatch(num));
+    }
+  }
+}
+
+function applyKoPredFeedback(card, mid) {
+  applyPredFeedbackToCard(card, scoreKoMatch(mid));
+}
+
 function etape2PoolForKey(key) {
   if (key === 'r32') return [...NATIONS];
   if (key === 'r16') return [...etape2.r32];
@@ -2905,6 +3124,7 @@ function createOfficialScoreCard(mid, editable) {
     });
     el.appendChild(tie);
   }
+  applyKoPredFeedback(el, mid);
   return el;
 }
 
@@ -2924,9 +3144,19 @@ function countEtapeScoreProgress(min, max) {
 function mkBracketTeamBtn(mid, team, locked) {
   if (!team) return '<span class="bracket-team-box">—</span>';
   const pick = etape2Pick[mid];
-  const cls = 'bracket-team-box clickable' + (pick === team ? ' is-winner-pick' : '');
+  const round = bracketRoundForMid(mid);
+  let pts = null;
+  if (mid === 104) {
+    if (pick === team) pts = teamTableauPts(team, 'winner') ?? teamTableauPts(team, 'finalists');
+    else pts = teamTableauPts(team, 'finalists');
+  } else {
+    pts = round ? teamTableauPts(team, round) : null;
+  }
+  let cls = 'bracket-team-box clickable' + (pick === team ? ' is-winner-pick' : '');
+  if (pts != null) cls += ' pred-hit-team';
   const dis = locked ? ' disabled' : '';
-  return `<button type="button" class="${cls}" data-bracket-mid="${mid}" data-bracket-team="${escapeHtml(team)}"${dis}>${escapeHtml(team)}</button>`;
+  const badge = pts != null ? formatPtsBadge(pts) : '';
+  return `<button type="button" class="${cls}" data-bracket-mid="${mid}" data-bracket-team="${escapeHtml(team)}"${dis}>${escapeHtml(team)}${badge}</button>`;
 }
 
 function wireBracketCard(card, mid) {
@@ -3222,6 +3452,7 @@ function updateKoMatchDisplay(mid) {
   if (!card) return;
   card.classList.toggle('has-score', both);
   card.classList.toggle('partial', (h !== '' || a !== '') && !both);
+  applyKoPredFeedback(card, mid);
 }
 
 function setScore(inputId, value) {
@@ -3380,6 +3611,8 @@ function renderMissingMatches() {
       card.classList.toggle('incomplete', s === 'incomplete');
     }
   }
+
+  applyAllPouleFeedback();
 
   if (complete.length === 72) {
     chips.innerHTML = R32_VALIDATION.ok
