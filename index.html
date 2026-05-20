@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CDM 2026 édition Pains sucés</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=VT323&display=swap" rel="stylesheet">
 <style>
 :root {
   --gold: #C8A84B;
@@ -46,7 +46,21 @@ header::before {
   background: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(200,168,75,0.04) 40px),
               repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(200,168,75,0.04) 40px);
 }
-.trophy { font-size: 3rem; display: block; margin-bottom: .5rem; }
+.trophy {
+  display: block;
+  font-size: clamp(2.25rem, 6vw, 3rem);
+  line-height: 1;
+  margin: 0 auto .35rem;
+  filter: drop-shadow(0 3px 12px rgba(200,168,75,0.45));
+  position: relative;
+  z-index: 2;
+}
+.header-hero {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
 header h1 {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(3rem, 9vw, 6rem);
@@ -58,43 +72,45 @@ header h1 {
 }
 header h1 span { color: var(--text); }
 .header-brand {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .7rem;
   position: relative;
+  display: inline-block;
+  text-align: center;
+  padding: 0 0 1.1rem 0;
 }
 .edition-badge {
+  position: absolute;
+  left: 58%;
+  bottom: -.15rem;
+  transform: rotate(-22deg);
+  transform-origin: center center;
   display: inline-flex;
   align-items: center;
-  gap: .55rem;
+  gap: .4rem;
   margin: 0;
-  padding: .4rem 1.15rem .45rem;
-  font-family: 'DM Sans', sans-serif;
-  font-size: .8rem;
-  font-weight: 500;
-  letter-spacing: .06em;
-  color: var(--gold-light);
-  background: linear-gradient(135deg, rgba(200,168,75,0.14) 0%, rgba(200,168,75,0.05) 50%, rgba(90,60,140,0.08) 100%);
-  border: 1px solid rgba(200,168,75,0.38);
+  padding: .42rem .95rem .48rem;
+  white-space: nowrap;
+  background: rgba(6, 6, 10, 0.94);
+  border: 2px solid rgba(200,168,75,0.72);
   border-radius: 999px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.07);
-  transform: none;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+  z-index: 3;
 }
 .edition-badge .edition-label {
-  font-family: 'DM Mono', monospace;
-  font-size: .58rem;
-  font-weight: 400;
-  letter-spacing: .22em;
-  color: var(--muted);
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  letter-spacing: .06em;
+  color: #e8e4dc;
   text-transform: uppercase;
+  line-height: 1;
 }
 .edition-badge .edition-name {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.05rem;
-  letter-spacing: .1em;
-  color: var(--gold);
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  letter-spacing: .04em;
+  color: var(--gold-light);
+  text-transform: uppercase;
   line-height: 1;
+  text-shadow: 0 0 18px rgba(200,168,75,0.35);
 }
 .subtitle {
   font-family: 'DM Mono', monospace;
@@ -1031,19 +1047,44 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   overflow: auto;
   max-width: 100%;
   max-height: min(78vh, 920px);
-  padding: .25rem .25rem 2rem;
+  padding: .25rem .5rem 2rem;
   -webkit-overflow-scrolling: touch;
+  display: flex;
+  justify-content: center;
 }
 .bracket-ladder-pretty {
   display: grid;
-  grid-template-columns: 240px 200px 180px 160px 140px;
+  grid-template-columns: 210px 168px 148px 132px 118px;
   grid-template-rows: 2.25rem repeat(17, minmax(3.5rem, auto));
-  gap: .5rem 1.25rem;
-  min-width: 980px;
+  gap: .45rem .48rem;
+  column-gap: .48rem;
+  min-width: 0;
+  width: max-content;
+  max-width: 100%;
   min-height: 100%;
   padding-bottom: 1.5rem;
+  padding-right: .25rem;
   align-items: center;
   position: relative;
+}
+.bracket-ladder-pretty .bracket-col-finale {
+  margin-left: -.65rem;
+}
+.bracket-ladder-pretty .col-head.col-finale {
+  margin-left: -.65rem;
+}
+.bracket-match-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: .52rem;
+  color: var(--muted);
+  letter-spacing: .04em;
+  margin-bottom: .3rem;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.25;
+  white-space: normal;
+  word-break: break-word;
+  hyphens: auto;
 }
 .bracket-ladder-pretty .bracket-ko-card,
 .bracket-ladder-pretty .bracket-r32-card {
@@ -1432,10 +1473,12 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 <body>
 
 <header>
-  <span class="trophy">🏆</span>
-  <div class="header-brand">
-    <h1>CDM<span>2026</span></h1>
-    <p class="edition-badge"><span class="edition-label">édition</span><span class="edition-name">Pains sucés</span></p>
+  <div class="header-hero">
+    <span class="trophy">🏆</span>
+    <div class="header-brand">
+      <h1>CDM<span>2026</span></h1>
+      <p class="edition-badge"><span class="edition-label">édition</span><span class="edition-name">Pains sucés</span></p>
+    </div>
   </div>
   <div class="badge-deadline">⏱ Date limite : 11 juin 2026</div>
 </header>
@@ -2137,12 +2180,16 @@ function koRoundOrder(mid) {
   return null;
 }
 
-function metaKo(mid) {
+function metaKo(mid, compact) {
   mid = Number(mid);
   if (mid === 103) return 'Petite finale';
   if (mid === 104) return 'Finale';
   const info = koRoundOrder(mid);
   if (!info) return '';
+  if (compact) {
+    if (mid >= 97 && mid <= 100) return ordinalFr(info.idx) + ' quart';
+    if (mid >= 101 && mid <= 102) return ordinalFr(info.idx) + ' demi';
+  }
   return ordinalFr(info.idx) + ' match des ' + info.name;
 }
 
@@ -2521,7 +2568,8 @@ function createBracketMatchCard(mid, gridCol, gridRow, rowSpan, label) {
   if (!r32 && rowSpan && rowSpan >= 8) card.classList.add('bracket-ko-card--tall');
   card.style.gridColumn = String(gridCol);
   card.style.gridRow = rowSpan ? (gridRow + ' / span ' + rowSpan) : String(gridRow);
-  const meta = label || metaKo(mid);
+  if (gridCol === 5) card.classList.add('bracket-col-finale');
+  const meta = label || metaKo(mid, gridCol === 3 || gridCol === 4);
   if (left && right) {
     card.innerHTML = `
       <div class="bracket-match-meta">${meta}</div>
@@ -2541,7 +2589,7 @@ function renderBracketLadderPretty() {
   const cols = ['Seizièmes', 'Huitièmes', 'Quarts', 'Demi-finales', 'Finale'];
   cols.forEach((t, ci) => {
     const h = document.createElement('div');
-    h.className = 'col-head';
+    h.className = 'col-head' + (ci === 4 ? ' col-finale bracket-col-finale' : '');
     h.style.gridColumn = String(ci + 1);
     h.style.gridRow = '1';
     h.textContent = t;
