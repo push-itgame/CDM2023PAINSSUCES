@@ -1,7 +1,7 @@
 {
   "meta": {
     "misAJour": "2026-05-20",
-    "note": "Démo — pronostics officiels Cursor Agent pour test classement Pains sucés"
+    "note": "Mis à jour via organisateur.html"
   },
   "etapeDebloquee": 7,
   "matchs": {
@@ -441,45 +441,41 @@
   "equipesQualifiees32Liste": [
     "Corée du Sud",
     "Canada",
-    "Brésil",
-    "Japon",
     "Allemagne",
     "Afrique du Sud",
     "Pays-Bas",
     "Maroc",
-    "Équateur",
-    "Norvège",
+    "Brésil",
+    "Japon",
     "France",
     "Écosse",
+    "Équateur",
+    "Norvège",
     "Mexique",
     "Suède",
     "Angleterre",
     "Côte d'Ivoire",
-    "Belgique",
-    "Cap Vert",
     "États-Unis",
     "Bosnie Herzégovine",
-    "Espagne",
-    "Autriche",
+    "Belgique",
+    "Cap Vert",
     "Colombie",
     "Croatie",
+    "Espagne",
+    "Autriche",
     "Suisse",
     "Iran",
-    "Turquie",
-    "Égypte",
     "Argentine",
     "Uruguay",
     "Portugal",
-    "Australie"
+    "Australie",
+    "Turquie",
+    "Égypte"
   ],
   "matchsEliminationOfficiels": {
     "73": {
       "home": "Corée du Sud",
       "away": "Canada"
-    },
-    "76": {
-      "home": "Brésil",
-      "away": "Japon"
     },
     "74": {
       "home": "Allemagne",
@@ -489,13 +485,17 @@
       "home": "Pays-Bas",
       "away": "Maroc"
     },
-    "78": {
-      "home": "Équateur",
-      "away": "Norvège"
+    "76": {
+      "home": "Brésil",
+      "away": "Japon"
     },
     "77": {
       "home": "France",
       "away": "Écosse"
+    },
+    "78": {
+      "home": "Équateur",
+      "away": "Norvège"
     },
     "79": {
       "home": "Mexique",
@@ -505,29 +505,25 @@
       "home": "Angleterre",
       "away": "Côte d'Ivoire"
     },
-    "82": {
-      "home": "Belgique",
-      "away": "Cap Vert"
-    },
     "81": {
       "home": "États-Unis",
       "away": "Bosnie Herzégovine"
     },
-    "84": {
-      "home": "Espagne",
-      "away": "Autriche"
+    "82": {
+      "home": "Belgique",
+      "away": "Cap Vert"
     },
     "83": {
       "home": "Colombie",
       "away": "Croatie"
     },
+    "84": {
+      "home": "Espagne",
+      "away": "Autriche"
+    },
     "85": {
       "home": "Suisse",
       "away": "Iran"
-    },
-    "88": {
-      "home": "Turquie",
-      "away": "Égypte"
     },
     "86": {
       "home": "Argentine",
@@ -536,6 +532,10 @@
     "87": {
       "home": "Portugal",
       "away": "Australie"
+    },
+    "88": {
+      "home": "Turquie",
+      "away": "Égypte"
     },
     "89": {
       "home": "Allemagne",
@@ -607,10 +607,6 @@
       "left": "Corée du Sud",
       "right": "Canada"
     },
-    "M76": {
-      "left": "Brésil",
-      "right": "Japon"
-    },
     "M74": {
       "left": "Allemagne",
       "right": "Afrique du Sud"
@@ -619,13 +615,17 @@
       "left": "Pays-Bas",
       "right": "Maroc"
     },
-    "M78": {
-      "left": "Équateur",
-      "right": "Norvège"
+    "M76": {
+      "left": "Brésil",
+      "right": "Japon"
     },
     "M77": {
       "left": "France",
       "right": "Écosse"
+    },
+    "M78": {
+      "left": "Équateur",
+      "right": "Norvège"
     },
     "M79": {
       "left": "Mexique",
@@ -635,29 +635,25 @@
       "left": "Angleterre",
       "right": "Côte d'Ivoire"
     },
-    "M82": {
-      "left": "Belgique",
-      "right": "Cap Vert"
-    },
     "M81": {
       "left": "États-Unis",
       "right": "Bosnie Herzégovine"
     },
-    "M84": {
-      "left": "Espagne",
-      "right": "Autriche"
+    "M82": {
+      "left": "Belgique",
+      "right": "Cap Vert"
     },
     "M83": {
       "left": "Colombie",
       "right": "Croatie"
     },
+    "M84": {
+      "left": "Espagne",
+      "right": "Autriche"
+    },
     "M85": {
       "left": "Suisse",
       "right": "Iran"
-    },
-    "M88": {
-      "left": "Turquie",
-      "right": "Égypte"
     },
     "M86": {
       "left": "Argentine",
@@ -666,50 +662,54 @@
     "M87": {
       "left": "Portugal",
       "right": "Australie"
+    },
+    "M88": {
+      "left": "Turquie",
+      "right": "Égypte"
     }
   },
   "phaseFinalePourBareme": {
     "liste32QualifiesIssuesPoules": [
       "Corée du Sud",
       "Canada",
-      "Brésil",
-      "Japon",
       "Allemagne",
       "Afrique du Sud",
       "Pays-Bas",
       "Maroc",
-      "Équateur",
-      "Norvège",
+      "Brésil",
+      "Japon",
       "France",
       "Écosse",
+      "Équateur",
+      "Norvège",
       "Mexique",
       "Suède",
       "Angleterre",
       "Côte d'Ivoire",
-      "Belgique",
-      "Cap Vert",
       "États-Unis",
       "Bosnie Herzégovine",
-      "Espagne",
-      "Autriche",
+      "Belgique",
+      "Cap Vert",
       "Colombie",
       "Croatie",
+      "Espagne",
+      "Autriche",
       "Suisse",
       "Iran",
-      "Turquie",
-      "Égypte",
       "Argentine",
       "Uruguay",
       "Portugal",
-      "Australie"
+      "Australie",
+      "Turquie",
+      "Égypte"
     ],
     "vainqueursSeiziemePourHuitiemes16": [
-      "Canada",
+      "Corée du Sud",
       "Allemagne",
       "Pays-Bas",
       "Brésil",
       "France",
-      "Norvège",
+      "Équateur",
       "Mexique",
       "Angleterre",
       "États-Unis",
@@ -722,14 +722,14 @@
       "Turquie"
     ],
     "vainqueursHuitiemesPourQuarts8": [
-      "France",
-      "Pays-Bas",
+      "Allemagne",
+      "Canada",
       "Brésil",
-      "Angleterre",
-      "Espagne",
-      "Belgique",
+      "Mexique",
+      "Colombie",
+      "États-Unis",
       "Argentine",
-      "Portugal"
+      "Suisse"
     ],
     "vainqueursQuartsPourDemis4": [
       "France",
@@ -739,43 +739,43 @@
     ],
     "finalistesChoisis": [
       "France",
-      "Brésil"
+      "Argentine"
     ],
-    "troisiemePlaceChoix": "Argentine",
+    "troisiemePlaceChoix": "Espagne",
     "vainqueurFinal": "France"
   },
   "vainqueursTableauElimination": {
-    "73": "Canada",
-    "76": "Brésil",
+    "73": "Corée du Sud",
     "74": "Allemagne",
     "75": "Pays-Bas",
-    "78": "Norvège",
+    "76": "Brésil",
     "77": "France",
+    "78": "Équateur",
     "79": "Mexique",
     "80": "Angleterre",
-    "82": "Belgique",
     "81": "États-Unis",
-    "84": "Espagne",
+    "82": "Belgique",
     "83": "Colombie",
+    "84": "Espagne",
     "85": "Suisse",
-    "88": "Turquie",
     "86": "Argentine",
     "87": "Portugal",
-    "89": "France",
-    "90": "Pays-Bas",
+    "88": "Turquie",
+    "89": "Allemagne",
+    "90": "Canada",
     "91": "Brésil",
-    "92": "Angleterre",
-    "93": "Espagne",
-    "94": "Belgique",
+    "92": "Mexique",
+    "93": "Colombie",
+    "94": "États-Unis",
     "95": "Argentine",
-    "96": "Portugal",
+    "96": "Suisse",
     "97": "France",
     "98": "Espagne",
     "99": "Brésil",
     "100": "Argentine",
     "101": "France",
-    "102": "Brésil",
-    "103": "Argentine",
+    "102": "Argentine",
+    "103": "Espagne",
     "104": "France"
   },
   "scoresElimination": {
@@ -973,9 +973,9 @@
     }
   },
   "bonus": {
-    "meilleureAttaque": "France",
+    "meilleureAttaque": "Brésil",
     "matchs00": "5",
-    "nationsA9pts": "6",
+    "nationsA9pts": "0",
     "nbCSC": "3",
     "meilleurButeur": "K. Mbappé",
     "meilleurJoueur": "L. Messi",
