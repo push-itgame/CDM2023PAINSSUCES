@@ -254,9 +254,8 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 .match-card-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin-bottom: .55rem;
-  gap: .5rem;
 }
 .match-num {
   font-family: 'DM Mono', monospace;
@@ -1593,14 +1592,49 @@ function syncBanner() {
   }
 }
 
+function ordinalFr(n) {
+  if (n === 1) return '1er';
+  return n + 'e';
+}
+
+function koRoundOrder(mid) {
+  mid = Number(mid);
+  const rounds = [
+    { min: 73, max: 88, order: () => KNOCK_R32_DEF.map(r => r.m), name: 'seizièmes' },
+    { min: 89, max: 96, order: () => Object.keys(KO_R16).map(Number).sort((a, b) => a - b), name: 'huitièmes' },
+    { min: 97, max: 100, order: () => Object.keys(KO_QF).map(Number).sort((a, b) => a - b), name: 'quarts de finale' },
+    { min: 101, max: 102, order: () => Object.keys(KO_SF).map(Number).sort((a, b) => a - b), name: 'demi-finales' },
+  ];
+  for (const r of rounds) {
+    if (mid >= r.min && mid <= r.max) {
+      const idx = r.order().indexOf(mid) + 1;
+      return { idx, name: r.name };
+    }
+  }
+  return null;
+}
+
 function metaKo(mid) {
   mid = Number(mid);
-  if (mid <= 88) return 'M' + mid + ' · 1/16';
-  if (mid <= 96) return 'M' + mid + ' · 1/8';
-  if (mid <= 100) return 'M' + mid + ' · quart';
-  if (mid <= 102) return 'M' + mid + ' · demi';
-  if (mid === 103) return 'M' + mid + ' · 3e place';
-  return 'M' + mid + ' · FINALE';
+  if (mid === 103) return 'Petite finale';
+  if (mid === 104) return 'Finale';
+  const info = koRoundOrder(mid);
+  if (!info) return '';
+  return ordinalFr(info.idx) + ' match des ' + info.name;
+}
+
+function matchTeams(num) {
+  for (const rows of Object.values(GROUPS)) {
+    for (const [n, home, away] of rows) {
+      if (n === num) return { home, away };
+    }
+  }
+  return null;
+}
+
+function shortTeam(name, max = 14) {
+  if (!name) return '';
+  return name.length > max ? name.slice(0, max - 1) + '…' : name;
 }
 
 function koInputId(mid, side) {
@@ -1752,10 +1786,10 @@ function renderKoList(el, mids, mode) {
 }
 
 const BRACKET_ROUNDS = [
-  { title: '1/16 finale', mids: () => KNOCK_R32_DEF.map(r => r.m) },
-  { title: '1/8 finale', mids: () => Object.keys(KO_R16).map(Number).sort((a, b) => a - b) },
+  { title: 'Seizièmes', mids: () => KNOCK_R32_DEF.map(r => r.m) },
+  { title: 'Huitièmes', mids: () => Object.keys(KO_R16).map(Number).sort((a, b) => a - b) },
   { title: 'Quarts', mids: () => Object.keys(KO_QF).map(Number).sort((a, b) => a - b) },
-  { title: 'Demis', mids: () => Object.keys(KO_SF).map(Number).sort((a, b) => a - b) },
+  { title: 'Demi-finales', mids: () => Object.keys(KO_SF).map(Number).sort((a, b) => a - b) },
   { title: 'Finale', mids: () => [103, 104] },
 ];
 
@@ -1974,7 +2008,6 @@ function buildGroups() {
       row.innerHTML = `
         <div class="match-card incomplete" data-match="${num}">
           <div class="match-card-head">
-            <span class="match-num">Match #${num}</span>
             <span class="match-display-score empty" id="display-m${num}">— : —</span>
           </div>
           <div class="score-football-row">
@@ -2060,7 +2093,9 @@ function renderMissingMatches() {
   const items = [...partial.sort((a, b) => a - b), ...incomplete.sort((a, b) => a - b)];
   chips.innerHTML = items.map(n => {
     const cls = getMatchFillStatus(n) === 'partial' ? 'missing-chip partial' : 'missing-chip';
-    return '<button type="button" class="' + cls + '" data-go-match="' + n + '">#' + n + '</button>';
+    const teams = matchTeams(n);
+    const label = teams ? shortTeam(teams.home, 12) + ' – ' + shortTeam(teams.away, 12) : 'Match';
+    return '<button type="button" class="' + cls + '" data-go-match="' + n + '" title="Aller au match">' + escapeHtml(label) + '</button>';
   }).join('');
   chips.querySelectorAll('[data-go-match]').forEach(btn => {
     btn.addEventListener('click', () => scrollToMatch(Number(btn.dataset.goMatch)));

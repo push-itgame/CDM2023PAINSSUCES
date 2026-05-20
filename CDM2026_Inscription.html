@@ -241,12 +241,21 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   transition: border-color .15s;
 }
 .match-card.has-score { border-color: rgba(200,168,75,0.25); }
+.match-card.partial { border-color: rgba(231,76,60,0.35); }
+.match-card.incomplete { opacity: .92; }
+.match-card.highlight-pulse {
+  animation: matchPulse 1.2s ease 2;
+  border-color: var(--gold) !important;
+}
+@keyframes matchPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,168,75,0); }
+  50% { box-shadow: 0 0 0 4px rgba(200,168,75,0.35); }
+}
 .match-card-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin-bottom: .55rem;
-  gap: .5rem;
 }
 .match-num {
   font-family: 'DM Mono', monospace;
@@ -262,20 +271,96 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   line-height: 1;
 }
 .match-display-score.empty { color: var(--muted); font-size: .95rem; font-family: 'DM Mono', monospace; }
-.match-teams-pick {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .65rem;
+.score-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: .55rem;
 }
-.team-pick-col { min-width: 0; }
+.score-football-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: .5rem;
+  align-items: end;
+}
+.score-team-block { min-width: 0; }
+.score-center-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2.1rem;
+}
+.score-vs {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  color: var(--muted);
+  line-height: 1;
+}
 .team-pick-name {
   display: block;
-  font-size: .8rem;
+  font-size: .82rem;
   font-weight: 600;
-  margin-bottom: .4rem;
+  margin-bottom: .15rem;
   line-height: 1.25;
   overflow-wrap: break-word;
 }
+.score-role-label {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: .55rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: .35rem;
+}
+.missing-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: .75rem .85rem;
+  margin-bottom: 1.25rem;
+}
+.missing-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .55rem;
+}
+.missing-panel-title {
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.missing-stats { font-size: .82rem; }
+.missing-stats strong { color: var(--gold); }
+.missing-stats .warn { color: #E74C3C; }
+.missing-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.missing-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  padding: .25rem .45rem;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  cursor: pointer;
+}
+.missing-chip.partial { border-color: rgba(231,76,60,0.4); color: #f5a8a0; }
+.missing-chip:hover { border-color: var(--gold); color: var(--gold); }
+.missing-chip.done { display: none; }
 .score-picker {
   display: flex;
   flex-wrap: wrap;
@@ -565,6 +650,157 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 .phase-section.collapsible > summary::-webkit-details-marker { display: none; }
 .phase-section.collapsible[open] > summary { margin-bottom: .85rem; }
 
+/* ───── VUE BRACKET ESCALIER ───── */
+.finale-view-toggle {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.finale-view-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .5rem .85rem;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.finale-view-btn.active {
+  background: rgba(200,168,75,0.12);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.finale-view-panel { display: none; }
+.finale-view-panel.active { display: block; }
+.bracket-scroll {
+  overflow-x: auto;
+  padding-bottom: .75rem;
+  margin-bottom: 1.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+.bracket-ladder {
+  display: flex;
+  gap: .65rem;
+  min-width: 720px;
+  align-items: stretch;
+}
+.bracket-col {
+  flex: 1;
+  min-width: 148px;
+  display: flex;
+  flex-direction: column;
+}
+.bracket-col-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .95rem;
+  letter-spacing: .12em;
+  text-align: center;
+  color: var(--gold);
+  margin-bottom: .65rem;
+  padding-bottom: .35rem;
+  border-bottom: 1px solid var(--border);
+}
+.bracket-col-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: .45rem;
+}
+.bracket-node {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: .45rem .5rem;
+  font-size: .72rem;
+}
+.bracket-node.ready { border-color: rgba(200,168,75,0.25); }
+.bracket-node-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: .55rem;
+  color: var(--muted);
+  margin-bottom: .35rem;
+}
+.bracket-team {
+  padding: .2rem 0;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+.bracket-team.winner { color: var(--gold); font-weight: 600; }
+.bracket-team.empty { color: var(--muted); font-style: italic; font-size: .65rem; }
+.bracket-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  margin: .35rem 0;
+}
+.ko-score-display {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  color: var(--gold);
+  letter-spacing: .05em;
+}
+.ko-score-pickers {
+  display: flex;
+  gap: .2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: .25rem;
+}
+.score-btn-ko {
+  min-width: 1.65rem !important;
+  max-width: 1.85rem !important;
+  height: 1.85rem !important;
+  font-size: .78rem !important;
+  flex: 0 0 auto !important;
+}
+.ko-scores-block {
+  margin-top: .45rem;
+  padding-top: .45rem;
+  border-top: 1px dashed rgba(255,255,255,0.08);
+}
+.ko-scores-label {
+  font-family: 'DM Mono', monospace;
+  font-size: .55rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: .3rem;
+}
+.ko-score-teams-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: .35rem;
+  align-items: start;
+}
+.ko-score-team-mini { min-width: 0; text-align: center; }
+.ko-score-team-mini .score-role-label { margin-bottom: .25rem; }
+.ko-score-sep {
+  font-family: 'Bebas Neue', sans-serif;
+  color: var(--muted);
+  padding-top: 1.1rem;
+  font-size: .9rem;
+}
+.ko-winner-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: .35rem;
+  align-items: stretch;
+}
+.ko-pick-hint {
+  font-size: .65rem;
+  color: var(--muted);
+  text-align: center;
+  margin-top: .35rem;
+  font-style: italic;
+}
+
 /* ───── PHASE FINALE ───── */
 .bracket-note {
   background: var(--card);
@@ -819,6 +1055,16 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   <div class="incomplete-banner" id="poules-banner"><div class="dot" id="poules-dot"></div><span id="poules-banner-text">Touchez un chiffre pour chaque équipe (0–4, ou Plus pour 5+)</span></div>
   <div class="progress-bar"><div class="progress-fill" id="poules-progress" style="width:0%"></div></div>
   <div class="progress-label" id="poules-label">0 / 72 matchs remplis</div>
+  <div class="missing-panel" id="missing-panel">
+    <div class="missing-panel-head">
+      <span class="missing-panel-title">Suivi des matchs</span>
+      <span class="missing-stats" id="missing-stats"></span>
+    </div>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:.5rem;line-height:1.45">
+      Chaque colonne = <strong style="color:var(--text)">buts marqués par cette équipe</strong> (pas le score total du match). Ex.&nbsp;: 2–1 → 2 buts à gauche, 1 à droite.
+    </p>
+    <div class="missing-chips" id="missing-chips"></div>
+  </div>
   <div id="groups-container"></div>
 
   <div class="thirds-card" id="thirds-global-wrap" hidden>
@@ -837,11 +1083,23 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   <h2 class="section-title">Phase Finale</h2>
   <div id="finale-status" class="finale-status wait"></div>
   <div class="bracket-note" id="bracket-note-dynamic">
-    Complétez les <strong>72 scores</strong> en phase de groupes : le tableau des seizièmes se remplit tout seul.
-    Ensuite, touchez l’équipe gagnante de chaque duel pour faire avancer le bracket jusqu’à la finale.
+    Complétez les <strong>72 scores</strong> en phase de groupes : le tableau se remplit automatiquement.
+    Saisissez le <strong>score après 90 min</strong> de chaque duel, puis le vainqueur (auto si score non nul).
     <br><br>Date limite : <strong style="color:var(--gold)">11 juin 2026</strong>
   </div>
 
+  <div class="finale-view-toggle">
+    <button type="button" class="finale-view-btn active" data-finale-view="ladder">📊 Tableau escalier</button>
+    <button type="button" class="finale-view-btn" data-finale-view="list">📋 Liste par tour</button>
+  </div>
+
+  <div class="finale-view-panel active" id="finale-ladder-panel">
+    <div class="bracket-scroll">
+      <div class="bracket-ladder" id="bracket-ladder-root"></div>
+    </div>
+  </div>
+
+  <div class="finale-view-panel" id="finale-list-panel">
   <div class="phase-section">
     <h3>Seizièmes de finale</h3>
     <div class="ko-list" id="ko-r32-root"></div>
@@ -866,6 +1124,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     <summary>Petite finale &amp; Finale</summary>
     <div class="ko-list" id="ko-final-root"></div>
   </details>
+  </div>
 </div>
 </div>
 
@@ -1305,7 +1564,7 @@ function updateFinaleStatus() {
   const filled = countFilledMatches();
   if (allPoulesComplete()) {
     el.className = 'finale-status ok';
-    el.innerHTML = '✓ Poules complètes (72/72). <strong>32 équipes</strong> dans le tableau — touchez le vainqueur de chaque duel.';
+    el.innerHTML = '✓ Poules complètes (72/72). <strong>32 équipes</strong> dans le tableau — saisissez scores et vainqueurs de chaque duel.';
   } else {
     el.className = 'finale-status wait';
     el.innerHTML = `Poules : <strong>${filled}/72</strong> matchs. Le tableau se remplit automatiquement quand tous les scores sont saisis.`;
@@ -1328,42 +1587,191 @@ function syncBanner() {
     b.style.borderColor = '';
     b.style.background = '';
     b.style.color = '';
-    if (t) t.textContent = 'Touchez un chiffre pour chaque équipe (0–4, ou Plus pour 5+).';
+    if (t) t.textContent = 'Chaque équipe : nombre de buts marqués (0–4, ou Autre score pour 5+).';
     if (dot) dot.style.animation = '';
   }
 }
 
+function ordinalFr(n) {
+  if (n === 1) return '1er';
+  return n + 'e';
+}
+
+function koRoundOrder(mid) {
+  mid = Number(mid);
+  const rounds = [
+    { min: 73, max: 88, order: () => KNOCK_R32_DEF.map(r => r.m), name: 'seizièmes' },
+    { min: 89, max: 96, order: () => Object.keys(KO_R16).map(Number).sort((a, b) => a - b), name: 'huitièmes' },
+    { min: 97, max: 100, order: () => Object.keys(KO_QF).map(Number).sort((a, b) => a - b), name: 'quarts de finale' },
+    { min: 101, max: 102, order: () => Object.keys(KO_SF).map(Number).sort((a, b) => a - b), name: 'demi-finales' },
+  ];
+  for (const r of rounds) {
+    if (mid >= r.min && mid <= r.max) {
+      const idx = r.order().indexOf(mid) + 1;
+      return { idx, name: r.name };
+    }
+  }
+  return null;
+}
+
 function metaKo(mid) {
   mid = Number(mid);
-  if (mid <= 88) return 'Match ' + mid + ' • seizièmes';
-  if (mid <= 96) return 'Match ' + mid + ' • huitièmes';
-  if (mid <= 100) return 'Match ' + mid + ' • quarts';
-  if (mid <= 102) return 'Match ' + mid + ' • demi-finales';
-  if (mid === 103) return 'Match ' + mid + ' • petite finale';
-  return 'Match ' + mid + ' • FINALE';
+  if (mid === 103) return 'Petite finale';
+  if (mid === 104) return 'Finale';
+  const info = koRoundOrder(mid);
+  if (!info) return '';
+  return ordinalFr(info.idx) + ' match des ' + info.name;
 }
 
-function sideCell(mid, team, sel) {
-  const wrap = document.createElement('div');
-  wrap.className = 'ko-side';
-  if (!team) {
-    wrap.innerHTML = '<span class="ko-slot empty">(en attente du tour précédent)</span>';
-    return wrap;
+function matchTeams(num) {
+  for (const rows of Object.values(GROUPS)) {
+    for (const [n, home, away] of rows) {
+      if (n === num) return { home, away };
+    }
   }
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'ko-slot btn-pick' + (sel === team ? ' selected' : '');
-  btn.textContent = team;
-  btn.addEventListener('click', () => {
-    kosWinners[mid] === team ? delete kosWinners[mid] : (kosWinners[mid] = team);
-    refreshKnockoutOnly();
-    saveState();
-  });
-  wrap.appendChild(btn);
-  return wrap;
+  return null;
 }
 
-function renderKoList(el, mids) {
+function shortTeam(name, max = 14) {
+  if (!name) return '';
+  return name.length > max ? name.slice(0, max - 1) + '…' : name;
+}
+
+function koInputId(mid, side) {
+  return 'km' + mid + '-' + side;
+}
+
+function updateKoDisplay(mid) {
+  const h = document.getElementById(koInputId(mid, 'h'))?.value ?? '';
+  const a = document.getElementById(koInputId(mid, 'a'))?.value ?? '';
+  document.querySelectorAll('[data-ko-display="' + mid + '"]').forEach(el => {
+    if (h === '' && a === '') {
+      el.textContent = '';
+      el.style.display = 'none';
+    } else {
+      el.textContent = formatScoreLabel(h) + ' – ' + formatScoreLabel(a);
+      el.style.display = 'block';
+    }
+  });
+}
+
+function applyKoFromScores(mid) {
+  const [teamA, teamB] = koSides(mid);
+  const h = parseScoreVal(document.getElementById(koInputId(mid, 'h'))?.value);
+  const a = parseScoreVal(document.getElementById(koInputId(mid, 'a'))?.value);
+  if (!Number.isFinite(h) || !Number.isFinite(a) || !teamA || !teamB) return;
+  if (h > a) kosWinners[mid] = teamA;
+  else if (a > h) kosWinners[mid] = teamB;
+}
+
+function onKoScoreChanged(mid) {
+  updateKoDisplay(mid);
+  applyKoFromScores(mid);
+  refreshKnockoutOnly();
+  saveState();
+}
+
+function pickWinner(mid, team) {
+  kosWinners[mid] === team ? delete kosWinners[mid] : (kosWinners[mid] = team);
+  refreshKnockoutOnly();
+  saveState();
+}
+
+function buildKoScoresBlock(mid, compact) {
+  const keyH = koInputId(mid, 'h');
+  const keyA = koInputId(mid, 'a');
+  if (compact) {
+    return `<div class="ko-scores-block" style="margin-top:.3rem;padding-top:.3rem">
+      <div class="ko-score-teams-row">
+        <div class="ko-score-team-mini">${buildScorePickerHTML(keyH, true)}</div>
+        <span class="ko-score-sep" style="padding-top:.9rem">:</span>
+        <div class="ko-score-team-mini">${buildScorePickerHTML(keyA, true)}</div>
+      </div>
+      <div class="ko-score-display" data-ko-display="${mid}" style="display:none;text-align:center;margin-top:.25rem"></div>
+    </div>`;
+  }
+  return `<div class="ko-scores-block">
+    <div class="ko-scores-label">Score pronostiqué (90 min)</div>
+    <div class="ko-score-teams-row">
+      <div class="ko-score-team-mini"><span class="score-role-label">Buts équipe 1</span>${buildScorePickerHTML(keyH, true)}</div>
+      <span class="ko-score-sep">:</span>
+      <div class="ko-score-team-mini"><span class="score-role-label">Buts équipe 2</span>${buildScorePickerHTML(keyA, true)}</div>
+    </div>
+    <div class="ko-score-display" data-ko-display="${mid}" style="display:none;text-align:center;margin-top:.35rem"></div>
+    <p class="ko-pick-hint">Match nul ? Touchez le vainqueur (prolong./TAB).</p>
+  </div>`;
+}
+
+function createKoMatchElement(mid, mode) {
+  const [teamA, teamB] = koSides(mid);
+  const pick = kosWinners[mid];
+  const compact = mode === 'bracket';
+  const row = document.createElement(compact ? 'div' : 'div');
+  row.className = (compact ? 'bracket-node' : 'ko-match') + (teamA && teamB ? ' ready' : '');
+
+  const meta = document.createElement('div');
+  meta.className = compact ? 'bracket-node-meta' : 'ko-meta';
+  meta.textContent = metaKo(mid);
+  row.appendChild(meta);
+
+  if (compact) {
+    const tA = document.createElement('div');
+    tA.className = 'bracket-team' + (pick === teamA ? ' winner' : '') + (!teamA ? ' empty' : '');
+    tA.textContent = teamA || '…';
+    row.appendChild(tA);
+    const tB = document.createElement('div');
+    tB.className = 'bracket-team' + (pick === teamB ? ' winner' : '') + (!teamB ? ' empty' : '');
+    tB.textContent = teamB || '…';
+    row.appendChild(tB);
+    row.insertAdjacentHTML('beforeend', buildKoScoresBlock(mid, true));
+    if (teamA && teamB) {
+      const wr = document.createElement('div');
+      wr.style.cssText = 'display:flex;flex-direction:column;gap:.25rem;margin-top:.35rem';
+      [teamA, teamB].forEach(t => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ko-slot btn-pick' + (pick === t ? ' selected' : '');
+        b.style.fontSize = '.68rem';
+        b.style.minHeight = '2rem';
+        b.style.padding = '.3rem .4rem';
+        b.textContent = t.length > 12 ? t.slice(0, 11) + '…' : t;
+        b.title = t;
+        b.addEventListener('click', () => pickWinner(mid, t));
+        wr.appendChild(b);
+      });
+      row.appendChild(wr);
+    }
+  } else {
+    const duel = document.createElement('div');
+    duel.className = 'ko-duel';
+    [teamA, teamB].forEach((t, idx) => {
+      if (idx === 1) {
+        const vs = document.createElement('div');
+        vs.className = 'ko-sep-vs';
+        vs.textContent = 'VS';
+        duel.appendChild(vs);
+      }
+      const wrap = document.createElement('div');
+      wrap.className = 'ko-side';
+      if (!t) {
+        wrap.innerHTML = '<span class="ko-slot empty">En attente</span>';
+      } else {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ko-slot btn-pick' + (pick === t ? ' selected' : '');
+        btn.textContent = t;
+        btn.addEventListener('click', () => pickWinner(mid, t));
+        wrap.appendChild(btn);
+      }
+      duel.appendChild(wrap);
+    });
+    row.appendChild(duel);
+    row.insertAdjacentHTML('beforeend', buildKoScoresBlock(mid, false));
+  }
+  return row;
+}
+
+function renderKoList(el, mids, mode) {
   el.innerHTML = '';
   if (!allPoulesComplete()) {
     el.innerHTML = '<p style="font-size:.82rem;color:var(--muted);margin:0">Complétez les 72 scores de poules pour afficher cette étape.</p>';
@@ -1371,33 +1779,53 @@ function renderKoList(el, mids) {
   }
   sanitizeKOPicks();
   mids.forEach(mid => {
-    const [a, b] = koSides(mid);
-    const pick = kosWinners[mid];
-    const row = document.createElement('div');
-    row.className = 'ko-match' + (a && b ? ' ready' : '');
-    const meta = document.createElement('div');
-    meta.className = 'ko-meta';
-    meta.textContent = metaKo(mid);
-    row.appendChild(meta);
-    const duel = document.createElement('div');
-    duel.className = 'ko-duel';
-    duel.appendChild(sideCell(mid, a, pick));
-    const vs = document.createElement('div');
-    vs.className = 'ko-sep-vs';
-    vs.textContent = 'VS';
-    duel.appendChild(vs);
-    duel.appendChild(sideCell(mid, b, pick));
-    row.appendChild(duel);
-    el.appendChild(row);
+    el.appendChild(createKoMatchElement(mid, mode || 'list'));
   });
+  wireScorePickers(el);
+  mids.forEach(mid => updateKoDisplay(mid));
+}
+
+const BRACKET_ROUNDS = [
+  { title: 'Seizièmes', mids: () => KNOCK_R32_DEF.map(r => r.m) },
+  { title: 'Huitièmes', mids: () => Object.keys(KO_R16).map(Number).sort((a, b) => a - b) },
+  { title: 'Quarts', mids: () => Object.keys(KO_QF).map(Number).sort((a, b) => a - b) },
+  { title: 'Demi-finales', mids: () => Object.keys(KO_SF).map(Number).sort((a, b) => a - b) },
+  { title: 'Finale', mids: () => [103, 104] },
+];
+
+function renderBracketLadder() {
+  const root = document.getElementById('bracket-ladder-root');
+  if (!root) return;
+  if (!allPoulesComplete()) {
+    root.innerHTML = '<p style="font-size:.85rem;color:var(--muted);padding:.5rem 0">Complétez les 72 matchs de poules pour afficher le tableau.</p>';
+    return;
+  }
+  sanitizeKOPicks();
+  root.innerHTML = '';
+  BRACKET_ROUNDS.forEach(round => {
+    const col = document.createElement('div');
+    col.className = 'bracket-col';
+    const title = document.createElement('div');
+    title.className = 'bracket-col-title';
+    title.textContent = round.title;
+    col.appendChild(title);
+    const inner = document.createElement('div');
+    inner.className = 'bracket-col-inner';
+    round.mids().forEach(mid => inner.appendChild(createKoMatchElement(mid, 'bracket')));
+    col.appendChild(inner);
+    root.appendChild(col);
+  });
+  wireScorePickers(root);
+  BRACKET_ROUNDS.forEach(r => r.mids().forEach(mid => updateKoDisplay(mid)));
 }
 
 function refreshKnockoutOnly() {
-  renderKoList(document.getElementById('ko-r32-root'), KNOCK_R32_DEF.map(r => r.m));
-  renderKoList(document.getElementById('ko-r16-root'), Object.keys(KO_R16).map(Number).sort((x, y) => x - y));
-  renderKoList(document.getElementById('ko-qf-root'), Object.keys(KO_QF).map(Number).sort((x, y) => x - y));
-  renderKoList(document.getElementById('ko-sf-root'), Object.keys(KO_SF).map(Number).sort((x, y) => x - y));
-  renderKoList(document.getElementById('ko-final-root'), [103, 104]);
+  renderKoList(document.getElementById('ko-r32-root'), KNOCK_R32_DEF.map(r => r.m), 'list');
+  renderKoList(document.getElementById('ko-r16-root'), Object.keys(KO_R16).map(Number).sort((x, y) => x - y), 'list');
+  renderKoList(document.getElementById('ko-qf-root'), Object.keys(KO_QF).map(Number).sort((x, y) => x - y), 'list');
+  renderKoList(document.getElementById('ko-sf-root'), Object.keys(KO_SF).map(Number).sort((x, y) => x - y), 'list');
+  renderKoList(document.getElementById('ko-final-root'), [103, 104], 'list');
+  renderBracketLadder();
 }
 
 function fullRefreshDerived() {
@@ -1438,11 +1866,13 @@ function formatScoreLabel(val) {
   return n >= 15 ? '15+' : String(n);
 }
 
-function buildScorePickerHTML(inputId) {
-  const quickBtns = QUICK_SCORES.map(n => `<button type="button" class="score-btn" data-val="${n}">${n}</button>`).join('');
+function buildScorePickerHTML(inputId, compact = false) {
+  const extra = compact ? ' score-btn-ko' : '';
+  const quickBtns = QUICK_SCORES.map(n => `<button type="button" class="score-btn${extra}" data-val="${n}">${n}</button>`).join('');
+  const moreLabel = compact ? '5+' : 'Autre score';
   return `<div class="score-picker" data-for="${inputId}">
     ${quickBtns}
-    <button type="button" class="score-btn score-btn-more" data-action="more">Plus (5+)</button>
+    <button type="button" class="score-btn score-btn-more${extra}" data-action="more">${moreLabel}</button>
   </div>
   <input type="hidden" class="score-value" id="${inputId}" value="">`;
 }
@@ -1498,6 +1928,11 @@ function setScore(inputId, value) {
   if (!inp) return;
   inp.value = value === '' ? '' : String(value);
   updatePickerUI(inputId);
+  if (/^km\d+-[ha]$/.test(inputId)) {
+    const mid = parseInt(inputId.match(/^km(\d+)/)[1], 10);
+    onKoScoreChanged(mid);
+    return;
+  }
   const m = inputId.match(/^m(\d+)-[ha]$/);
   if (m) updateMatchDisplayScore(m[1]);
   onScoreChanged();
@@ -1571,18 +2006,20 @@ function buildGroups() {
       const keyH = `m${num}-h`;
       const keyA = `m${num}-a`;
       row.innerHTML = `
-        <div class="match-card" data-match="${num}">
+        <div class="match-card incomplete" data-match="${num}">
           <div class="match-card-head">
-            <span class="match-num">#${num}</span>
             <span class="match-display-score empty" id="display-m${num}">— : —</span>
           </div>
-          <div class="match-teams-pick">
-            <div class="team-pick-col">
+          <div class="score-football-row">
+            <div class="score-team-block">
               <span class="team-pick-name">${escapeHtml(home)}</span>
+              <span class="score-role-label">Buts marqués</span>
               ${buildScorePickerHTML(keyH)}
             </div>
-            <div class="team-pick-col">
+            <div class="score-center-col"><span class="score-vs">:</span></div>
+            <div class="score-team-block">
               <span class="team-pick-name">${escapeHtml(away)}</span>
+              <span class="score-role-label">Buts marqués</span>
               ${buildScorePickerHTML(keyA)}
             </div>
           </div>
@@ -1598,16 +2035,84 @@ function buildGroups() {
   wireScorePickers(container);
 }
 
+function getMatchFillStatus(num) {
+  const h = document.getElementById('m' + num + '-h')?.value ?? '';
+  const a = document.getElementById('m' + num + '-a')?.value ?? '';
+  if (h !== '' && a !== '') return 'complete';
+  if (h !== '' || a !== '') return 'partial';
+  return 'incomplete';
+}
+
+function getAllMatchStatuses() {
+  const incomplete = [], partial = [], complete = [];
+  for (const rows of Object.values(GROUPS)) {
+    for (const [num] of rows) {
+      const s = getMatchFillStatus(num);
+      if (s === 'complete') complete.push(num);
+      else if (s === 'partial') partial.push(num);
+      else incomplete.push(num);
+    }
+  }
+  return { incomplete, partial, complete };
+}
+
+function scrollToMatch(num) {
+  const card = document.querySelector('.match-card[data-match="' + num + '"]');
+  card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  card?.classList.add('highlight-pulse');
+  setTimeout(() => card?.classList.remove('highlight-pulse'), 2400);
+}
+
+function renderMissingMatches() {
+  const { incomplete, partial, complete } = getAllMatchStatuses();
+  const stats = document.getElementById('missing-stats');
+  const chips = document.getElementById('missing-chips');
+  if (!stats || !chips) return;
+
+  stats.innerHTML =
+    '<strong>' + complete.length + '/72</strong> complets' +
+    (partial.length ? ' · <span class="warn">' + partial.length + ' partiel' + (partial.length > 1 ? 's' : '') + '</span>' : '') +
+    (incomplete.length ? ' · ' + incomplete.length + ' à faire' : '');
+
+  for (const rows of Object.values(GROUPS)) {
+    for (const [num] of rows) {
+      const card = document.querySelector('.match-card[data-match="' + num + '"]');
+      if (!card) continue;
+      const s = getMatchFillStatus(num);
+      card.classList.toggle('has-score', s === 'complete');
+      card.classList.toggle('partial', s === 'partial');
+      card.classList.toggle('incomplete', s === 'incomplete');
+    }
+  }
+
+  if (complete.length === 72) {
+    chips.innerHTML = '<span style="font-size:.78rem;color:#6fcf97">✓ Les 72 matchs sont remplis</span>';
+    return;
+  }
+
+  const items = [...partial.sort((a, b) => a - b), ...incomplete.sort((a, b) => a - b)];
+  chips.innerHTML = items.map(n => {
+    const cls = getMatchFillStatus(n) === 'partial' ? 'missing-chip partial' : 'missing-chip';
+    const teams = matchTeams(n);
+    const label = teams ? shortTeam(teams.home, 12) + ' – ' + shortTeam(teams.away, 12) : 'Match';
+    return '<button type="button" class="' + cls + '" data-go-match="' + n + '" title="Aller au match">' + escapeHtml(label) + '</button>';
+  }).join('');
+  chips.querySelectorAll('[data-go-match]').forEach(btn => {
+    btn.addEventListener('click', () => scrollToMatch(Number(btn.dataset.goMatch)));
+  });
+}
+
 function updateProgress() {
   let filled = 0;
-  document.querySelectorAll('#groups-container .score-value').forEach(inp => {
+  document.querySelectorAll('#groups-container .score-value[id^="m"]').forEach(inp => {
     if (inp.value !== '') filled++;
   });
   const total = 144;
   const pct = Math.round((filled / total) * 100);
-  const matchesDone = Math.floor(filled / 2);
+  const matchesDone = getAllMatchStatuses().complete.length;
   document.getElementById('poules-progress').style.width = pct + '%';
-  document.getElementById('poules-label').textContent = matchesDone + ' / 72 matchs remplis';
+  document.getElementById('poules-label').textContent = matchesDone + ' / 72 matchs complets';
+  renderMissingMatches();
 }
 
 // ─── LOCAL STORAGE ───────────────────────────────────────────────────────────
@@ -1656,6 +2161,7 @@ function loadState() {
     for (const rows of Object.values(GROUPS)) {
       for (const [num] of rows) updateMatchDisplayScore(num);
     }
+    for (let mid = 73; mid <= 104; mid++) updateKoDisplay(mid);
     const id = state.identite || {};
     ['prenom', 'nom', 'email', 'equipe'].forEach(k => {
       const el = document.getElementById(k);
@@ -1743,6 +2249,19 @@ function exportData() {
     }
   }
 
+  data.scoresElimination = {};
+  for (let mid = 73; mid <= 104; mid++) {
+    const h = document.getElementById(koInputId(mid, 'h'))?.value;
+    const a = document.getElementById(koInputId(mid, 'a'))?.value;
+    if (h !== '' || a !== '' || kosWinners[mid]) {
+      data.scoresElimination['Match ' + mid] = {
+        scoreHome: h || '',
+        scoreAway: a || '',
+        vainqueur: kosWinners[mid] || '',
+      };
+    }
+  }
+
   // Trigger JSON download
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1759,9 +2278,22 @@ function exportData() {
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
+function initFinaleViewToggle() {
+  document.querySelectorAll('[data-finale-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.finale-view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const v = btn.dataset.finaleView;
+      document.getElementById('finale-ladder-panel')?.classList.toggle('active', v === 'ladder');
+      document.getElementById('finale-list-panel')?.classList.toggle('active', v === 'list');
+    });
+  });
+}
+
 buildGroups();
 populateSelects();
 initScoreSheet();
+initFinaleViewToggle();
 loadState();
 wireAutoSave();
 fullRefreshDerived();
