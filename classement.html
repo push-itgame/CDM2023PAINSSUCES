@@ -26,15 +26,32 @@ header {
 }
 header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 8vw, 4.5rem); color: var(--gold); letter-spacing: .08em; }
 header p { font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; margin-top: .5rem; }
-header p.subtitle-edition {
+header p.subtitle-edition,
+header .edition-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin: .75rem 0 0;
+  padding: .4rem 1.15rem .45rem;
   font-family: 'DM Sans', sans-serif;
-  font-size: .82rem;
-  letter-spacing: .02em;
-  text-transform: none;
-  transform: rotate(-14deg);
-  transform-origin: 0% 100%;
-  margin: .2rem 0 0 .1rem;
-  display: inline-block;
+  background: linear-gradient(135deg, rgba(200,168,75,0.14) 0%, rgba(200,168,75,0.05) 50%, rgba(90,60,140,0.08) 100%);
+  border: 1px solid rgba(200,168,75,0.38);
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+header .edition-label {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .22em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+header .edition-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: .1em;
+  color: var(--gold);
+  line-height: 1;
 }
 .top-actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
 .top-actions a {

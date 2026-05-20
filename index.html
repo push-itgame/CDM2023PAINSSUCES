@@ -58,9 +58,43 @@ header h1 {
 }
 header h1 span { color: var(--text); }
 .header-brand {
-  display: inline-block;
-  text-align: left;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .7rem;
   position: relative;
+}
+.edition-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin: 0;
+  padding: .4rem 1.15rem .45rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .8rem;
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--gold-light);
+  background: linear-gradient(135deg, rgba(200,168,75,0.14) 0%, rgba(200,168,75,0.05) 50%, rgba(90,60,140,0.08) 100%);
+  border: 1px solid rgba(200,168,75,0.38);
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.07);
+  transform: none;
+}
+.edition-badge .edition-label {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  font-weight: 400;
+  letter-spacing: .22em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.edition-badge .edition-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: .1em;
+  color: var(--gold);
+  line-height: 1;
 }
 .subtitle {
   font-family: 'DM Mono', monospace;
@@ -70,18 +104,6 @@ header h1 span { color: var(--text); }
   text-transform: uppercase;
   margin-top: .75rem;
   position: relative;
-}
-.subtitle-edition {
-  font-family: 'DM Sans', sans-serif;
-  font-size: clamp(.82rem, 2.2vw, 1.05rem);
-  font-weight: 400;
-  letter-spacing: .02em;
-  color: var(--muted);
-  text-transform: none;
-  margin: .15rem 0 0 .15rem;
-  display: block;
-  transform: rotate(-14deg);
-  transform-origin: 0% 100%;
 }
 .badge-deadline {
   display: inline-flex;
@@ -1008,16 +1030,18 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 .bracket-ladder-scroll {
   overflow: auto;
   max-width: 100%;
-  padding-bottom: 1.5rem;
+  max-height: min(78vh, 920px);
+  padding: .25rem .25rem 2rem;
   -webkit-overflow-scrolling: touch;
 }
 .bracket-ladder-pretty {
   display: grid;
   grid-template-columns: 240px 200px 180px 160px 140px;
-  grid-template-rows: 2.25rem repeat(16, minmax(3.75rem, auto));
+  grid-template-rows: 2.25rem repeat(17, minmax(3.5rem, auto));
   gap: .5rem 1.25rem;
   min-width: 980px;
-  padding-bottom: 2rem;
+  min-height: 100%;
+  padding-bottom: 1.5rem;
   align-items: center;
   position: relative;
 }
@@ -1098,6 +1122,20 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   flex-direction: column;
   justify-content: center;
   gap: .25rem;
+  min-height: 0;
+  overflow: hidden;
+}
+.bracket-ko-card.bracket-ko-card--tall {
+  padding: .35rem .45rem;
+  font-size: .68rem;
+}
+.bracket-ko-card.bracket-ko-card--tall .bracket-team-box {
+  padding: .28rem .4rem;
+  font-size: .68rem;
+}
+.bracket-ko-card.bracket-ko-card--tall .bracket-match-meta {
+  font-size: .5rem;
+  margin-bottom: .2rem;
 }
 .bracket-ko-card.wait {
   border-style: dashed;
@@ -1397,7 +1435,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   <span class="trophy">🏆</span>
   <div class="header-brand">
     <h1>CDM<span>2026</span></h1>
-    <p class="subtitle-edition">édition Pains sucés</p>
+    <p class="edition-badge"><span class="edition-label">édition</span><span class="edition-name">Pains sucés</span></p>
   </div>
   <div class="badge-deadline">⏱ Date limite : 11 juin 2026</div>
 </header>
@@ -1757,8 +1795,8 @@ const BRACKET_R32_PAIRS = [[74, 77], [73, 75], [76, 78], [79, 80], [83, 84], [81
 const BRACKET_R16_IDS = [89, 90, 91, 92, 93, 94, 95, 96];
 const BRACKET_QF_IDS = [97, 98, 99, 100];
 const BRACKET_SF_IDS = [101, 102];
-/** Lignes corps du tableau (huitièmes × 8 blocs × 2 lignes). */
-const BRACKET_BODY_ROWS = 16;
+/** Lignes corps du tableau (8 blocs huitièmes × 2 + marge basse). */
+const BRACKET_BODY_ROWS = 17;
 
 /** Ligne grille pour le huitième d’index pi (0–7). */
 function bracketRowForR16Index(pi) {
@@ -2480,6 +2518,7 @@ function createBracketMatchCard(mid, gridCol, gridRow, rowSpan, label) {
   const card = document.createElement('div');
   const r32 = mid >= 73 && mid <= 88;
   card.className = (r32 ? 'bracket-r32-card' : 'bracket-ko-card') + (left && right ? '' : ' wait');
+  if (!r32 && rowSpan && rowSpan >= 8) card.classList.add('bracket-ko-card--tall');
   card.style.gridColumn = String(gridCol);
   card.style.gridRow = rowSpan ? (gridRow + ' / span ' + rowSpan) : String(gridRow);
   const meta = label || metaKo(mid);
