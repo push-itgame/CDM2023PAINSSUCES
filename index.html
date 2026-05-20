@@ -57,6 +57,8 @@ header::before {
 }
 .header-hero {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   position: relative;
   z-index: 1;
@@ -73,9 +75,27 @@ header h1 {
 header h1 span { color: var(--text); }
 .header-brand {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   padding: 0 0 1.1rem 0;
+}
+.badge-deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(192,57,43,0.15);
+  border: 1px solid rgba(192,57,43,0.4);
+  color: #E74C3C;
+  font-family: 'DM Mono', monospace;
+  font-size: .7rem;
+  letter-spacing: .1em;
+  padding: .3rem .75rem;
+  border-radius: 2px;
+  margin-top: 1rem;
+  position: relative;
+  z-index: 1;
 }
 .edition-badge {
   position: absolute;
@@ -120,20 +140,6 @@ header h1 span { color: var(--text); }
   text-transform: uppercase;
   margin-top: .75rem;
   position: relative;
-}
-.badge-deadline {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  background: rgba(192,57,43,0.15);
-  border: 1px solid rgba(192,57,43,0.4);
-  color: #E74C3C;
-  font-family: 'DM Mono', monospace;
-  font-size: .7rem;
-  letter-spacing: .1em;
-  padding: .3rem .75rem;
-  border-radius: 2px;
-  margin-top: 1rem;
 }
 
 /* ───── NAV TABS ───── */
@@ -1054,10 +1060,10 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 }
 .bracket-ladder-pretty {
   display: grid;
-  grid-template-columns: 210px 168px 148px 132px 118px;
-  grid-template-rows: 2.25rem repeat(17, minmax(3.5rem, auto));
-  gap: .45rem .48rem;
-  column-gap: .48rem;
+  grid-template-columns: 168px 128px 108px 96px 88px;
+  grid-template-rows: 2.25rem repeat(17, minmax(3.25rem, auto));
+  gap: .35rem .32rem;
+  column-gap: .32rem;
   min-width: 0;
   width: max-content;
   max-width: 100%;
@@ -1066,25 +1072,26 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   padding-right: .25rem;
   align-items: center;
   position: relative;
+  margin: 0 auto;
 }
 .bracket-ladder-pretty .bracket-col-finale {
-  margin-left: -.65rem;
+  margin-left: -.85rem;
 }
 .bracket-ladder-pretty .col-head.col-finale {
-  margin-left: -.65rem;
+  margin-left: -.85rem;
 }
 .bracket-match-meta {
   font-family: 'DM Mono', monospace;
-  font-size: .52rem;
+  font-size: .48rem;
   color: var(--muted);
-  letter-spacing: .04em;
-  margin-bottom: .3rem;
+  letter-spacing: .03em;
+  margin-bottom: .22rem;
   text-transform: uppercase;
   text-align: center;
-  line-height: 1.25;
-  white-space: normal;
-  word-break: break-word;
-  hyphens: auto;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .bracket-ladder-pretty .bracket-ko-card,
 .bracket-ladder-pretty .bracket-r32-card {
@@ -1105,16 +1112,22 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   background: linear-gradient(180deg, rgba(200,168,75,0.06) 0%, var(--card) 100%);
   border: 1px solid rgba(200,168,75,0.22);
   border-radius: 6px;
-  padding: .5rem .6rem;
-  font-size: .72rem;
+  padding: .38rem .45rem;
+  font-size: .7rem;
 }
 .bracket-r32-card .bracket-match-meta {
-  font-family: 'DM Mono', monospace;
-  font-size: .55rem;
-  color: var(--muted);
-  letter-spacing: .06em;
-  margin-bottom: .35rem;
-  text-transform: uppercase;
+  font-size: .46rem;
+  margin-bottom: .2rem;
+}
+@media (min-width: 960px) {
+  .bracket-ladder-scroll {
+    justify-content: center;
+    padding-left: .5rem;
+    padding-right: .5rem;
+  }
+  .bracket-ladder-pretty {
+    transform: translateX(-2%);
+  }
 }
 .bracket-duel {
   display: flex;
@@ -1450,6 +1463,144 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   margin-top: .35rem;
 }
 
+/* ───── MOBILE (poules, header, nav) ───── */
+@media (max-width: 520px) {
+  header {
+    padding: 1.75rem .85rem 1.35rem;
+  }
+  header h1 {
+    font-size: clamp(2.4rem, 13vw, 3.25rem);
+  }
+  .trophy {
+    font-size: 1.85rem;
+    margin-bottom: .25rem;
+  }
+  .header-brand {
+    padding-bottom: .95rem;
+    max-width: 100%;
+  }
+  .edition-badge {
+    left: 52%;
+    bottom: -.25rem;
+    transform: translateX(-5%) rotate(-22deg);
+    max-width: calc(100vw - 2rem);
+    padding: .32rem .7rem .38rem;
+  }
+  .edition-badge .edition-label,
+  .edition-badge .edition-name {
+    font-size: .9rem;
+  }
+  .badge-deadline {
+    font-size: .62rem;
+    padding: .28rem .55rem;
+    margin-top: .75rem;
+  }
+  .container {
+    padding: 1.15rem .55rem 2rem;
+  }
+  .section-title {
+    font-size: 1.45rem;
+    letter-spacing: .06em;
+  }
+  nav button, nav .tab-link {
+    padding: .8rem .85rem;
+    font-size: .62rem;
+    letter-spacing: .1em;
+  }
+  .incomplete-banner {
+    font-size: .78rem;
+    padding: .55rem .65rem;
+  }
+  .tv-board.match-card {
+    padding: .55rem .45rem .6rem;
+    overflow: hidden;
+  }
+  .tv-display {
+    font-size: 1.55rem;
+    margin-bottom: .4rem;
+  }
+  .tv-board.match-card .tv-team-row {
+    display: none;
+  }
+  .tv-score-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .5rem;
+  }
+  .tv-score-sep {
+    display: none;
+  }
+  .score-picker {
+    width: 100%;
+    max-width: 100%;
+  }
+  .score-picker[data-team]::before {
+    content: attr(data-team);
+    display: block;
+    font-size: .68rem;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: .28rem;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 .15rem;
+  }
+  .score-picker-digits {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .2rem;
+    width: 100%;
+    flex-wrap: unset;
+  }
+  .score-btn {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    max-height: 2.45rem;
+    font-size: .8rem;
+  }
+  .score-btn-more {
+    width: 100%;
+    max-width: none;
+    height: 1.7rem;
+    margin-top: .08rem;
+  }
+  .ko-match-card .tv-team-row {
+    display: flex;
+    margin-bottom: .4rem;
+  }
+  .ko-match-card .tv-team-name {
+    font-size: .68rem;
+  }
+  .bracket-ladder-scroll {
+    max-height: min(70vh, 780px);
+    padding: .2rem .35rem 1.5rem;
+  }
+  .bracket-ladder-pretty {
+    grid-template-columns: 148px 112px 96px 88px 80px;
+    gap: .3rem .28rem;
+    transform: none;
+  }
+  .bracket-team-box {
+    font-size: .66rem;
+    padding: .28rem .35rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .score-btn {
+    max-height: 2.15rem;
+    font-size: .74rem;
+  }
+  .edition-badge .edition-label,
+  .edition-badge .edition-name {
+    font-size: .82rem;
+  }
+}
+
 /* ───── TOAST ───── */
 #toast {
   position: fixed;
@@ -1474,8 +1625,8 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 
 <header>
   <div class="header-hero">
-    <span class="trophy">🏆</span>
     <div class="header-brand">
+      <span class="trophy">🏆</span>
       <h1>CDM<span>2026</span></h1>
       <p class="edition-badge"><span class="edition-label">édition</span><span class="edition-name">Pains sucés</span></p>
     </div>
@@ -2182,11 +2333,13 @@ function koRoundOrder(mid) {
 
 function metaKo(mid, compact) {
   mid = Number(mid);
-  if (mid === 103) return 'Petite finale';
+  if (mid === 103) return compact ? '3e place' : 'Petite finale';
   if (mid === 104) return 'Finale';
   const info = koRoundOrder(mid);
   if (!info) return '';
   if (compact) {
+    if (mid >= 73 && mid <= 88) return ordinalFr(info.idx) + ' 16e';
+    if (mid >= 89 && mid <= 96) return ordinalFr(info.idx) + ' 8e';
     if (mid >= 97 && mid <= 100) return ordinalFr(info.idx) + ' quart';
     if (mid >= 101 && mid <= 102) return ordinalFr(info.idx) + ' demi';
   }
@@ -2569,7 +2722,7 @@ function createBracketMatchCard(mid, gridCol, gridRow, rowSpan, label) {
   card.style.gridColumn = String(gridCol);
   card.style.gridRow = rowSpan ? (gridRow + ' / span ' + rowSpan) : String(gridRow);
   if (gridCol === 5) card.classList.add('bracket-col-finale');
-  const meta = label || metaKo(mid, gridCol === 3 || gridCol === 4);
+  const meta = label || metaKo(mid, !label);
   if (left && right) {
     card.innerHTML = `
       <div class="bracket-match-meta">${meta}</div>

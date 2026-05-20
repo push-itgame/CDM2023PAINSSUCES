@@ -45,6 +45,8 @@ header::before {
 }
 .header-hero {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   position: relative;
   z-index: 1;
@@ -61,7 +63,9 @@ header h1 {
 header h1 span { color: var(--text); }
 .header-brand {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   padding: 0 0 1.1rem 0;
 }
@@ -141,8 +145,8 @@ table.lb tr:hover td { background: rgba(200,168,75,0.04); }
 <body>
 <header>
   <div class="header-hero">
-    <span class="trophy">🏆</span>
     <div class="header-brand">
+      <span class="trophy">🏆</span>
       <h1>CDM<span>2026</span></h1>
       <p class="edition-badge"><span class="edition-label">édition</span><span class="edition-name">Pains sucés</span></p>
     </div>
