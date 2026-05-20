@@ -204,7 +204,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 2rem; text-align: center; color: var(--muted);
 }
 .leaderboard-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--card); }
-table.lb { width: 100%; border-collapse: collapse; min-width: 720px; table-layout: fixed; }
+table.lb { width: 100%; border-collapse: collapse; min-width: 820px; table-layout: fixed; }
 table.lb th {
   font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase;
   color: var(--muted); text-align: left; padding: .75rem .6rem; border-bottom: 1px solid var(--border); background: var(--surface);
@@ -214,7 +214,18 @@ table.lb td { padding: .65rem .6rem; border-bottom: 1px solid rgba(255,255,255,0
 table.lb tr:hover td { background: rgba(200,168,75,0.04); }
 table.lb th.col-rank, table.lb td.rank { width: 2.75rem; text-align: center; padding-left: .4rem; padding-right: .4rem; }
 table.lb th.col-name { width: auto; }
-table.lb th.col-pts, table.lb td.pts { text-align: right; padding-right: .85rem; white-space: nowrap; }
+table.lb th.col-pts, table.lb td.pts {
+  text-align: center;
+  padding-left: .45rem;
+  padding-right: .45rem;
+  white-space: nowrap;
+}
+table.lb th.col-pts {
+  font-size: .58rem;
+  line-height: 1.35;
+  letter-spacing: .08em;
+  vertical-align: middle;
+}
 table.lb th.col-detail, table.lb td.col-detail { width: 4.75rem; text-align: center; padding-left: .35rem; padding-right: .35rem; }
 .rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--gold); }
 .name { font-weight: 600; }
@@ -387,169 +398,12 @@ table.lb tr.lb-row-me .rank { color: var(--gold-light); }
 </main>
 <script src="js/config.js"></script>
 <script src="js/supabase-api.js"></script>
+<script src="js/scoring.js"></script>
 <script src="js/live-scores.js"></script>
 <script>
 const LS_EMAIL_KEY = 'cdm2026_email';
 let highlightEmail = '';
-const BONUS_NUMERIC_TOLERANCE = 3;
-const KO_MATCH_MIN = 73;
-const KO_MATCH_MAX = 104;
-
-function parseIntSafe(v) {
-  const n = parseInt(String(v ?? '').trim(), 10);
-  return Number.isFinite(n) ? n : null;
-}
-
-function matchOutcome(h, a) {
-  if (h == null || a == null) return null;
-  if (h > a) return 'H';
-  if (h < a) return 'A';
-  return 'D';
-}
-
-function normalizeTeam(s) {
-  return String(s ?? '').trim().toLowerCase();
-}
-
-function setIntersectionScore(predList, realList, ptsPer) {
-  const real = new Set((realList || []).map(normalizeTeam).filter(Boolean));
-  let pts = 0;
-  for (const t of predList || []) {
-    if (real.has(normalizeTeam(t))) pts += ptsPer;
-  }
-  return pts;
-}
-
-function scoreGroupMatches(predMatchs, realMatchs) {
-  let pts = 0;
-  for (const [key, real] of Object.entries(realMatchs || {})) {
-    const pred = (predMatchs || {})[key];
-    if (!pred || !real) continue;
-    const rh = parseIntSafe(real.scoreHome ?? real.homeScore);
-    const ra = parseIntSafe(real.scoreAway ?? real.awayScore);
-    const ph = parseIntSafe(pred.scoreHome);
-    const pa = parseIntSafe(pred.scoreAway);
-    if (rh == null || ra == null || ph == null || pa == null) continue;
-    const ro = matchOutcome(rh, ra);
-    const po = matchOutcome(ph, pa);
-    if (!ro || !po || ro !== po) continue;
-    const exact = rh === ph && ra === pa;
-    let base = exact ? 5 : 3;
-    const totalReal = rh + ra;
-    if (totalReal >= 6) base *= 2;
-    else if (totalReal >= 4) base *= 1.5;
-    pts += base;
-  }
-  return Math.round(pts * 10) / 10;
-}
-
-function buildPredBareme(participant) {
-  const p = participant.phaseFinalePourBareme || {};
-  const e2 = participant.etape2Tableau || participant.etape2 || {};
-  return {
-    liste32QualifiesIssuesPoules: (p.liste32QualifiesIssuesPoules?.length ? p.liste32QualifiesIssuesPoules : e2.r32) || [],
-    vainqueursSeiziemePourHuitiemes16: (p.vainqueursSeiziemePourHuitiemes16?.length ? p.vainqueursSeiziemePourHuitiemes16 : e2.r16) || [],
-    vainqueursHuitiemesPourQuarts8: (p.vainqueursHuitiemesPourQuarts8?.length ? p.vainqueursHuitiemesPourQuarts8 : e2.qf) || [],
-    vainqueursQuartsPourDemis4: (p.vainqueursQuartsPourDemis4?.length ? p.vainqueursQuartsPourDemis4 : e2.sf) || [],
-    finalistesChoisis: (p.finalistesChoisis?.length ? p.finalistesChoisis : e2.finalists) || [],
-    vainqueurFinal: p.vainqueurFinal || e2.winner || '',
-  };
-}
-
-function scoreTableau(participant, resultats) {
-  const pred = buildPredBareme(participant);
-  const real = resultats.phaseFinalePourBareme || {};
-  const list32Pred = pred.liste32QualifiesIssuesPoules?.length
-    ? pred.liste32QualifiesIssuesPoules
-    : (participant.equipesQualifiees32Liste || []);
-  const list32Real = real.liste32QualifiesIssuesPoules?.length
-    ? real.liste32QualifiesIssuesPoules
-    : (resultats.equipesQualifiees32Liste || []);
-
-  let pts = 0;
-  pts += setIntersectionScore(list32Pred, list32Real, 3);
-  pts += setIntersectionScore(pred.vainqueursSeiziemePourHuitiemes16, real.vainqueursSeiziemePourHuitiemes16, 5);
-  pts += setIntersectionScore(pred.vainqueursHuitiemesPourQuarts8, real.vainqueursHuitiemesPourQuarts8, 12);
-  pts += setIntersectionScore(pred.vainqueursQuartsPourDemis4, real.vainqueursQuartsPourDemis4, 20);
-  pts += setIntersectionScore(pred.finalistesChoisis, real.finalistesChoisis, 35);
-  if (normalizeTeam(pred.vainqueurFinal) && normalizeTeam(pred.vainqueurFinal) === normalizeTeam(real.vainqueurFinal)) {
-    pts += 50;
-  }
-  return pts;
-}
-
-function koWinnerFromScores(sc) {
-  if (!sc) return '';
-  const h = parseIntSafe(sc.scoreHome ?? sc.home);
-  const a = parseIntSafe(sc.scoreAway ?? sc.away);
-  if (h == null || a == null) return '';
-  if (h > a) return sc.homeTeam || sc.homeName || sc.home || '';
-  if (a > h) return sc.awayTeam || sc.awayName || sc.away || '';
-  return '';
-}
-
-function scoreEliminationKO(participant, resultats) {
-  const predWinners = participant.vainqueursTableauEliminationChoisis || {};
-  const realWinners = resultats.vainqueursTableauElimination || {};
-  const realScores = resultats.scoresElimination || {};
-  let pts = 0;
-
-  for (let m = KO_MATCH_MIN; m <= KO_MATCH_MAX; m++) {
-    const key = String(m);
-    const keyM = 'M' + m;
-    const realW = realWinners[key] || realWinners[keyM] || '';
-    if (!realW) continue;
-    const predW = predWinners[key] || predWinners[keyM] || '';
-    const scReal = realScores[key] || realScores[keyM];
-    const exactInResultats = scReal && parseIntSafe(scReal.scoreHome) != null && parseIntSafe(scReal.scoreAway) != null;
-
-    if (exactInResultats) {
-      const predSc = (participant.matchs || {})['Match ' + m] || participant.scoresElimination?.[key] || participant.scoresElimination?.[keyM];
-      const ph = parseIntSafe(predSc?.scoreHome);
-      const pa = parseIntSafe(predSc?.scoreAway);
-      const rh = parseIntSafe(scReal.scoreHome);
-      const ra = parseIntSafe(scReal.scoreAway);
-      if (ph != null && pa != null && ph === rh && pa === ra) {
-        pts += 10;
-        continue;
-      }
-    }
-    if (normalizeTeam(predW) && normalizeTeam(predW) === normalizeTeam(realW)) pts += 6;
-  }
-  return pts;
-}
-
-function bonusMatch(predVal, realVal, key) {
-  const p = String(predVal ?? '').trim();
-  const r = String(realVal ?? '').trim();
-  if (!p || !r) return 0;
-  if (key === 'nbButs') {
-    const pn = parseIntSafe(p);
-    const rn = parseIntSafe(r);
-    if (pn == null || rn == null) return 0;
-    if (Math.abs(pn - rn) <= BONUS_NUMERIC_TOLERANCE) return 25;
-    return 0;
-  }
-  return normalizeTeam(p) === normalizeTeam(r) ? 25 : 0;
-}
-
-function scoreBonus(predBonus, realBonus) {
-  if (!predBonus || !realBonus) return 0;
-  const keys = Object.keys(realBonus);
-  let pts = 0;
-  for (const k of keys) {
-    pts += bonusMatch(predBonus[k], realBonus[k], k);
-  }
-  return pts;
-}
-
-function scoreParticipant(participant, resultats) {
-  const poules = scoreGroupMatches(participant.matchs, resultats.matchs);
-  const tableau = scoreTableau(participant, resultats) + scoreEliminationKO(participant, resultats);
-  const bonus = scoreBonus(participant.bonus, resultats.bonus);
-  const total = Math.round((poules + tableau + bonus) * 10) / 10;
-  return { poules, tableau, bonus, total };
-}
+const { scoreParticipant, normalizeTeam } = CDM_SCORING;
 
 function renderTable(rows) {
   if (!rows.length) {
@@ -566,7 +420,8 @@ function renderTable(rows) {
       <td class="rank">${i + 1}</td>
       <td><div class="name">${escapeHtml(r.label)}${isMe ? ' <span style="color:var(--gold);font-size:.75rem">← vous</span>' : ''}</div><div class="sub">${escapeHtml(r.sub || '')}</div></td>
       <td class="pts">${r.poules}</td>
-      <td class="pts">${r.tableau}</td>
+      <td class="pts">${r.tableauE2}</td>
+      <td class="pts">${r.finales}</td>
       <td class="pts">${r.bonus}</td>
       <td class="pts total">${r.total}</td>
       <td class="col-detail">${detail}</td>
@@ -576,7 +431,8 @@ function renderTable(rows) {
     <th class="col-rank">#</th>
     <th class="col-name">Participant</th>
     <th class="col-pts">Poules</th>
-    <th class="col-pts">Tableau & finales</th>
+    <th class="col-pts">Tableau<br>étape 2</th>
+    <th class="col-pts">Finales<br>3–7</th>
     <th class="col-pts">Bonus</th>
     <th class="col-pts">Total</th>
     <th class="col-detail">Détail</th>
@@ -602,7 +458,7 @@ function renderMyScoreSummary(rows) {
     : '';
   el.innerHTML = `
     <span class="rank-big">#${idx + 1}</span>
-    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${r.poules} · Tableau ${r.tableau} · Bonus ${r.bonus}</span></span>
+    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${r.poules} · Tab. ${r.tableauE2} · Fin. ${r.finales} · Bonus ${r.bonus}</span></span>
     <span class="pts-big">${r.total} pts</span>
     ${detailLink}`;
   el.hidden = false;

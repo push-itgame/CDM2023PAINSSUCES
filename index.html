@@ -170,7 +170,7 @@ nav button {
 }
 nav button.active { color: var(--gold); border-color: var(--gold); }
 nav button:hover:not(.active):not(.tab-past) { color: var(--text); }
-nav button.tab-past { opacity: .45; color: var(--muted); }
+nav button.tab-past { opacity: .45; color: var(--muted); pointer-events: auto; cursor: pointer; }
 nav button.tab-future { opacity: .65; }
 nav button.tab-current:not(.active) {
   color: var(--gold-light);
@@ -1171,11 +1171,48 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 .etape-score-badge.lock { background: rgba(255,255,255,0.06); color: var(--muted); }
 .etape-score-badge.past { background: rgba(100,120,140,0.15); color: #9ab0c4; }
 .etape-score-section.past-section { opacity: .92; }
-.stage-locked .score-picker,
-.stage-locked .score-btn,
-.stage-locked .score-btn-more,
 .stage-locked .bracket-team-box.clickable,
 .stage-locked .ko-tie-btn {
+  pointer-events: none;
+  opacity: .58;
+  cursor: not-allowed;
+}
+.stage-locked .bracket-team-box.is-winner-pick,
+.stage-locked .bracket-ladder-scroll,
+.stage-locked .group-fold-head { cursor: pointer; pointer-events: auto; }
+.stage-locked .bracket-team-box.is-winner-pick { opacity: 1; }
+.match-card.pred-hit,
+.ko-match-card.pred-hit {
+  border-color: rgba(39,174,96,0.42) !important;
+  background: rgba(39,174,96,0.07);
+}
+.bracket-team-box.is-winner-pick.pred-hit {
+  border-color: rgba(39,174,96,0.55) !important;
+  background: rgba(39,174,96,0.2) !important;
+  color: #a8e6c0 !important;
+}
+.bonus-q .pts.pred-hit {
+  color: #6fcf97;
+  border: 1px solid rgba(39,174,96,0.45);
+  border-radius: 3px;
+  padding: .12rem .4rem;
+  background: rgba(39,174,96,0.1);
+}
+.pred-pts-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  font-weight: 600;
+  color: #6fcf97;
+  background: rgba(39,174,96,0.14);
+  border: 1px solid rgba(39,174,96,0.32);
+  border-radius: 3px;
+  padding: .15rem .35rem;
+  margin-left: .35rem;
+}
+.match-card-head .pred-pts-badge { margin-left: 0; }
+.stage-locked .score-picker,
+.stage-locked .score-btn,
+.stage-locked .score-btn-more {
   pointer-events: none;
   opacity: .58;
   cursor: not-allowed;
@@ -1950,6 +1987,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 <div id="tab-tableau" class="panel">
 <div class="container">
   <h2 class="section-title">Tableau — étape 2</h2>
+  <p class="ladder-hint-note" style="margin-top:-.5rem">Onglet consultable même verrouillé · les bons choix s’affichent en <strong style="color:#6fcf97">vert</strong> après publication officielle.</p>
   <div id="finale-status" class="finale-status wait"></div>
   <div class="bracket-note" id="bracket-note-dynamic">
     <strong>Avant le 11/06</strong> : choisissez les équipes du tableau (32 → vainqueur).
@@ -2167,6 +2205,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 
 <script src="js/config.js"></script>
 <script src="js/supabase-api.js"></script>
+<script src="js/scoring.js"></script>
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const NATIONS = [
@@ -3409,6 +3448,85 @@ function fullRefreshDerived() {
   renderFinalePanels();
   updateNavStepHighlight();
   renderSendRecap();
+  applyPronosticFeedback();
+}
+
+function getOfficialKoWinner(mid) {
+  const w = OFFICIAL.vainqueursTableauElimination || {};
+  return w['Match ' + mid] || w[String(mid)] || w['M' + mid] || '';
+}
+
+function applyPronosticFeedback() {
+  if (!window.CDM_SCORING) return;
+  const S = CDM_SCORING;
+
+  document.querySelectorAll('.match-card[data-match]').forEach(card => {
+    card.classList.remove('pred-hit');
+    card.querySelector('.pred-pts-badge')?.remove();
+    if (!S.poulesOfficialComplete(OFFICIAL)) return;
+    const num = card.dataset.match;
+    const h = getScoreRaw('m' + num + '-h');
+    const a = getScoreRaw('m' + num + '-a');
+    if (h === '' || a === '') return;
+    const d = S.scorePouleMatchDetail(
+      { scoreHome: h, scoreAway: a },
+      OFFICIAL.matchs?.['Match ' + num]
+    );
+    if (d.status === 'hit') {
+      card.classList.add('pred-hit');
+      const head = card.querySelector('.match-card-head');
+      if (head && !head.querySelector('.pred-pts-badge')) {
+        head.insertAdjacentHTML('beforeend', `<span class="pred-pts-badge">+${d.pts}</span>`);
+      }
+    }
+  });
+
+  document.querySelectorAll('.bonus-q').forEach(row => {
+    const inp = row.querySelector('.bonus-answer');
+    const ptsEl = row.querySelector('.pts');
+    if (!inp || !ptsEl) return;
+    ptsEl.classList.remove('pred-hit');
+    const def = S.BONUS_DEFS.find(b => b.id === inp.id);
+    if (!def) return;
+    const ev = S.evalBonusItem(def.key, inp.value, OFFICIAL);
+    if (ev.status === 'hit') ptsEl.classList.add('pred-hit');
+  });
+
+  let participant;
+  try { participant = buildGrillePayload(); } catch (e) { participant = null; }
+
+  document.querySelectorAll('[data-bracket-mid][data-bracket-team]').forEach(btn => {
+    btn.classList.remove('pred-hit');
+    if (!btn.classList.contains('is-winner-pick')) return;
+    const mid = Number(btn.dataset.bracketMid);
+    const team = btn.dataset.bracketTeam || btn.textContent.trim();
+    const offW = getOfficialKoWinner(mid);
+    if (offW && S.normalizeTeam(offW) === S.normalizeTeam(team)) {
+      btn.classList.add('pred-hit');
+      return;
+    }
+    if ((OFFICIAL.etapeDebloquee || 0) >= 3 && participant) {
+      const rounds = S.tableauRoundDetails(participant, OFFICIAL);
+      const hitTeams = new Set();
+      rounds.forEach(r => r.teams.forEach(t => { if (t.hit) hitTeams.add(S.normalizeTeam(t.name)); }));
+      if (hitTeams.has(S.normalizeTeam(team))) btn.classList.add('pred-hit');
+    }
+  });
+
+  document.querySelectorAll('.ko-match-card[data-ko-mid]').forEach(card => {
+    card.classList.remove('pred-hit');
+    card.querySelector('.pred-pts-badge')?.remove();
+    if (!participant) return;
+    const mid = Number(card.dataset.koMid);
+    const d = S.evalKoMatchDetail(participant, mid, OFFICIAL);
+    if (d.status === 'hit') {
+      card.classList.add('pred-hit');
+      const meta = card.querySelector('.ko-meta');
+      if (meta && !card.querySelector('.pred-pts-badge')) {
+        meta.insertAdjacentHTML('afterend', `<span class="pred-pts-badge">+${d.pts}</span>`);
+      }
+    }
+  });
 }
 
 function qualifies32Liste() {
@@ -3447,7 +3565,10 @@ function goToTab(name) {
   if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
   if (name === 'tableau' || name === 'scores-finales') fullRefreshDerived();
   else if (name === 'envoyer') renderSendRecap();
-  else updateNavStepHighlight();
+  else {
+    updateNavStepHighlight();
+    applyPronosticFeedback();
+  }
 }
 document.getElementById('tabs').addEventListener('click', e => {
   if (e.target.dataset.tab) goToTab(e.target.dataset.tab);
