@@ -1509,6 +1509,15 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 }
 .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
 .btn-submit:active { transform: translateY(0); }
+.btn-submit-secondary {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--border);
+  margin-top: .75rem;
+}
+.btn-submit-secondary:hover { background: rgba(200,168,75,0.08); }
+.submit-actions { display: flex; flex-direction: column; align-items: center; gap: 0; }
+#toast.error { background: #8b2635; color: #fff; }
 
 /* ───── PROGRESS BAR ───── */
 .progress-bar {
@@ -1748,9 +1757,9 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
       <input type="text" id="equipe" placeholder="France, OL, …">
     </div>
     <p class="inscription-export-note" style="margin-top:.75rem;font-size:.85rem;color:var(--muted);line-height:1.6">
-      À la fin, utilisez <strong style="color:var(--text)">Valider &amp; Exporter ma grille</strong> pour télécharger votre JSON.
-      Déposez-le dans <code style="color:var(--gold)">data/grilles/</code> puis lancez <code>scripts/merge_grilles.py</code>.
-      Suivez le <a href="classement.html" style="color:var(--gold)">classement live</a> (résultats dans <code>data/resultats.json</code>).
+      À la fin, cliquez sur <strong style="color:var(--text)">Envoyer ma grille</strong> : votre pronostic est enregistré automatiquement (e-mail obligatoire).
+      Vous pouvez aussi <strong style="color:var(--text)">télécharger le JSON</strong> en secours.
+      Suivez le <a href="classement.html" style="color:var(--gold)">classement live</a>.
     </p>
   </div>
 
@@ -1917,8 +1926,9 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
     </div>
   </div>
 
-  <div class="submit-wrap">
-    <button class="btn-submit" onclick="exportData()">✅ Valider & Exporter ma grille</button>
+  <div class="submit-wrap submit-actions">
+    <button class="btn-submit" id="btnSubmitGrille" onclick="submitGrille()">📤 Envoyer ma grille</button>
+    <button class="btn-submit btn-submit-secondary" onclick="exportData()">Télécharger JSON (secours)</button>
   </div>
 </div>
 </div>
@@ -1994,8 +2004,10 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   </div>
 </div>
 
-<div id="toast">✅ Grille exportée avec succès !</div>
+<div id="toast">✅ Grille enregistrée !</div>
 
+<script src="js/config.js"></script>
+<script src="js/supabase-api.js"></script>
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const NATIONS = [
@@ -3502,8 +3514,19 @@ function populateSelects() {
   GOALKEEPERS.forEach(g => { const o = document.createElement('option'); o.value = g; o.textContent = g; b7.appendChild(o); });
 }
 
-// ─── EXPORT ──────────────────────────────────────────────────────────────────
-function exportData() {
+// ─── EXPORT / ENVOI ──────────────────────────────────────────────────────────
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', !!isError);
+  t.classList.add('show');
+  setTimeout(() => {
+    t.classList.remove('show');
+    t.classList.remove('error');
+  }, isError ? 5000 : 3500);
+}
+
+function buildGrillePayload() {
   rebuildEngine();
   autoSyncEtape2R32FromPoules();
   sanitizeEtape2Picks();
@@ -3565,7 +3588,11 @@ function exportData() {
     }
   }
 
-  // Trigger JSON download
+  return data;
+}
+
+function exportData() {
+  const data = buildGrillePayload();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3574,10 +3601,34 @@ function exportData() {
   a.download = `CDM2026_${nom}.json`;
   a.click();
   URL.revokeObjectURL(url);
+  showToast('✅ JSON téléchargé');
+}
 
-  const t = document.getElementById('toast');
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+async function submitGrille() {
+  const btn = document.getElementById('btnSubmitGrille');
+  if (!window.CDM_SUPABASE?.isConfigured()) {
+    showToast('Envoi indisponible : Supabase non configuré (voir scripts/SUPABASE_SETUP.md). Utilisez le JSON.', true);
+    return;
+  }
+  let data;
+  try {
+    data = buildGrillePayload();
+  } catch (e) {
+    showToast('Erreur grille : ' + e.message, true);
+    return;
+  }
+  const prev = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours…';
+  try {
+    await CDM_SUPABASE.upsertGrille(data);
+    showToast('✅ Grille envoyée — visible au classement');
+  } catch (e) {
+    showToast('Échec envoi : ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = prev;
+  }
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
