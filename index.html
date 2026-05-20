@@ -1729,6 +1729,41 @@ const BRACKET_R16_IDS = [89, 90, 91, 92, 93, 94, 95, 96];
 const BRACKET_QF_IDS = [97, 98, 99, 100];
 const BRACKET_SF_IDS = [101, 102];
 
+/** Ligne grille pour le huitième d’index pi (0–7). */
+function bracketRowForR16Index(pi) {
+  return pi * 2 + 2;
+}
+
+/** Ligne + span grille pour un match KO à partir de ses feeders numériques. */
+function bracketSlotForFeeders(feederMids) {
+  const indices = feederMids.map(m => BRACKET_R16_IDS.indexOf(m)).filter(i => i >= 0);
+  if (indices.length < 2) {
+    const qfIdx = BRACKET_QF_IDS.indexOf(feederMids[0]);
+    if (qfIdx >= 0) {
+      const [a, b] = KO_QF[feederMids[0]];
+      return bracketSlotForFeeders([a, b]);
+    }
+    return { row: 2, span: 4 };
+  }
+  const minPi = Math.min(...indices);
+  const maxPi = Math.max(...indices);
+  return { row: bracketRowForR16Index(minPi), span: (maxPi - minPi + 1) * 2 };
+}
+
+function bracketSlotForQf(qfMid) {
+  const pair = KO_QF[qfMid];
+  return pair ? bracketSlotForFeeders(pair) : { row: 2, span: 4 };
+}
+
+function bracketSlotForSf(sfMid) {
+  const pair = KO_SF[sfMid];
+  if (!pair) return { row: 2, span: 8 };
+  const a = bracketSlotForQf(pair[0]);
+  const b = bracketSlotForQf(pair[1]);
+  const row = Math.min(a.row, b.row);
+  return { row, span: Math.max(a.row + a.span, b.row + b.span) - row };
+}
+
 function escapeHtml(text) {
   const d = document.createElement('div');
   d.textContent = text;
@@ -2443,18 +2478,19 @@ function renderBracketLadderPretty() {
     grid.appendChild(h);
   });
   BRACKET_R32_PAIRS.forEach((pair, pi) => {
-    const r16Row = pi * 2 + 2;
+    const r16Row = bracketRowForR16Index(pi);
     pair.forEach((mid, ji) => {
       grid.appendChild(createBracketMatchCard(mid, 1, r16Row + ji, null));
     });
     grid.appendChild(createBracketMatchCard(BRACKET_R16_IDS[pi], 2, r16Row, 2));
   });
-  const qfRows = [2, 6, 10, 14];
-  qfRows.forEach((row, i) => {
-    grid.appendChild(createBracketMatchCard(BRACKET_QF_IDS[i], 3, row, 4));
+  BRACKET_QF_IDS.forEach(qfMid => {
+    const slot = bracketSlotForQf(qfMid);
+    grid.appendChild(createBracketMatchCard(qfMid, 3, slot.row, slot.span));
   });
-  [2, 10].forEach((row, i) => {
-    grid.appendChild(createBracketMatchCard(BRACKET_SF_IDS[i], 4, row, 8));
+  BRACKET_SF_IDS.forEach(sfMid => {
+    const slot = bracketSlotForSf(sfMid);
+    grid.appendChild(createBracketMatchCard(sfMid, 4, slot.row, slot.span));
   });
   grid.appendChild(createBracketMatchCard(104, 5, 2, 16, 'Finale'));
 }
