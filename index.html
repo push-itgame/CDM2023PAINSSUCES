@@ -1238,7 +1238,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   font-size: .72rem;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   gap: .25rem;
   min-height: 0;
   overflow: visible;
@@ -1641,14 +1641,16 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   }
   .bracket-ladder-pretty {
     grid-template-columns: 140px 106px 92px 84px 76px;
-    grid-template-rows: 2rem repeat(17, minmax(4.85rem, auto));
+    grid-template-rows: 2rem repeat(17, 4.5rem);
+    --bracket-row-h: 4.5rem;
     gap: .5rem .28rem;
-    align-items: start;
     transform: none;
   }
-  .bracket-ladder-pretty .bracket-r32-card,
-  .bracket-ladder-pretty .bracket-ko-card {
+  .bracket-ladder-pretty .bracket-r32-card {
     align-self: start;
+  }
+  .bracket-ladder-pretty .bracket-ko-card.bracket-ko-card--spanned {
+    align-self: center;
   }
   .bracket-r32-card {
     padding: .32rem .36rem;
@@ -2766,6 +2768,7 @@ function createBracketMatchCard(mid, gridCol, gridRow, rowSpan, label) {
   card.style.gridRow = rowSpan ? (gridRow + ' / span ' + rowSpan) : String(gridRow);
   if (gridCol === 5) card.classList.add('bracket-col-finale');
   if (r32) card.classList.add('bracket-col-r32');
+  else if (rowSpan) card.classList.add('bracket-ko-card--spanned');
   const meta = label || metaKo(mid, !label);
   if (left && right) {
     card.innerHTML = `
