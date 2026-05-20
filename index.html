@@ -1111,6 +1111,28 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 .etape-score-badge.open { background: rgba(39,174,96,0.15); color: #6fcf97; }
 .etape-score-badge.wait { background: rgba(200,168,75,0.12); color: var(--gold); }
 .etape-score-badge.lock { background: rgba(255,255,255,0.06); color: var(--muted); }
+.etape-score-badge.past { background: rgba(100,120,140,0.15); color: #9ab0c4; }
+.etape-score-section.past-section { opacity: .92; }
+.stage-locked .score-picker,
+.stage-locked .score-btn,
+.stage-locked .score-btn-more,
+.stage-locked .bracket-team-box.clickable,
+.stage-locked .ko-tie-btn {
+  pointer-events: none;
+  opacity: .58;
+  cursor: not-allowed;
+}
+.stage-locked .group-fold-head { cursor: pointer; }
+.stage-lock-banner {
+  font-size: .82rem;
+  color: #9ab0c4;
+  background: rgba(100,120,140,0.12);
+  border: 1px solid rgba(100,120,140,0.25);
+  border-radius: 4px;
+  padding: .55rem .75rem;
+  margin-bottom: .75rem;
+  line-height: 1.45;
+}
 .etape-score-body { padding: .85rem 1rem 1rem; }
 .etape-score-body.collapsed { display: none; }
 .etape-score-progress {
@@ -1829,6 +1851,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 <div id="tab-poules" class="panel">
 <div class="container">
   <h2 class="section-title">Phase de Groupes — 72 matchs</h2>
+  <div class="stage-lock-banner" id="poules-lock-banner" hidden>🔒 Phase de groupes verrouillée — étape passée ou compétition commencée (consultation seule).</div>
   <div class="incomplete-banner" id="poules-banner"><div class="dot" id="poules-dot"></div><span id="poules-banner-text">Touchez un chiffre pour chaque équipe (0–4, ou Plus pour 5+)</span></div>
   <div class="progress-bar"><div class="progress-fill" id="poules-progress" style="width:0%"></div></div>
   <div class="progress-label" id="poules-label">0 / 72 matchs remplis</div>
@@ -1880,6 +1903,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   </div>
 
   <div class="finale-view-panel active" id="finale-etape2-panel">
+    <div class="stage-lock-banner" id="etape2-lock-banner" hidden>🔒 Tableau verrouillé — étape passée ou compétition commencée (consultation seule).</div>
     <div class="etape2-actions">
       <span class="etape-round-meta" id="etape2-deadline-note">Date limite tableau : 11/06/2026</span>
       <span class="etape-round-meta" id="etape2-progress-note"></span>
@@ -1912,6 +1936,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 <div id="tab-bonus" class="panel">
 <div class="container">
   <h2 class="section-title">Questions Bonus</h2>
+  <div class="stage-lock-banner" id="bonus-lock-banner" hidden>🔒 Questions bonus verrouillées — étape passée ou compétition commencée.</div>
   <p style="font-size:.85rem; color:var(--muted); margin-bottom:1.5rem">Chaque bonne réponse rapporte <strong style="color:var(--gold)">25 points</strong>.</p>
 
   <div class="bonus-card">
@@ -2695,7 +2720,15 @@ function syncScoreToDom(id) {
 }
 
 function isEtape2Locked() {
-  return new Date() > ETAPE2_DEADLINE;
+  return effectiveEtapeDebloquee() >= 3 || new Date() > ETAPE2_DEADLINE;
+}
+
+function isPoulesLocked() {
+  return isEtape2Locked();
+}
+
+function isBonusLocked() {
+  return isPoulesLocked();
 }
 
 function isOrganizerSessionActive() {
@@ -2715,6 +2748,40 @@ function effectiveEtapeDebloquee() {
 
 function isEtapeUnlocked(n) {
   return effectiveEtapeDebloquee() >= n;
+}
+
+function isEtapeEditable(n) {
+  return effectiveEtapeDebloquee() === n;
+}
+
+function koMidToEtape(mid) {
+  const def = ETAPE_KO.find(d => mid >= d.min && mid <= d.max);
+  return def ? def.n : null;
+}
+
+function isKoMidEditable(mid) {
+  const n = koMidToEtape(mid);
+  return n != null && isEtapeEditable(n);
+}
+
+function syncStageLockUI() {
+  const poulesLocked = isPoulesLocked();
+  const et2Locked = isEtape2Locked();
+  const bonusLocked = isBonusLocked();
+
+  document.getElementById('groups-container')?.classList.toggle('stage-locked', poulesLocked);
+  const poulesBanner = document.getElementById('poules-lock-banner');
+  if (poulesBanner) poulesBanner.hidden = !poulesLocked;
+
+  document.getElementById('finale-etape2-panel')?.classList.toggle('stage-locked', et2Locked);
+  const et2LockNote = document.getElementById('etape2-lock-banner');
+  if (et2LockNote) et2LockNote.hidden = !et2Locked;
+
+  document.querySelectorAll('#tab-bonus .bonus-answer').forEach(el => {
+    el.disabled = bonusLocked;
+  });
+  const bonusLock = document.getElementById('bonus-lock-banner');
+  if (bonusLock) bonusLock.hidden = !bonusLocked;
 }
 
 function etape2PoolForKey(key) {
@@ -2898,18 +2965,20 @@ function applyKoFromScores(mid) {
 }
 
 function pickKoTieWinner(mid, team) {
+  if (!isKoMidEditable(mid)) return;
   kosWinners[mid] === team ? delete kosWinners[mid] : (kosWinners[mid] = team);
   saveState();
   updateKoMatchDisplay(mid);
 }
 
 function onKoScoreChanged(mid) {
+  if (!isKoMidEditable(mid)) return;
   applyKoFromScores(mid);
   saveState();
   updateKoMatchDisplay(mid);
 }
 
-function createOfficialScoreCard(mid, editable) {
+function createOfficialScoreCard(mid, editable, isPast) {
   const [teamA, teamB] = getOfficialMatchTeams(mid);
   const pick = kosWinners[mid];
   const h = getScoreRaw(koInputId(mid, 'h'));
@@ -2933,6 +3002,7 @@ function createOfficialScoreCard(mid, editable) {
   html += buildScoreboardHTML('display-km' + mid, teamA || '—', teamB || '—', h, a);
   if (ready) {
     if (editable) html += buildTvScoreRow(koInputId(mid, 'h'), koInputId(mid, 'a'), 'group', teamA, teamB);
+    else if (isPast) html += '<p class="ko-wait-msg">Étape passée — consultation seule.</p>';
     else html += '<p class="ko-wait-msg">Saisie ouverte quand l’étape est débloquée.</p>';
   } else {
     html += '<p class="ko-wait-msg">Affrontement officiel pas encore publié.</p>';
@@ -3071,32 +3141,39 @@ function renderEtapeScores() {
   if (!root) return;
   root.innerHTML = '';
   ETAPE_KO.forEach(def => {
-    const unlocked = isEtapeUnlocked(def.n);
+    const visible = isEtapeUnlocked(def.n);
+    const editable = isEtapeEditable(def.n);
+    const isPast = visible && !editable;
     const prog = countEtapeScoreProgress(def.min, def.max);
     const section = document.createElement('div');
-    section.className = 'etape-score-section' + (unlocked ? '' : ' locked-section');
+    let sectionCls = 'etape-score-section';
+    if (!visible) sectionCls += ' locked-section';
+    else if (isPast) sectionCls += ' past-section';
+    section.className = sectionCls;
+    const badgeCls = editable ? 'open' : (isPast ? 'past' : 'lock');
+    const badgeText = editable ? 'Ouvert — saisir les scores' : (isPast ? 'Passé — lecture seule' : 'Verrouillé');
     section.innerHTML = `
-      <div class="etape-score-section-head${unlocked ? ' open' : ''}">
+      <div class="etape-score-section-head${visible ? ' open' : ''}">
         <div>
           <strong>${def.title}</strong>
           <div class="etape-score-progress">Deadline ${def.deadline}${prog.total ? ' · ' + prog.done + '/' + prog.total + ' scores' : ''}</div>
         </div>
-        <span class="etape-score-badge ${unlocked ? 'open' : 'lock'}">${unlocked ? 'Ouvert — saisir les scores' : 'Verrouillé'}</span>
+        <span class="etape-score-badge ${badgeCls}">${badgeText}</span>
       </div>
-      <div class="etape-score-body${unlocked ? '' : ' collapsed'}">
+      <div class="etape-score-body${visible ? '' : ' collapsed'}">
         <div class="ko-list" id="etape-ko-${def.n}"></div>
       </div>`;
     const list = section.querySelector('.ko-list');
-    if (!unlocked) {
+    if (!visible) {
       list.innerHTML = '<p style="font-size:.82rem;color:var(--muted);margin:0">Disponible quand l’organisateur débloque l’étape ' + def.n + ' dans resultats.json.</p>';
     } else {
       for (let m = def.min; m <= def.max; m++) {
-        list.appendChild(createOfficialScoreCard(m, unlocked));
+        list.appendChild(createOfficialScoreCard(m, editable, isPast));
       }
-      wireScorePickers(list);
+      if (editable) wireScorePickers(list);
     }
     section.querySelector('.etape-score-section-head').addEventListener('click', () => {
-      if (!unlocked) return;
+      if (!visible) return;
       section.querySelector('.etape-score-body').classList.toggle('collapsed');
     });
     root.appendChild(section);
@@ -3108,6 +3185,7 @@ function fullRefreshDerived() {
   renderStandingsMounts();
   renderThirdsGlobal();
   syncBanner();
+  syncStageLockUI();
   renderFinalePanels();
 }
 
@@ -3273,6 +3351,11 @@ function updateKoMatchDisplay(mid) {
 }
 
 function setScore(inputId, value) {
+  if (/^m\d+-/.test(inputId) && isPoulesLocked()) return;
+  if (/^km\d+-/.test(inputId)) {
+    const mid = parseInt(inputId.match(/^km(\d+)/)[1], 10);
+    if (!isKoMidEditable(mid)) return;
+  }
   scoreValues[inputId] = value === '' ? '' : String(value);
   syncScoreToDom(inputId);
   updatePickerUI(inputId);
@@ -3297,6 +3380,11 @@ function onScoreChanged() {
 }
 
 function openScoreSheet(inputId, teamName) {
+  if (/^m\d+-/.test(inputId) && isPoulesLocked()) return;
+  if (/^km\d+-/.test(inputId)) {
+    const mid = parseInt(inputId.match(/^km(\d+)/)[1], 10);
+    if (!isKoMidEditable(mid)) return;
+  }
   const sheet = document.getElementById('score-sheet');
   const title = document.getElementById('score-sheet-title');
   const grid = document.getElementById('score-sheet-grid');
