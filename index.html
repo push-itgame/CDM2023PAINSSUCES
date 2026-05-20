@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CDM 2026 édition Pains sucés — Concours de pronostics</title>
+<title>CDM 2026 édition Pains sucés</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -57,6 +57,11 @@ header h1 {
   position: relative;
 }
 header h1 span { color: var(--text); }
+.header-brand {
+  display: inline-block;
+  text-align: left;
+  position: relative;
+}
 .subtitle {
   font-family: 'DM Mono', monospace;
   font-size: .75rem;
@@ -65,6 +70,18 @@ header h1 span { color: var(--text); }
   text-transform: uppercase;
   margin-top: .75rem;
   position: relative;
+}
+.subtitle-edition {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(.82rem, 2.2vw, 1.05rem);
+  font-weight: 400;
+  letter-spacing: .02em;
+  color: var(--muted);
+  text-transform: none;
+  margin: .15rem 0 0 .15rem;
+  display: block;
+  transform: rotate(-14deg);
+  transform-origin: 0% 100%;
 }
 .badge-deadline {
   display: inline-flex;
@@ -1368,8 +1385,10 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
 
 <header>
   <span class="trophy">🏆</span>
-  <h1>Concours de <span>Pronostics</span></h1>
-  <p class="subtitle">CDM 2026 · édition Pains sucés</p>
+  <div class="header-brand">
+    <h1>CDM<span>2026</span></h1>
+    <p class="subtitle-edition">édition Pains sucés</p>
+  </div>
   <div class="badge-deadline">⏱ Date limite : 11 juin 2026</div>
 </header>
 

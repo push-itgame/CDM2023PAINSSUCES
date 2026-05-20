@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CDM 2026 édition Pains sucés — Classement live</title>
+<title>CDM 2026 édition Pains sucés — Classement</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -26,7 +26,16 @@ header {
 }
 header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 8vw, 4.5rem); color: var(--gold); letter-spacing: .08em; }
 header p { font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; margin-top: .5rem; }
-header p.subtitle { letter-spacing: .18em; font-size: .68rem; margin-top: .65rem; }
+header p.subtitle-edition {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .82rem;
+  letter-spacing: .02em;
+  text-transform: none;
+  transform: rotate(-14deg);
+  transform-origin: 0% 100%;
+  margin: .2rem 0 0 .1rem;
+  display: inline-block;
+}
 .top-actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
 .top-actions a {
   font-family: 'DM Mono', monospace; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
@@ -57,8 +66,11 @@ table.lb tr:hover td { background: rgba(200,168,75,0.04); }
 </head>
 <body>
 <header>
-  <h1>Classement live</h1>
-  <p class="subtitle">CDM 2026 · édition Pains sucés</p>
+  <div class="header-brand" style="display:inline-block;text-align:left">
+    <h1>CDM<span style="color:var(--text)">2026</span></h1>
+    <p class="subtitle-edition">édition Pains sucés</p>
+  </div>
+  <p style="font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-top:.85rem">Classement live</p>
   <div class="top-actions">
     <a href="index.html">← Grille & inscription</a>
     <a href="#" id="btnRefresh">Actualiser</a>
