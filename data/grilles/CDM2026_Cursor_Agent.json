@@ -1,0 +1,932 @@
+{
+  "identite": {
+    "prenom": "Cursor",
+    "nom": "Agent",
+    "email": "cursor@demo.local",
+    "equipe": "Pains sucés"
+  },
+  "matchs": {
+    "Match 1": {
+      "home": "Mexique",
+      "away": "Afrique du Sud",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 2": {
+      "home": "Corée du Sud",
+      "away": "Rép. Tchèque",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 3": {
+      "home": "Canada",
+      "away": "Bosnie Herzégovine",
+      "scoreHome": "0",
+      "scoreAway": "0"
+    },
+    "Match 4": {
+      "home": "États-Unis",
+      "away": "Paraguay",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 5": {
+      "home": "Qatar",
+      "away": "Suisse",
+      "scoreHome": "1",
+      "scoreAway": "1"
+    },
+    "Match 6": {
+      "home": "Brésil",
+      "away": "Maroc",
+      "scoreHome": "2",
+      "scoreAway": "1"
+    },
+    "Match 7": {
+      "home": "Haïti",
+      "away": "Écosse",
+      "scoreHome": "0",
+      "scoreAway": "2"
+    },
+    "Match 8": {
+      "home": "Australie",
+      "away": "Turquie",
+      "scoreHome": "0",
+      "scoreAway": "2"
+    },
+    "Match 9": {
+      "home": "Allemagne",
+      "away": "Curacao",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 10": {
+      "home": "Pays-Bas",
+      "away": "Japon",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 11": {
+      "home": "Côte d'Ivoire",
+      "away": "Équateur",
+      "scoreHome": "1",
+      "scoreAway": "2"
+    },
+    "Match 12": {
+      "home": "Suède",
+      "away": "Tunisie",
+      "scoreHome": "1",
+      "scoreAway": "1"
+    },
+    "Match 13": {
+      "home": "Espagne",
+      "away": "Cap Vert",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 14": {
+      "home": "Belgique",
+      "away": "Égypte",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 15": {
+      "home": "Arabie Saoudite",
+      "away": "Uruguay",
+      "scoreHome": "0",
+      "scoreAway": "2"
+    },
+    "Match 16": {
+      "home": "Iran",
+      "away": "Nouvelle Zélande",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 17": {
+      "home": "France",
+      "away": "Sénégal",
+      "scoreHome": "3",
+      "scoreAway": "0"
+    },
+    "Match 18": {
+      "home": "Irak",
+      "away": "Norvège",
+      "scoreHome": "0",
+      "scoreAway": "3"
+    },
+    "Match 19": {
+      "home": "Argentine",
+      "away": "Algérie",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 20": {
+      "home": "Autriche",
+      "away": "Jordanie",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 21": {
+      "home": "Portugal",
+      "away": "RD Congo",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 22": {
+      "home": "Angleterre",
+      "away": "Croatie",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 23": {
+      "home": "Ghana",
+      "away": "Panama",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 24": {
+      "home": "Ouzbékistan",
+      "away": "Colombie",
+      "scoreHome": "0",
+      "scoreAway": "3"
+    },
+    "Match 25": {
+      "home": "Rép. Tchèque",
+      "away": "Afrique du Sud",
+      "scoreHome": "0",
+      "scoreAway": "2"
+    },
+    "Match 26": {
+      "home": "Suisse",
+      "away": "Bosnie Herzégovine",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 27": {
+      "home": "Canada",
+      "away": "Qatar",
+      "scoreHome": "0",
+      "scoreAway": "0"
+    },
+    "Match 28": {
+      "home": "Mexique",
+      "away": "Corée du Sud",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 29": {
+      "home": "États-Unis",
+      "away": "Australie",
+      "scoreHome": "3",
+      "scoreAway": "0"
+    },
+    "Match 30": {
+      "home": "Écosse",
+      "away": "Maroc",
+      "scoreHome": "0",
+      "scoreAway": "3"
+    },
+    "Match 31": {
+      "home": "Brésil",
+      "away": "Haïti",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 32": {
+      "home": "Turquie",
+      "away": "Paraguay",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 33": {
+      "home": "Pays-Bas",
+      "away": "Suède",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 34": {
+      "home": "Allemagne",
+      "away": "Côte d'Ivoire",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 35": {
+      "home": "Équateur",
+      "away": "Curacao",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 36": {
+      "home": "Tunisie",
+      "away": "Japon",
+      "scoreHome": "0",
+      "scoreAway": "3"
+    },
+    "Match 37": {
+      "home": "Espagne",
+      "away": "Arabie Saoudite",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 38": {
+      "home": "Belgique",
+      "away": "Iran",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 39": {
+      "home": "Uruguay",
+      "away": "Cap Vert",
+      "scoreHome": "0",
+      "scoreAway": "0"
+    },
+    "Match 40": {
+      "home": "Nouvelle Zélande",
+      "away": "Égypte",
+      "scoreHome": "0",
+      "scoreAway": "1"
+    },
+    "Match 41": {
+      "home": "Argentine",
+      "away": "Autriche",
+      "scoreHome": "3",
+      "scoreAway": "0"
+    },
+    "Match 42": {
+      "home": "France",
+      "away": "Irak",
+      "scoreHome": "2",
+      "scoreAway": "1"
+    },
+    "Match 43": {
+      "home": "Norvège",
+      "away": "Sénégal",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 44": {
+      "home": "Jordanie",
+      "away": "Algérie",
+      "scoreHome": "0",
+      "scoreAway": "2"
+    },
+    "Match 45": {
+      "home": "Portugal",
+      "away": "Ouzbékistan",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 46": {
+      "home": "Angleterre",
+      "away": "Ghana",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 47": {
+      "home": "Panama",
+      "away": "Croatie",
+      "scoreHome": "1",
+      "scoreAway": "2"
+    },
+    "Match 48": {
+      "home": "Colombie",
+      "away": "RD Congo",
+      "scoreHome": "1",
+      "scoreAway": "1"
+    },
+    "Match 49": {
+      "home": "Suisse",
+      "away": "Canada",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 50": {
+      "home": "Bosnie Herzégovine",
+      "away": "Qatar",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 51": {
+      "home": "Écosse",
+      "away": "Brésil",
+      "scoreHome": "0",
+      "scoreAway": "1"
+    },
+    "Match 52": {
+      "home": "Maroc",
+      "away": "Haïti",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 53": {
+      "home": "Rép. Tchèque",
+      "away": "Mexique",
+      "scoreHome": "1",
+      "scoreAway": "1"
+    },
+    "Match 54": {
+      "home": "Afrique du Sud",
+      "away": "Corée du Sud",
+      "scoreHome": "0",
+      "scoreAway": "3"
+    },
+    "Match 55": {
+      "home": "Équateur",
+      "away": "Allemagne",
+      "scoreHome": "0",
+      "scoreAway": "1"
+    },
+    "Match 56": {
+      "home": "Curacao",
+      "away": "Côte d'Ivoire",
+      "scoreHome": "0",
+      "scoreAway": "2"
+    },
+    "Match 57": {
+      "home": "Tunisie",
+      "away": "Pays-Bas",
+      "scoreHome": "0",
+      "scoreAway": "1"
+    },
+    "Match 58": {
+      "home": "Japon",
+      "away": "Suède",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 59": {
+      "home": "Turquie",
+      "away": "États-Unis",
+      "scoreHome": "1",
+      "scoreAway": "1"
+    },
+    "Match 60": {
+      "home": "Paraguay",
+      "away": "Australie",
+      "scoreHome": "0",
+      "scoreAway": "3"
+    },
+    "Match 61": {
+      "home": "Norvège",
+      "away": "France",
+      "scoreHome": "0",
+      "scoreAway": "1"
+    },
+    "Match 62": {
+      "home": "Sénégal",
+      "away": "Irak",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 63": {
+      "home": "Uruguay",
+      "away": "Espagne",
+      "scoreHome": "0",
+      "scoreAway": "1"
+    },
+    "Match 64": {
+      "home": "Cap Vert",
+      "away": "Arabie Saoudite",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 65": {
+      "home": "Nouvelle Zélande",
+      "away": "Belgique",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 66": {
+      "home": "Égypte",
+      "away": "Iran",
+      "scoreHome": "0",
+      "scoreAway": "2"
+    },
+    "Match 67": {
+      "home": "Panama",
+      "away": "Angleterre",
+      "scoreHome": "1",
+      "scoreAway": "0"
+    },
+    "Match 68": {
+      "home": "Croatie",
+      "away": "Ghana",
+      "scoreHome": "0",
+      "scoreAway": "1"
+    },
+    "Match 69": {
+      "home": "Colombie",
+      "away": "Portugal",
+      "scoreHome": "0",
+      "scoreAway": "0"
+    },
+    "Match 70": {
+      "home": "RD Congo",
+      "away": "Ouzbékistan",
+      "scoreHome": "0",
+      "scoreAway": "0"
+    },
+    "Match 71": {
+      "home": "Jordanie",
+      "away": "Argentine",
+      "scoreHome": "2",
+      "scoreAway": "0"
+    },
+    "Match 72": {
+      "home": "Algérie",
+      "away": "Autriche",
+      "scoreHome": "2",
+      "scoreAway": "1"
+    }
+  },
+  "equipesQualifiees32Liste": [
+    "Corée du Sud",
+    "Canada",
+    "Brésil",
+    "Japon",
+    "Allemagne",
+    "Afrique du Sud",
+    "Pays-Bas",
+    "Maroc",
+    "Équateur",
+    "Norvège",
+    "France",
+    "Écosse",
+    "Mexique",
+    "Écosse",
+    "Angleterre",
+    "Côte d'Ivoire",
+    "Belgique",
+    "Afrique du Sud",
+    "États-Unis",
+    "Bosnie Herzégovine",
+    "Espagne",
+    "Autriche",
+    "Colombie",
+    "Croatie",
+    "Suisse",
+    "Côte d'Ivoire",
+    "Turquie",
+    "Égypte",
+    "Argentine",
+    "Uruguay",
+    "Portugal",
+    "Australie"
+  ],
+  "etape2Tableau": {
+    "r32": [
+      "Corée du Sud",
+      "Canada",
+      "Brésil",
+      "Japon",
+      "Allemagne",
+      "Afrique du Sud",
+      "Pays-Bas",
+      "Maroc",
+      "Équateur",
+      "Norvège",
+      "France",
+      "Écosse",
+      "Mexique",
+      "Écosse",
+      "Angleterre",
+      "Côte d'Ivoire",
+      "Belgique",
+      "Afrique du Sud",
+      "États-Unis",
+      "Bosnie Herzégovine",
+      "Espagne",
+      "Autriche",
+      "Colombie",
+      "Croatie",
+      "Suisse",
+      "Côte d'Ivoire",
+      "Turquie",
+      "Égypte",
+      "Argentine",
+      "Uruguay",
+      "Portugal",
+      "Australie"
+    ],
+    "r16": [
+      "Canada",
+      "Allemagne",
+      "Pays-Bas",
+      "Brésil",
+      "France",
+      "Norvège",
+      "Mexique",
+      "Angleterre",
+      "États-Unis",
+      "Belgique",
+      "Colombie",
+      "Espagne",
+      "Suisse",
+      "Argentine",
+      "Portugal",
+      "Turquie"
+    ],
+    "qf": [
+      "France",
+      "Pays-Bas",
+      "Brésil",
+      "Angleterre",
+      "Espagne",
+      "Belgique",
+      "Argentine",
+      "Portugal"
+    ],
+    "sf": [
+      "France",
+      "Espagne",
+      "Brésil",
+      "Argentine"
+    ],
+    "finalists": [
+      "France",
+      "Argentine"
+    ],
+    "winner": "France"
+  },
+  "etape2Pick": {
+    "73": "Canada",
+    "76": "Brésil",
+    "74": "Allemagne",
+    "75": "Pays-Bas",
+    "78": "Norvège",
+    "77": "France",
+    "79": "Mexique",
+    "80": "Angleterre",
+    "82": "Belgique",
+    "81": "États-Unis",
+    "84": "Espagne",
+    "83": "Colombie",
+    "85": "Suisse",
+    "88": "Turquie",
+    "86": "Argentine",
+    "87": "Portugal",
+    "89": "France",
+    "90": "Pays-Bas",
+    "91": "Brésil",
+    "92": "Angleterre",
+    "93": "Espagne",
+    "94": "Belgique",
+    "95": "Argentine",
+    "96": "Portugal",
+    "97": "France",
+    "98": "Espagne",
+    "99": "Brésil",
+    "100": "Argentine",
+    "101": "France",
+    "102": "Argentine",
+    "104": "France"
+  },
+  "vainqueursTableauEliminationChoisis": {
+    "73": "Canada",
+    "74": "Allemagne",
+    "75": "Pays-Bas",
+    "76": "Brésil",
+    "77": "France",
+    "78": "Norvège",
+    "79": "Mexique",
+    "80": "Angleterre",
+    "81": "États-Unis",
+    "82": "Belgique",
+    "83": "Colombie",
+    "84": "Espagne",
+    "85": "Suisse",
+    "86": "Argentine",
+    "87": "Portugal",
+    "88": "Turquie",
+    "89": "France",
+    "90": "Pays-Bas",
+    "91": "Brésil",
+    "92": "Angleterre",
+    "93": "Espagne",
+    "94": "Belgique",
+    "95": "Argentine",
+    "96": "Portugal",
+    "97": "France",
+    "98": "Espagne",
+    "99": "Brésil",
+    "100": "Argentine",
+    "101": "France",
+    "102": "Brésil",
+    "103": "Argentine",
+    "104": "France"
+  },
+  "phaseFinalePourBareme": {
+    "liste32QualifiesIssuesPoules": [
+      "Corée du Sud",
+      "Canada",
+      "Brésil",
+      "Japon",
+      "Allemagne",
+      "Afrique du Sud",
+      "Pays-Bas",
+      "Maroc",
+      "Équateur",
+      "Norvège",
+      "France",
+      "Écosse",
+      "Mexique",
+      "Écosse",
+      "Angleterre",
+      "Côte d'Ivoire",
+      "Belgique",
+      "Afrique du Sud",
+      "États-Unis",
+      "Bosnie Herzégovine",
+      "Espagne",
+      "Autriche",
+      "Colombie",
+      "Croatie",
+      "Suisse",
+      "Côte d'Ivoire",
+      "Turquie",
+      "Égypte",
+      "Argentine",
+      "Uruguay",
+      "Portugal",
+      "Australie"
+    ],
+    "vainqueursSeiziemePourHuitiemes16": [
+      "Canada",
+      "Allemagne",
+      "Pays-Bas",
+      "Brésil",
+      "France",
+      "Norvège",
+      "Mexique",
+      "Angleterre",
+      "États-Unis",
+      "Belgique",
+      "Colombie",
+      "Espagne",
+      "Suisse",
+      "Argentine",
+      "Portugal",
+      "Turquie"
+    ],
+    "vainqueursHuitiemesPourQuarts8": [
+      "France",
+      "Pays-Bas",
+      "Brésil",
+      "Angleterre",
+      "Espagne",
+      "Belgique",
+      "Argentine",
+      "Portugal"
+    ],
+    "vainqueursQuartsPourDemis4": [
+      "France",
+      "Espagne",
+      "Brésil",
+      "Argentine"
+    ],
+    "finalistesChoisis": [
+      "France",
+      "Argentine"
+    ],
+    "troisiemePlaceChoix": "",
+    "vainqueurFinal": "France"
+  },
+  "scoresElimination": {
+    "Match 73": {
+      "home": "Corée du Sud",
+      "away": "Canada",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Canada"
+    },
+    "Match 74": {
+      "home": "Allemagne",
+      "away": "Afrique du Sud",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Allemagne"
+    },
+    "Match 75": {
+      "home": "Pays-Bas",
+      "away": "Maroc",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Pays-Bas"
+    },
+    "Match 76": {
+      "home": "Brésil",
+      "away": "Japon",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Brésil"
+    },
+    "Match 77": {
+      "home": "France",
+      "away": "Écosse",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "France"
+    },
+    "Match 78": {
+      "home": "Équateur",
+      "away": "Norvège",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Norvège"
+    },
+    "Match 79": {
+      "home": "Mexique",
+      "away": "Écosse",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Mexique"
+    },
+    "Match 80": {
+      "home": "Angleterre",
+      "away": "Côte d'Ivoire",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Angleterre"
+    },
+    "Match 81": {
+      "home": "États-Unis",
+      "away": "Bosnie Herzégovine",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "États-Unis"
+    },
+    "Match 82": {
+      "home": "Belgique",
+      "away": "Afrique du Sud",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Belgique"
+    },
+    "Match 83": {
+      "home": "Colombie",
+      "away": "Croatie",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Colombie"
+    },
+    "Match 84": {
+      "home": "Espagne",
+      "away": "Autriche",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Espagne"
+    },
+    "Match 85": {
+      "home": "Suisse",
+      "away": "Côte d'Ivoire",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Suisse"
+    },
+    "Match 86": {
+      "home": "Argentine",
+      "away": "Uruguay",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Argentine"
+    },
+    "Match 87": {
+      "home": "Portugal",
+      "away": "Australie",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Portugal"
+    },
+    "Match 88": {
+      "home": "Turquie",
+      "away": "Égypte",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Turquie"
+    },
+    "Match 89": {
+      "home": "Allemagne",
+      "away": "France",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "France"
+    },
+    "Match 90": {
+      "home": "Canada",
+      "away": "Pays-Bas",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Pays-Bas"
+    },
+    "Match 91": {
+      "home": "Brésil",
+      "away": "Norvège",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Brésil"
+    },
+    "Match 92": {
+      "home": "Mexique",
+      "away": "Angleterre",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Angleterre"
+    },
+    "Match 93": {
+      "home": "Colombie",
+      "away": "Espagne",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Espagne"
+    },
+    "Match 94": {
+      "home": "États-Unis",
+      "away": "Belgique",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Belgique"
+    },
+    "Match 95": {
+      "home": "Argentine",
+      "away": "Turquie",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Argentine"
+    },
+    "Match 96": {
+      "home": "Suisse",
+      "away": "Portugal",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Portugal"
+    },
+    "Match 97": {
+      "home": "France",
+      "away": "Pays-Bas",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "France"
+    },
+    "Match 98": {
+      "home": "Espagne",
+      "away": "Belgique",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Espagne"
+    },
+    "Match 99": {
+      "home": "Brésil",
+      "away": "Angleterre",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Brésil"
+    },
+    "Match 100": {
+      "home": "Argentine",
+      "away": "Portugal",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Argentine"
+    },
+    "Match 101": {
+      "home": "France",
+      "away": "Espagne",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "France"
+    },
+    "Match 102": {
+      "home": "Brésil",
+      "away": "Argentine",
+      "scoreHome": "1",
+      "scoreAway": "2",
+      "vainqueur": "Brésil"
+    },
+    "Match 103": {
+      "home": "Espagne",
+      "away": "Argentine",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "Argentine"
+    },
+    "Match 104": {
+      "home": "France",
+      "away": "Brésil",
+      "scoreHome": "2",
+      "scoreAway": "1",
+      "vainqueur": "France"
+    }
+  },
+  "bonus": {
+    "meilleureAttaque": "France",
+    "matchs00": "5",
+    "nationsA9pts": "6",
+    "nbCSC": "3",
+    "meilleurButeur": "K. Mbappé",
+    "meilleurJoueur": "L. Messi",
+    "meilleurGardien": "E. Martínez",
+    "nbButs": "167",
+    "nbCartonsRouges": "7",
+    "nbProlongations": "4"
+  }
+}
