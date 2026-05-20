@@ -166,35 +166,67 @@ def build_r32(standings: dict, thirds: list) -> dict[int, dict]:
             return ""
         return tb["teams"][0]["team"] if slot["k"] == "winner" else tb["teams"][1]["team"]
 
-    def assign_slot(slot: dict, used: set) -> str:
-        if slot.get("k") != "third":
-            t = resolve(slot)
-            if not t or t in used:
-                return ""
-            used.add(t)
-            return t
-        best, team = 999, ""
-        for L in slot.get("pool") or []:
+    def assign_straight(slot: dict, used: set) -> str:
+        t = resolve(slot)
+        if not t or t in used:
+            return ""
+        used.add(t)
+        return t
+
+    def third_candidates(pool: list, used: set) -> list:
+        out = []
+        for L in pool or []:
             up = L.upper()
             if up not in advance_third:
                 continue
             rk = third_rank.get(up, 999)
             g = standings.get(up)
             tn = g["teams"][2]["team"] if g else ""
-            if tn and tn not in used and rk < best:
-                best, team = rk, tn
-        if team:
-            used.add(team)
-        return team
+            if tn and tn not in used:
+                out.append((rk, tn))
+        out.sort(key=lambda x: x[0])
+        return [t for _, t in out]
+
+    def backtrack_thirds(slots: list, idx: int, used: set, assignment: dict) -> bool:
+        if idx >= len(slots):
+            return True
+        m, side, pool = slots[idx]
+        for tn in third_candidates(pool, used):
+            used.add(tn)
+            assignment[(m, side)] = tn
+            if backtrack_thirds(slots, idx + 1, used, assignment):
+                return True
+            used.discard(tn)
+            del assignment[(m, side)]
+        return False
 
     r32 = {}
     used: set = set()
+    third_slots = []
     for defn in KNOCK_R32_DEF:
         m = defn["m"]
-        r32[m] = {
-            "left": assign_slot(defn["L"], used),
-            "right": assign_slot(defn["R"], used),
-        }
+        r32[m] = {"left": "", "right": ""}
+        if defn["L"].get("k") == "third":
+            third_slots.append((m, "left", defn["L"].get("pool") or []))
+        else:
+            r32[m]["left"] = assign_straight(defn["L"], used)
+        if defn["R"].get("k") == "third":
+            third_slots.append((m, "right", defn["R"].get("pool") or []))
+        else:
+            r32[m]["right"] = assign_straight(defn["R"], used)
+
+    assignment = {}
+    if backtrack_thirds(third_slots, 0, used, assignment):
+        for (m, side), tn in assignment.items():
+            r32[m][side] = tn
+    else:
+        for m, side, pool in third_slots:
+            if r32[m][side]:
+                continue
+            cands = third_candidates(pool, used)
+            if cands:
+                used.add(cands[0])
+                r32[m][side] = cands[0]
     return r32
 
 

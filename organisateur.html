@@ -444,27 +444,35 @@ function rebuildPouleEngine() {
     if (!tb) return '';
     return slot.k === 'winner' ? tb.teams[0].team : tb.teams[1].team;
   }
-  function assignKOslot(slot, used) {
-    if (slot.k !== 'third') {
-      const t = resolveStraight(slot);
-      if (!t || used.has(t)) return '';
-      used.add(t);
-      return t;
-    }
-    let best = Infinity, teamOut = '';
-    for (const L of slot.pool || []) {
+  function assignStraightSlot(slot, used) {
+    const t = resolveStraight(slot);
+    if (!t || used.has(t)) return '';
+    used.add(t);
+    return t;
+  }
+  function getThirdCandidates(pool, used) {
+    const candidates = [];
+    for (const L of pool || []) {
       const up = String(L).toUpperCase();
       if (!ADVANCE_THIRD.has(up)) continue;
       const rk = THIRD_RANK_IDX[up];
       const g = STANDINGS[up];
       const tn = g?.teams[2]?.team;
-      if (tn != null && rk != null && !used.has(tn) && rk < best) {
-        best = rk;
-        teamOut = tn;
-      }
+      if (tn != null && rk != null && !used.has(tn)) candidates.push({ team: tn, rk });
     }
-    if (teamOut) used.add(teamOut);
-    return teamOut;
+    candidates.sort((a, b) => a.rk - b.rk);
+    return candidates;
+  }
+  function backtrackThirds(slots, idx, used, out) {
+    if (idx >= slots.length) return true;
+    for (const c of getThirdCandidates(slots[idx].pool, used)) {
+      used.add(c.team);
+      out.push({ m: slots[idx].m, side: slots[idx].side, team: c.team });
+      if (backtrackThirds(slots, idx + 1, used, out)) return true;
+      used.delete(c.team);
+      out.pop();
+    }
+    return false;
   }
 
   const R32_SIDE = {};
@@ -477,11 +485,24 @@ function rebuildPouleEngine() {
   }
   if (allComplete) {
     const used = new Set();
+    const thirdSlots = [];
     KNOCK_R32_DEF.forEach(def => {
-      const left = assignKOslot(def.L, used);
-      const right = assignKOslot(def.R, used);
-      R32_SIDE[def.m] = { left, right };
+      R32_SIDE[def.m] = { left: '', right: '' };
+      if (def.L.k === 'third') thirdSlots.push({ m: def.m, side: 'left', pool: def.L.pool });
+      else R32_SIDE[def.m].left = assignStraightSlot(def.L, used);
+      if (def.R.k === 'third') thirdSlots.push({ m: def.m, side: 'right', pool: def.R.pool });
+      else R32_SIDE[def.m].right = assignStraightSlot(def.R, used);
     });
+    const thirdOut = [];
+    if (backtrackThirds(thirdSlots, 0, used, thirdOut)) {
+      thirdOut.forEach(a => { R32_SIDE[a.m][a.side] = a.team; });
+    } else {
+      thirdSlots.forEach(slot => {
+        if (R32_SIDE[slot.m][slot.side]) return;
+        const c = getThirdCandidates(slot.pool, used)[0];
+        if (c) { used.add(c.team); R32_SIDE[slot.m][slot.side] = c.team; }
+      });
+    }
   }
   const list32 = [];
   Object.values(R32_SIDE).forEach(p => {

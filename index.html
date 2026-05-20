@@ -2197,7 +2197,7 @@ let THIRDS_ALL = [];
 const ADVANCE_THIRD = new Set();
 let THIRD_RANK_IDX = {};
 let R32_SIDE = {};
-let R32_VALIDATION = { ok: true, count: 0, duplicates: [] };
+let R32_VALIDATION = { ok: true, count: 0, duplicates: [], missingSlots: [], thirdBacktrackOk: true };
 
 const KNOCK_R32_DEF = [
   { m: 73, L: { k: 'runner', g: 'A' }, R: { k: 'runner', g: 'B' } },
@@ -2228,28 +2228,80 @@ function resolveStraight(slot) {
   return slot.k === 'winner' ? tb.teams[0].team : tb.teams[1].team;
 }
 
-function assignKOslot(slot, used) {
-  if (slot.k !== 'third') {
-    const t = resolveStraight(slot);
-    if (!t || used.has(t)) return '';
-    used.add(t);
-    return t;
-  }
-  let best = Infinity;
-  let teamOut = '';
-  for (const L of slot.pool || []) {
+function assignStraightSlot(slot, used) {
+  const t = resolveStraight(slot);
+  if (!t || used.has(t)) return '';
+  used.add(t);
+  return t;
+}
+
+function getThirdCandidates(pool, used) {
+  const candidates = [];
+  for (const L of pool || []) {
     const up = String(L).toUpperCase();
     if (!ADVANCE_THIRD.has(up)) continue;
     const rk = THIRD_RANK_IDX[up];
     const g = STANDINGS[up];
     const tn = g && g.teams[2] && g.teams[2].team;
-    if (tn != null && rk != null && !used.has(tn) && rk < best) {
-      best = rk;
-      teamOut = tn;
+    if (tn && rk != null && !used.has(tn)) {
+      candidates.push({ team: tn, grp: up, rk });
     }
   }
-  if (teamOut) used.add(teamOut);
-  return teamOut;
+  candidates.sort((a, b) => a.rk - b.rk || a.grp.localeCompare(b.grp));
+  return candidates;
+}
+
+function backtrackThirdSlots(slots, idx, used, out) {
+  if (idx >= slots.length) return true;
+  const slot = slots[idx];
+  for (const c of getThirdCandidates(slot.pool, used)) {
+    used.add(c.team);
+    out.push({ m: slot.m, side: slot.side, team: c.team });
+    if (backtrackThirdSlots(slots, idx + 1, used, out)) return true;
+    used.delete(c.team);
+    out.pop();
+  }
+  return false;
+}
+
+function describeMissingSlot(slotDef) {
+  if (slotDef.k === 'third') {
+    const pool = slotDef.pool || [];
+    const inPool = pool.filter(L => ADVANCE_THIRD.has(String(L).toUpperCase()));
+    const thirds = inPool.map(L => {
+      const g = STANDINGS[String(L).toUpperCase()];
+      return g ? `${g.teams[2].team} (grp. ${L})` : '';
+    }).filter(Boolean);
+    if (!inPool.length) {
+      return `Aucun 3e qualifié dans les groupes ${pool.join(', ')} — faites entrer un 3e de l’un de ces groupes dans le top 8.`;
+    }
+    return `3e manquant (pool ${pool.join(', ')}). 3e éligibles : ${thirds.join(', ') || 'aucun'}.`;
+  }
+  const role = slotDef.k === 'winner' ? '1er' : '2e';
+  return `${role} du groupe ${slotDef.g} introuvable — vérifiez les 6 scores de la poule ${slotDef.g}.`;
+}
+
+function buildR32MissingSlots() {
+  const missing = [];
+  KNOCK_R32_DEF.forEach(def => {
+    const p = R32_SIDE[def.m] || {};
+    if (!p.left) {
+      missing.push({ m: def.m, side: 'domicile', label: metaKo(def.m, true), reason: describeMissingSlot(def.L) });
+    }
+    if (!p.right) {
+      missing.push({ m: def.m, side: 'extérieur', label: metaKo(def.m, true), reason: describeMissingSlot(def.R) });
+    }
+  });
+  return missing;
+}
+
+function formatMissingPouleList(max = 14) {
+  const { incomplete, partial } = getAllMatchStatuses();
+  const nums = [...partial.sort((a, b) => a - b), ...incomplete.sort((a, b) => a - b)];
+  if (!nums.length) return '';
+  const shown = nums.slice(0, max).map(n => 'M' + n);
+  const extra = nums.length > max ? ` (+${nums.length - max})` : '';
+  return shown.join(', ') + extra;
 }
 
 function analyzeR32Uniqueness(sides) {
@@ -2271,7 +2323,7 @@ function rebuildEngine() {
   ADVANCE_THIRD.clear();
   THIRD_RANK_IDX = {};
   R32_SIDE = {};
-  R32_VALIDATION = { ok: true, count: 0, duplicates: [] };
+  R32_VALIDATION = { ok: true, count: 0, duplicates: [], missingSlots: [], thirdBacktrackOk: true };
   for (const [title, rows] of Object.entries(GROUPS)) {
     const cs = computeGroupStanding(title, rows, { completeOnly: true });
     if (!cs) continue;
@@ -2290,14 +2342,41 @@ function rebuildEngine() {
     THIRD_RANK_IDX[r.grp] = idx;
   });
   if (!allPoulesComplete()) return;
+
   const used = new Set();
+  const thirdSlots = [];
   KNOCK_R32_DEF.forEach(def => {
-    const left = assignKOslot(def.L, used);
-    const right = assignKOslot(def.R, used);
-    R32_SIDE[def.m] = { left, right };
+    R32_SIDE[def.m] = { left: '', right: '' };
+    if (def.L.k === 'third') thirdSlots.push({ m: def.m, side: 'left', pool: def.L.pool });
+    else R32_SIDE[def.m].left = assignStraightSlot(def.L, used);
+    if (def.R.k === 'third') thirdSlots.push({ m: def.m, side: 'right', pool: def.R.pool });
+    else R32_SIDE[def.m].right = assignStraightSlot(def.R, used);
   });
+
+  const thirdOut = [];
+  const backtrackOk = backtrackThirdSlots(thirdSlots, 0, used, thirdOut);
+  if (backtrackOk) {
+    thirdOut.forEach(a => { R32_SIDE[a.m][a.side] = a.team; });
+  } else {
+    thirdSlots.forEach(slot => {
+      if (R32_SIDE[slot.m][slot.side]) return;
+      const cands = getThirdCandidates(slot.pool, used);
+      if (cands[0]) {
+        used.add(cands[0].team);
+        R32_SIDE[slot.m][slot.side] = cands[0].team;
+      }
+    });
+  }
+
   const v = analyzeR32Uniqueness(R32_SIDE);
-  R32_VALIDATION = { ok: v.count === 32 && v.duplicates.length === 0, count: v.count, duplicates: v.duplicates };
+  const missingSlots = buildR32MissingSlots();
+  R32_VALIDATION = {
+    ok: v.count === 32 && v.duplicates.length === 0 && missingSlots.length === 0,
+    count: v.count,
+    duplicates: v.duplicates,
+    missingSlots,
+    thirdBacktrackOk: backtrackOk,
+  };
 }
 
 function loserSemi(midSf) {
@@ -2390,23 +2469,43 @@ function updateFinaleStatus() {
   if (allPoulesComplete()) {
     if (!R32_VALIDATION.ok) {
       el.className = 'finale-status err';
-      const dupTxt = R32_VALIDATION.duplicates.length
-        ? ' Équipe(s) en double : <strong>' + R32_VALIDATION.duplicates.join(', ') + '</strong>.'
-        : '';
-      el.innerHTML = `⚠ Tableau seizièmes incohérent — <strong>${R32_VALIDATION.count}/32</strong> nations uniques.${dupTxt} Ajustez vos scores poules (classements / 3<sup>e</sup> places).`;
+      let html = `⚠ Tableau seizièmes incomplet — <strong>${R32_VALIDATION.count}/32</strong> nations.`;
+      if (R32_VALIDATION.duplicates.length) {
+        html += ` Doublons : <strong>${R32_VALIDATION.duplicates.join(', ')}</strong>.`;
+      }
+      if (R32_VALIDATION.missingSlots.length) {
+        const slots = R32_VALIDATION.missingSlots.slice(0, 3).map(s =>
+          `<strong>M${s.m}</strong> (${s.label}, ${s.side})`
+        ).join(' · ');
+        const more = R32_VALIDATION.missingSlots.length > 3 ? ` (+${R32_VALIDATION.missingSlots.length - 3})` : '';
+        html += ` Place(s) vide(s) : ${slots}${more}.`;
+      }
+      html += ' Voir le détail sous le tableau.';
+      el.innerHTML = html;
       if (warnEl) {
         warnEl.hidden = false;
-        warnEl.textContent = 'Impossible d’avoir la même équipe deux fois aux seizièmes. Corrigez vos poules puis recliquez les vainqueurs du tableau.';
+        const lines = R32_VALIDATION.missingSlots.map(s =>
+          `• <strong>M${s.m}</strong> — ${escapeHtml(s.label)} (${s.side}) : ${escapeHtml(s.reason)}`
+        );
+        if (R32_VALIDATION.duplicates.length) {
+          lines.unshift(`• Équipe(s) en double : <strong>${escapeHtml(R32_VALIDATION.duplicates.join(', '))}</strong>`);
+        }
+        warnEl.innerHTML = lines.length
+          ? lines.join('<br>')
+          : 'Ajustez vos scores poules (classements et 3<sup>e</sup> places qualifiées).';
       }
     } else {
-      if (warnEl) warnEl.hidden = true;
+      if (warnEl) { warnEl.hidden = true; warnEl.innerHTML = ''; }
       el.className = 'finale-status ok';
-      el.innerHTML = `✓ Poules 72/72 · Tableau étape 2 : <strong>${e2.r32}/32</strong> seizièmes · Scores KO débloqués jusqu’à l’<strong>étape ${off || '—'}</strong>.`;
+      el.innerHTML = `✓ Poules 72/72 · Tableau 32/32 prêt · Scores KO débloqués jusqu’à l’<strong>étape ${off || '—'}</strong>.`;
     }
   } else {
-    if (warnEl) warnEl.hidden = true;
+    if (warnEl) { warnEl.hidden = true; warnEl.innerHTML = ''; }
     el.className = 'finale-status wait';
-    el.innerHTML = `Poules <strong>${filled}/72</strong> — complétez toutes les poules pour débloquer le tableau de phase finale (sans scores KO).`;
+    const missing = formatMissingPouleList(10);
+    el.innerHTML = missing
+      ? `Poules <strong>${filled}/72</strong> — scores manquants : ${missing}. Touchez les boutons ci-dessous pour y aller.`
+      : `Poules <strong>${filled}/72</strong> — complétez toutes les poules pour débloquer le tableau.`;
   }
 }
 
@@ -2417,16 +2516,34 @@ function syncBanner() {
   const dot = document.getElementById('poules-dot');
   if (!b) return;
   if (ok) {
-    b.style.borderColor = 'rgba(39,174,96,0.45)';
-    b.style.background = 'rgba(39,174,96,0.08)';
-    b.style.color = '#6fcf97';
-    if (t) t.textContent = 'Grille complète — phase finale prête.';
-    if (dot) dot.style.animation = 'none';
+    if (R32_VALIDATION.ok) {
+      b.style.borderColor = 'rgba(39,174,96,0.45)';
+      b.style.background = 'rgba(39,174,96,0.08)';
+      b.style.color = '#6fcf97';
+      if (t) t.textContent = 'Grille complète — tableau 32/32 prêt.';
+      if (dot) dot.style.animation = 'none';
+    } else {
+      b.style.borderColor = 'rgba(231,76,60,0.45)';
+      b.style.background = 'rgba(231,76,60,0.08)';
+      b.style.color = '#f5b7b1';
+      const n = R32_VALIDATION.missingSlots.length;
+      if (t) {
+        t.textContent = n
+          ? `72/72 scores OK — tableau ${R32_VALIDATION.count}/32 (${n} place${n > 1 ? 's' : ''} vide${n > 1 ? 's' : ''}). Voir Phase finale.`
+          : `72/72 scores OK — tableau ${R32_VALIDATION.count}/32. Voir Phase finale.`;
+      }
+      if (dot) dot.style.animation = 'none';
+    }
   } else {
     b.style.borderColor = '';
     b.style.background = '';
     b.style.color = '';
-    if (t) t.textContent = 'Chaque équipe : nombre de buts marqués (0–4, ou Autre score pour 5+).';
+    const list = formatMissingPouleList(8);
+    if (t) {
+      t.textContent = list
+        ? `Poules ${countFilledMatches()}/72 — manquants : ${list}`
+        : 'Chaque équipe : nombre de buts marqués (0–4, ou Autre score pour 5+).';
+    }
     if (dot) dot.style.animation = '';
   }
 }
@@ -2868,7 +2985,15 @@ function renderFinalePanels() {
   const lockEl = document.getElementById('finale-poules-lock');
   const contentEl = document.getElementById('finale-unlocked-content');
   const poulesOk = allPoulesComplete();
-  if (lockEl) lockEl.hidden = poulesOk;
+  if (lockEl) {
+    lockEl.hidden = poulesOk;
+    if (!poulesOk) {
+      const list = formatMissingPouleList(12);
+      lockEl.innerHTML = list
+        ? `Complétez les <strong>72 scores</strong> en phase de groupes.<br><span style="font-size:.82rem;margin-top:.5rem;display:block">Matchs à faire : <strong>${list}</strong></span><div style="margin-top:.75rem"><button type="button" class="btn-etape2" onclick="goToTab('poules')">Aller aux poules →</button></div>`
+        : `Complétez les <strong>72 scores</strong> en phase de groupes pour débloquer le tableau.<div style="margin-top:.75rem"><button type="button" class="btn-etape2" onclick="goToTab('poules')">Aller aux poules →</button></div>`;
+    }
+  }
   if (contentEl) contentEl.hidden = !poulesOk;
   if (!poulesOk) {
     updateFinaleStatus();
@@ -3245,7 +3370,9 @@ function renderMissingMatches() {
   }
 
   if (complete.length === 72) {
-    chips.innerHTML = '<span style="font-size:.78rem;color:#6fcf97">✓ Les 72 matchs sont remplis</span>';
+    chips.innerHTML = R32_VALIDATION.ok
+      ? '<span style="font-size:.78rem;color:#6fcf97">✓ Les 72 matchs sont remplis · tableau 32/32</span>'
+      : '<span style="font-size:.78rem;color:#f5b7b1">✓ 72/72 scores · tableau ' + R32_VALIDATION.count + '/32 — voir Phase finale</span>';
     return;
   }
 
@@ -3253,7 +3380,7 @@ function renderMissingMatches() {
   chips.innerHTML = items.map(n => {
     const cls = getMatchFillStatus(n) === 'partial' ? 'missing-chip partial' : 'missing-chip';
     const teams = matchTeams(n);
-    const label = teams ? shortTeam(teams.home, 12) + ' – ' + shortTeam(teams.away, 12) : 'Match';
+    const label = teams ? 'M' + n + ' · ' + shortTeam(teams.home, 10) + ' – ' + shortTeam(teams.away, 10) : 'M' + n;
     return '<button type="button" class="' + cls + '" data-go-match="' + n + '" title="Aller au match">' + escapeHtml(label) + '</button>';
   }).join('');
   chips.querySelectorAll('[data-go-match]').forEach(btn => {

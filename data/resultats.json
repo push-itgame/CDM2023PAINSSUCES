@@ -452,11 +452,11 @@
     "France",
     "Écosse",
     "Mexique",
-    "Côte d'Ivoire",
+    "Suède",
     "Angleterre",
-    "Cap Vert",
+    "Côte d'Ivoire",
     "Belgique",
-    "",
+    "Cap Vert",
     "États-Unis",
     "Bosnie Herzégovine",
     "Espagne",
@@ -464,7 +464,7 @@
     "Colombie",
     "Croatie",
     "Suisse",
-    "Suède",
+    "Iran",
     "Turquie",
     "Égypte",
     "Argentine",
@@ -499,15 +499,15 @@
     },
     "79": {
       "home": "Mexique",
-      "away": "Côte d'Ivoire"
+      "away": "Suède"
     },
     "80": {
       "home": "Angleterre",
-      "away": "Cap Vert"
+      "away": "Côte d'Ivoire"
     },
     "82": {
       "home": "Belgique",
-      "away": ""
+      "away": "Cap Vert"
     },
     "81": {
       "home": "États-Unis",
@@ -523,7 +523,7 @@
     },
     "85": {
       "home": "Suisse",
-      "away": "Suède"
+      "away": "Iran"
     },
     "88": {
       "home": "Turquie",
@@ -629,15 +629,15 @@
     },
     "M79": {
       "left": "Mexique",
-      "right": "Côte d'Ivoire"
+      "right": "Suède"
     },
     "M80": {
       "left": "Angleterre",
-      "right": "Cap Vert"
+      "right": "Côte d'Ivoire"
     },
     "M82": {
       "left": "Belgique",
-      "right": ""
+      "right": "Cap Vert"
     },
     "M81": {
       "left": "États-Unis",
@@ -653,7 +653,7 @@
     },
     "M85": {
       "left": "Suisse",
-      "right": "Suède"
+      "right": "Iran"
     },
     "M88": {
       "left": "Turquie",
@@ -683,11 +683,11 @@
       "France",
       "Écosse",
       "Mexique",
-      "Côte d'Ivoire",
+      "Suède",
       "Angleterre",
-      "Cap Vert",
+      "Côte d'Ivoire",
       "Belgique",
-      "",
+      "Cap Vert",
       "États-Unis",
       "Bosnie Herzégovine",
       "Espagne",
@@ -695,7 +695,7 @@
       "Colombie",
       "Croatie",
       "Suisse",
-      "Suède",
+      "Iran",
       "Turquie",
       "Égypte",
       "Argentine",
@@ -817,19 +817,19 @@
     },
     "Match 79": {
       "home": "Mexique",
-      "away": "Côte d'Ivoire",
+      "away": "Suède",
       "scoreHome": "2",
       "scoreAway": "1"
     },
     "Match 80": {
       "home": "Angleterre",
-      "away": "Cap Vert",
+      "away": "Côte d'Ivoire",
       "scoreHome": "2",
       "scoreAway": "1"
     },
     "Match 82": {
       "home": "Belgique",
-      "away": "",
+      "away": "Cap Vert",
       "scoreHome": "2",
       "scoreAway": "1"
     },
@@ -853,7 +853,7 @@
     },
     "Match 85": {
       "home": "Suisse",
-      "away": "Suède",
+      "away": "Iran",
       "scoreHome": "2",
       "scoreAway": "1"
     },
