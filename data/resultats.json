@@ -452,11 +452,11 @@
     "France",
     "Écosse",
     "Mexique",
-    "Écosse",
-    "Angleterre",
     "Côte d'Ivoire",
+    "Angleterre",
+    "Cap Vert",
     "Belgique",
-    "Afrique du Sud",
+    "",
     "États-Unis",
     "Bosnie Herzégovine",
     "Espagne",
@@ -464,7 +464,7 @@
     "Colombie",
     "Croatie",
     "Suisse",
-    "Côte d'Ivoire",
+    "Suède",
     "Turquie",
     "Égypte",
     "Argentine",
@@ -499,15 +499,15 @@
     },
     "79": {
       "home": "Mexique",
-      "away": "Écosse"
+      "away": "Côte d'Ivoire"
     },
     "80": {
       "home": "Angleterre",
-      "away": "Côte d'Ivoire"
+      "away": "Cap Vert"
     },
     "82": {
       "home": "Belgique",
-      "away": "Afrique du Sud"
+      "away": ""
     },
     "81": {
       "home": "États-Unis",
@@ -523,7 +523,7 @@
     },
     "85": {
       "home": "Suisse",
-      "away": "Côte d'Ivoire"
+      "away": "Suède"
     },
     "88": {
       "home": "Turquie",
@@ -629,15 +629,15 @@
     },
     "M79": {
       "left": "Mexique",
-      "right": "Écosse"
+      "right": "Côte d'Ivoire"
     },
     "M80": {
       "left": "Angleterre",
-      "right": "Côte d'Ivoire"
+      "right": "Cap Vert"
     },
     "M82": {
       "left": "Belgique",
-      "right": "Afrique du Sud"
+      "right": ""
     },
     "M81": {
       "left": "États-Unis",
@@ -653,7 +653,7 @@
     },
     "M85": {
       "left": "Suisse",
-      "right": "Côte d'Ivoire"
+      "right": "Suède"
     },
     "M88": {
       "left": "Turquie",
@@ -683,11 +683,11 @@
       "France",
       "Écosse",
       "Mexique",
-      "Écosse",
-      "Angleterre",
       "Côte d'Ivoire",
+      "Angleterre",
+      "Cap Vert",
       "Belgique",
-      "Afrique du Sud",
+      "",
       "États-Unis",
       "Bosnie Herzégovine",
       "Espagne",
@@ -695,7 +695,7 @@
       "Colombie",
       "Croatie",
       "Suisse",
-      "Côte d'Ivoire",
+      "Suède",
       "Turquie",
       "Égypte",
       "Argentine",
@@ -817,19 +817,19 @@
     },
     "Match 79": {
       "home": "Mexique",
-      "away": "Écosse",
+      "away": "Côte d'Ivoire",
       "scoreHome": "2",
       "scoreAway": "1"
     },
     "Match 80": {
       "home": "Angleterre",
-      "away": "Côte d'Ivoire",
+      "away": "Cap Vert",
       "scoreHome": "2",
       "scoreAway": "1"
     },
     "Match 82": {
       "home": "Belgique",
-      "away": "Afrique du Sud",
+      "away": "",
       "scoreHome": "2",
       "scoreAway": "1"
     },
@@ -853,7 +853,7 @@
     },
     "Match 85": {
       "home": "Suisse",
-      "away": "Côte d'Ivoire",
+      "away": "Suède",
       "scoreHome": "2",
       "scoreAway": "1"
     },

@@ -444,21 +444,27 @@ function rebuildPouleEngine() {
     if (!tb) return '';
     return slot.k === 'winner' ? tb.teams[0].team : tb.teams[1].team;
   }
-  function pickThirdPool(poolLetters) {
+  function assignKOslot(slot, used) {
+    if (slot.k !== 'third') {
+      const t = resolveStraight(slot);
+      if (!t || used.has(t)) return '';
+      used.add(t);
+      return t;
+    }
     let best = Infinity, teamOut = '';
-    for (const L of poolLetters) {
+    for (const L of slot.pool || []) {
       const up = String(L).toUpperCase();
       if (!ADVANCE_THIRD.has(up)) continue;
       const rk = THIRD_RANK_IDX[up];
       const g = STANDINGS[up];
       const tn = g?.teams[2]?.team;
-      if (tn != null && rk != null && rk < best) { best = rk; teamOut = tn; }
+      if (tn != null && rk != null && !used.has(tn) && rk < best) {
+        best = rk;
+        teamOut = tn;
+      }
     }
+    if (teamOut) used.add(teamOut);
     return teamOut;
-  }
-  function fillKOslot(s) {
-    if (s.k !== 'third') return resolveStraight(s);
-    return pickThirdPool(s.pool || []);
   }
 
   const R32_SIDE = {};
@@ -470,8 +476,11 @@ function rebuildPouleEngine() {
     }
   }
   if (allComplete) {
+    const used = new Set();
     KNOCK_R32_DEF.forEach(def => {
-      R32_SIDE[def.m] = { left: fillKOslot(def.L), right: fillKOslot(def.R) };
+      const left = assignKOslot(def.L, used);
+      const right = assignKOslot(def.R, used);
+      R32_SIDE[def.m] = { left, right };
     });
   }
   const list32 = [];

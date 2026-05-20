@@ -166,28 +166,35 @@ def build_r32(standings: dict, thirds: list) -> dict[int, dict]:
             return ""
         return tb["teams"][0]["team"] if slot["k"] == "winner" else tb["teams"][1]["team"]
 
-    def pick_third(pool: list) -> str:
+    def assign_slot(slot: dict, used: set) -> str:
+        if slot.get("k") != "third":
+            t = resolve(slot)
+            if not t or t in used:
+                return ""
+            used.add(t)
+            return t
         best, team = 999, ""
-        for L in pool:
+        for L in slot.get("pool") or []:
             up = L.upper()
             if up not in advance_third:
                 continue
             rk = third_rank.get(up, 999)
             g = standings.get(up)
             tn = g["teams"][2]["team"] if g else ""
-            if tn and rk < best:
+            if tn and tn not in used and rk < best:
                 best, team = rk, tn
+        if team:
+            used.add(team)
         return team
 
-    def fill(slot: dict) -> str:
-        if slot.get("k") != "third":
-            return resolve(slot)
-        return pick_third(slot.get("pool") or [])
-
     r32 = {}
+    used: set = set()
     for defn in KNOCK_R32_DEF:
         m = defn["m"]
-        r32[m] = {"left": fill(defn["L"]), "right": fill(defn["R"])}
+        r32[m] = {
+            "left": assign_slot(defn["L"], used),
+            "right": assign_slot(defn["R"], used),
+        }
     return r32
 
 

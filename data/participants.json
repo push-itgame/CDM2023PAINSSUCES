@@ -455,11 +455,11 @@
         "France",
         "Écosse",
         "Mexique",
-        "Écosse",
-        "Angleterre",
         "Côte d'Ivoire",
+        "Angleterre",
+        "Cap Vert",
         "Belgique",
-        "Afrique du Sud",
+        "",
         "États-Unis",
         "Bosnie Herzégovine",
         "Espagne",
@@ -467,7 +467,7 @@
         "Colombie",
         "Croatie",
         "Suisse",
-        "Côte d'Ivoire",
+        "Suède",
         "Turquie",
         "Égypte",
         "Argentine",
@@ -490,11 +490,11 @@
           "France",
           "Écosse",
           "Mexique",
-          "Écosse",
-          "Angleterre",
           "Côte d'Ivoire",
+          "Angleterre",
+          "Cap Vert",
           "Belgique",
-          "Afrique du Sud",
+          "",
           "États-Unis",
           "Bosnie Herzégovine",
           "Espagne",
@@ -502,7 +502,7 @@
           "Colombie",
           "Croatie",
           "Suisse",
-          "Côte d'Ivoire",
+          "Suède",
           "Turquie",
           "Égypte",
           "Argentine",
@@ -520,7 +520,6 @@
           "Mexique",
           "Angleterre",
           "États-Unis",
-          "Belgique",
           "Colombie",
           "Espagne",
           "Suisse",
@@ -534,18 +533,15 @@
           "Brésil",
           "Angleterre",
           "Espagne",
-          "Belgique",
           "Argentine",
           "Portugal"
         ],
         "sf": [
           "France",
-          "Espagne",
           "Brésil",
           "Argentine"
         ],
         "finalists": [
-          "France",
           "Argentine"
         ],
         "winner": "France"
@@ -599,11 +595,11 @@
           "France",
           "Écosse",
           "Mexique",
-          "Écosse",
-          "Angleterre",
           "Côte d'Ivoire",
+          "Angleterre",
+          "Cap Vert",
           "Belgique",
-          "Afrique du Sud",
+          "",
           "États-Unis",
           "Bosnie Herzégovine",
           "Espagne",
@@ -611,7 +607,7 @@
           "Colombie",
           "Croatie",
           "Suisse",
-          "Côte d'Ivoire",
+          "Suède",
           "Turquie",
           "Égypte",
           "Argentine",
@@ -629,7 +625,6 @@
           "Mexique",
           "Angleterre",
           "États-Unis",
-          "Belgique",
           "Colombie",
           "Espagne",
           "Suisse",
@@ -643,18 +638,15 @@
           "Brésil",
           "Angleterre",
           "Espagne",
-          "Belgique",
           "Argentine",
           "Portugal"
         ],
         "vainqueursQuartsPourDemis4": [
           "France",
-          "Espagne",
           "Brésil",
           "Argentine"
         ],
         "finalistesChoisis": [
-          "France",
           "Argentine"
         ],
         "troisiemePlaceChoix": "",
@@ -705,14 +697,14 @@
         },
         "Match 79": {
           "home": "Mexique",
-          "away": "Écosse",
+          "away": "Côte d'Ivoire",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Mexique"
         },
         "Match 80": {
           "home": "Angleterre",
-          "away": "Côte d'Ivoire",
+          "away": "Cap Vert",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Angleterre"
@@ -726,7 +718,7 @@
         },
         "Match 82": {
           "home": "Belgique",
-          "away": "Afrique du Sud",
+          "away": "",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Belgique"
@@ -747,7 +739,7 @@
         },
         "Match 85": {
           "home": "Suisse",
-          "away": "Côte d'Ivoire",
+          "away": "Suède",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Suisse"
@@ -1355,11 +1347,11 @@
         "France",
         "Écosse",
         "Mexique",
-        "Écosse",
-        "Angleterre",
         "Côte d'Ivoire",
+        "Angleterre",
+        "Cap Vert",
         "Belgique",
-        "Afrique du Sud",
+        "",
         "États-Unis",
         "Bosnie Herzégovine",
         "Espagne",
@@ -1367,7 +1359,7 @@
         "Colombie",
         "Croatie",
         "Suisse",
-        "Côte d'Ivoire",
+        "Suède",
         "Turquie",
         "Égypte",
         "Argentine",
@@ -1390,11 +1382,11 @@
           "France",
           "Écosse",
           "Mexique",
-          "Écosse",
-          "Angleterre",
           "Côte d'Ivoire",
+          "Angleterre",
+          "Cap Vert",
           "Belgique",
-          "Afrique du Sud",
+          "",
           "États-Unis",
           "Bosnie Herzégovine",
           "Espagne",
@@ -1402,7 +1394,7 @@
           "Colombie",
           "Croatie",
           "Suisse",
-          "Côte d'Ivoire",
+          "Suède",
           "Turquie",
           "Égypte",
           "Argentine",
@@ -1420,7 +1412,6 @@
           "Mexique",
           "Angleterre",
           "États-Unis",
-          "Belgique",
           "Colombie",
           "Espagne",
           "Suisse",
@@ -1434,18 +1425,15 @@
           "Brésil",
           "Angleterre",
           "Espagne",
-          "Belgique",
           "Argentine",
           "Portugal"
         ],
         "sf": [
           "France",
-          "Espagne",
           "Brésil",
           "Argentine"
         ],
         "finalists": [
-          "France",
           "Argentine"
         ],
         "winner": "France"
@@ -1499,11 +1487,11 @@
           "France",
           "Écosse",
           "Mexique",
-          "Écosse",
-          "Angleterre",
           "Côte d'Ivoire",
+          "Angleterre",
+          "Cap Vert",
           "Belgique",
-          "Afrique du Sud",
+          "",
           "États-Unis",
           "Bosnie Herzégovine",
           "Espagne",
@@ -1511,7 +1499,7 @@
           "Colombie",
           "Croatie",
           "Suisse",
-          "Côte d'Ivoire",
+          "Suède",
           "Turquie",
           "Égypte",
           "Argentine",
@@ -1529,7 +1517,6 @@
           "Mexique",
           "Angleterre",
           "États-Unis",
-          "Belgique",
           "Colombie",
           "Espagne",
           "Suisse",
@@ -1543,18 +1530,15 @@
           "Brésil",
           "Angleterre",
           "Espagne",
-          "Belgique",
           "Argentine",
           "Portugal"
         ],
         "vainqueursQuartsPourDemis4": [
           "France",
-          "Espagne",
           "Brésil",
           "Argentine"
         ],
         "finalistesChoisis": [
-          "France",
           "Argentine"
         ],
         "troisiemePlaceChoix": "",
@@ -1605,14 +1589,14 @@
         },
         "Match 79": {
           "home": "Mexique",
-          "away": "Écosse",
+          "away": "Côte d'Ivoire",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Mexique"
         },
         "Match 80": {
           "home": "Angleterre",
-          "away": "Côte d'Ivoire",
+          "away": "Cap Vert",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Angleterre"
@@ -1626,7 +1610,7 @@
         },
         "Match 82": {
           "home": "Belgique",
-          "away": "Afrique du Sud",
+          "away": "",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Belgique"
@@ -1647,7 +1631,7 @@
         },
         "Match 85": {
           "home": "Suisse",
-          "away": "Côte d'Ivoire",
+          "away": "Suède",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Suisse"
@@ -1787,16 +1771,16 @@
         }
       },
       "bonus": {
-        "meilleureAttaque": "France",
-        "matchs00": "4",
-        "nationsA9pts": "5",
-        "nbCSC": "2",
-        "meilleurButeur": "K. Mbappé",
-        "meilleurJoueur": "K. Mbappé",
-        "meilleurGardien": "T. Courtois",
-        "nbButs": "165",
-        "nbCartonsRouges": "8",
-        "nbProlongations": "5"
+        "meilleureAttaque": "Brésil",
+        "matchs00": "5",
+        "nationsA9pts": "7",
+        "nbCSC": "3",
+        "meilleurButeur": "Vinícius Jr",
+        "meilleurJoueur": "L. Messi",
+        "meilleurGardien": "A. Becker",
+        "nbButs": "170",
+        "nbCartonsRouges": "7",
+        "nbProlongations": "4"
       },
       "sourceFichier": "CDM2026_Marki_Organisateur.json"
     },
@@ -2255,11 +2239,11 @@
         "France",
         "Pays-Bas",
         "Mexique",
-        "Écosse",
-        "Angleterre",
         "Côte d'Ivoire",
+        "Angleterre",
+        "Cap Vert",
         "Belgique",
-        "Afrique du Sud",
+        "",
         "États-Unis",
         "Bosnie Herzégovine",
         "Espagne",
@@ -2267,7 +2251,7 @@
         "Colombie",
         "Croatie",
         "Suisse",
-        "Côte d'Ivoire",
+        "Suède",
         "Turquie",
         "Égypte",
         "Argentine",
@@ -2290,11 +2274,11 @@
           "France",
           "Pays-Bas",
           "Mexique",
-          "Écosse",
-          "Angleterre",
           "Côte d'Ivoire",
+          "Angleterre",
+          "Cap Vert",
           "Belgique",
-          "Afrique du Sud",
+          "",
           "États-Unis",
           "Bosnie Herzégovine",
           "Espagne",
@@ -2302,7 +2286,7 @@
           "Colombie",
           "Croatie",
           "Suisse",
-          "Côte d'Ivoire",
+          "Suède",
           "Turquie",
           "Égypte",
           "Argentine",
@@ -2320,7 +2304,6 @@
           "Mexique",
           "Angleterre",
           "États-Unis",
-          "Belgique",
           "Colombie",
           "Espagne",
           "Suisse",
@@ -2334,18 +2317,15 @@
           "Brésil",
           "Angleterre",
           "Espagne",
-          "Belgique",
           "Argentine",
           "Portugal"
         ],
         "sf": [
           "France",
-          "Espagne",
           "Brésil",
           "Argentine"
         ],
         "finalists": [
-          "Espagne",
           "Argentine"
         ],
         "winner": "Espagne"
@@ -2399,11 +2379,11 @@
           "France",
           "Pays-Bas",
           "Mexique",
-          "Écosse",
-          "Angleterre",
           "Côte d'Ivoire",
+          "Angleterre",
+          "Cap Vert",
           "Belgique",
-          "Afrique du Sud",
+          "",
           "États-Unis",
           "Bosnie Herzégovine",
           "Espagne",
@@ -2411,7 +2391,7 @@
           "Colombie",
           "Croatie",
           "Suisse",
-          "Côte d'Ivoire",
+          "Suède",
           "Turquie",
           "Égypte",
           "Argentine",
@@ -2429,7 +2409,6 @@
           "Mexique",
           "Angleterre",
           "États-Unis",
-          "Belgique",
           "Colombie",
           "Espagne",
           "Suisse",
@@ -2443,18 +2422,15 @@
           "Brésil",
           "Angleterre",
           "Espagne",
-          "Belgique",
           "Argentine",
           "Portugal"
         ],
         "vainqueursQuartsPourDemis4": [
           "France",
-          "Espagne",
           "Brésil",
           "Argentine"
         ],
         "finalistesChoisis": [
-          "Espagne",
           "Argentine"
         ],
         "troisiemePlaceChoix": "",
@@ -2505,14 +2481,14 @@
         },
         "Match 79": {
           "home": "Mexique",
-          "away": "Écosse",
+          "away": "Côte d'Ivoire",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Mexique"
         },
         "Match 80": {
           "home": "Angleterre",
-          "away": "Côte d'Ivoire",
+          "away": "Cap Vert",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Angleterre"
@@ -2526,7 +2502,7 @@
         },
         "Match 82": {
           "home": "Belgique",
-          "away": "Afrique du Sud",
+          "away": "",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Belgique"
@@ -2547,7 +2523,7 @@
         },
         "Match 85": {
           "home": "Suisse",
-          "away": "Côte d'Ivoire",
+          "away": "Suède",
           "scoreHome": "2",
           "scoreAway": "1",
           "vainqueur": "Suisse"
