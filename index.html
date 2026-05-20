@@ -1103,9 +1103,10 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   justify-content: center;
 }
 .bracket-ladder-pretty {
+  --bracket-row-h: 4.75rem;
   display: grid;
   grid-template-columns: 168px 128px 108px 96px 88px;
-  grid-template-rows: 2.25rem repeat(17, minmax(5rem, auto));
+  grid-template-rows: 2.25rem repeat(17, var(--bracket-row-h));
   gap: .5rem .32rem;
   column-gap: .32rem;
   min-width: 0;
@@ -1114,7 +1115,7 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   min-height: 100%;
   padding-bottom: 1.5rem;
   padding-right: .25rem;
-  align-items: start;
+  align-items: stretch;
   position: relative;
   margin: 0 auto;
 }
@@ -1134,9 +1135,13 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   line-height: 1.15;
   white-space: nowrap;
 }
-.bracket-ladder-pretty .bracket-ko-card,
 .bracket-ladder-pretty .bracket-r32-card {
   align-self: start;
+  max-width: 100%;
+  min-height: 0;
+}
+.bracket-ladder-pretty .bracket-ko-card.bracket-ko-card--spanned {
+  align-self: center;
   max-width: 100%;
   min-height: 0;
 }
@@ -1161,7 +1166,12 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   display: none;
 }
 .bracket-r32-card .bracket-duel {
-  gap: .25rem;
+  gap: .22rem;
+}
+.bracket-r32-card .bracket-team-box {
+  padding: .28rem .35rem;
+  font-size: .68rem;
+  line-height: 1.15;
 }
 @media (min-width: 960px) {
   .bracket-ladder-scroll {
@@ -1171,7 +1181,8 @@ nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
   }
   .bracket-ladder-pretty {
     grid-template-columns: 178px 136px 116px 104px 96px;
-    grid-template-rows: 2.25rem repeat(17, minmax(5.15rem, auto));
+    grid-template-rows: 2.25rem repeat(17, 5rem);
+    --bracket-row-h: 5rem;
     gap: .55rem .38rem;
     transform: translateX(-1.25%);
   }
