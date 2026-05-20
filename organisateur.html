@@ -94,6 +94,37 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
   backdrop-filter: blur(8px); z-index: 50;
 }
 .sticky-bar .actions { margin: 0; }
+.publish-guide {
+  background: rgba(200,168,75,0.06);
+  border: 1px solid rgba(200,168,75,0.22);
+  border-radius: 6px;
+  padding: .85rem .9rem;
+  margin-bottom: 1rem;
+  font-size: .8rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+.publish-guide h3 {
+  font-size: .85rem;
+  color: var(--gold);
+  margin-bottom: .5rem;
+}
+.publish-guide ol {
+  margin: .35rem 0 .35rem 1.1rem;
+  padding: 0;
+}
+.publish-guide li { margin-bottom: .35rem; }
+.token-status {
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  letter-spacing: .04em;
+  margin-bottom: .75rem;
+  padding: .45rem .6rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.token-status.ok { color: var(--green); border-color: rgba(39,174,96,0.35); background: rgba(39,174,96,0.08); }
+.token-status.wait { color: var(--muted); }
 @media (min-width: 640px) {
   .match-row { grid-template-columns: 2.8rem 1fr auto 1fr; }
   h1 { font-size: 2.2rem; }
@@ -154,9 +185,19 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
     </div>
 
     <div id="panel-publish" class="org-panel card">
-      <h2>Publier sur GitHub</h2>
-      <p class="hint">Token personnel GitHub (repo <code>CDM2023PAINSSUCES</code>, droit <code>Contents: Read and write</code>). Stocké localement sur cet appareil uniquement.</p>
-      <label for="gh-token">Token GitHub (PAT)</label>
+      <h2>Publier sur le site</h2>
+      <div class="publish-guide">
+        <h3>Sur le téléphone — marche à suivre</h3>
+        <ol>
+          <li><strong>Code organisateur</strong> (PIN) : ouvre cette page admin — ce n’est pas GitHub.</li>
+          <li><strong>Token</strong> : collez ci-dessous le jeton créé sur GitHub (PC), une seule fois.</li>
+          <li><strong>Enregistrer token</strong> → le téléphone le mémorise.</li>
+          <li>Saisissez scores / étape dans les autres onglets.</li>
+          <li><strong>Publier</strong> → le site public se met à jour (1–2 min). Pas besoin de l’app GitHub.</li>
+        </ol>
+      </div>
+      <p id="token-status" class="token-status wait">Token : non enregistré sur cet appareil</p>
+      <label for="gh-token">Token GitHub (fine-grained, repo CDM2023PAINSSUCES)</label>
       <input type="password" id="gh-token" autocomplete="off" placeholder="ghp_… ou github_pat_…">
       <div class="actions">
         <button type="button" class="btn" id="btn-save-token">Enregistrer token</button>
@@ -183,7 +224,7 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
 </div>
 
 <script>
-const ORG_PIN_HASH = '9b1deeca6dfd86994f88772ed54864fffe1d4f910bbf3670bc1bd1cf6de9f51a';
+const ORG_PIN_HASH = 'b5fba5acc2c2dfaf6003166625a8de638260a920e1143d7eba941aa8ca259b7d';
 const ORG_SESSION_DAYS = 30;
 const GH_REPO = 'push-itgame/CDM2023PAINSSUCES';
 const GH_PATH = 'data/resultats.json';
@@ -511,6 +552,7 @@ async function loadState() {
   draftEtape = state.etapeDebloquee || 0;
   const savedToken = localStorage.getItem('cdm_org_gh_token');
   if (savedToken) document.getElementById('gh-token').value = savedToken;
+  updateTokenStatus();
 }
 
 function ensureMatchIds() {
@@ -740,6 +782,20 @@ function getGhToken() {
   return document.getElementById('gh-token').value.trim() || localStorage.getItem('cdm_org_gh_token') || '';
 }
 
+function updateTokenStatus() {
+  const el = document.getElementById('token-status');
+  if (!el) return;
+  const saved = localStorage.getItem('cdm_org_gh_token') || '';
+  const field = document.getElementById('gh-token')?.value.trim() || '';
+  if (saved || field) {
+    el.textContent = 'Token : enregistré sur cet appareil — vous pouvez publier.';
+    el.className = 'token-status ok';
+  } else {
+    el.textContent = 'Token : non enregistré — collez votre github_pat_… puis Enregistrer token.';
+    el.className = 'token-status wait';
+  }
+}
+
 function showMsg(text, isErr) {
   const el = document.getElementById(isErr ? 'action-err' : 'action-msg');
   const other = document.getElementById(isErr ? 'action-msg' : 'action-err');
@@ -761,7 +817,10 @@ function downloadJson() {
 
 async function publishToGitHub() {
   const token = getGhToken();
-  if (!token) { showMsg('Token GitHub requis — créez un PAT avec accès Contents sur le repo.', true); return; }
+  if (!token) {
+    showMsg('Collez votre token GitHub ci-dessus, appuyez Enregistrer token, puis Publier.', true);
+    return;
+  }
   try {
     showMsg('Publication en cours…');
     const content = buildExportJson();
@@ -787,7 +846,8 @@ async function publishToGitHub() {
       throw new Error(err.message || ('GitHub ' + putRes.status));
     }
     localStorage.setItem('cdm_org_gh_token', token);
-    showMsg('Publié ! Site à jour dans 1–2 min (GitHub Pages).');
+    updateTokenStatus();
+    showMsg('Publié ! Attendez 1–2 min puis ouvrez le classement ou la grille pour vérifier.');
   } catch (e) {
     showMsg('Erreur : ' + (e.message || e), true);
   }
@@ -843,13 +903,17 @@ document.getElementById('btn-preview').addEventListener('click', applyPreview);
 document.getElementById('btn-clear-preview').addEventListener('click', clearPreview);
 document.getElementById('btn-save-token').addEventListener('click', () => {
   const t = document.getElementById('gh-token').value.trim();
-  if (t) { localStorage.setItem('cdm_org_gh_token', t); showMsg('Token enregistré sur cet appareil.'); }
-  else showMsg('Token vide.', true);
+  if (t) {
+    localStorage.setItem('cdm_org_gh_token', t);
+    updateTokenStatus();
+    showMsg('Token enregistré — vous pouvez appuyer sur Publier.');
+  } else showMsg('Collez d’abord le token (github_pat_…).', true);
 });
 document.getElementById('btn-clear-token').addEventListener('click', () => {
   localStorage.removeItem('cdm_org_gh_token');
   document.getElementById('gh-token').value = '';
-  showMsg('Token effacé.');
+  updateTokenStatus();
+  showMsg('Token effacé de cet appareil.');
 });
 document.getElementById('btn-logout').addEventListener('click', () => {
   clearSession();
