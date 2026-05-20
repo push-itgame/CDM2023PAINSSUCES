@@ -1,4 +1,4 @@
-﻿"""Fusionne les grilles exportees (JSON) dans data/participants.json."""
+"""Fusionne les grilles exportees (JSON) dans data/participants.json."""
 from __future__ import annotations
 
 import json
@@ -62,8 +62,10 @@ def main() -> int:
             "identite": identite,
             "matchs": grille.get("matchs") or {},
             "equipesQualifiees32Liste": grille.get("equipesQualifiees32Liste") or [],
+            "etape2Tableau": grille.get("etape2Tableau") or grille.get("etape2") or {},
             "vainqueursTableauEliminationChoisis": grille.get("vainqueursTableauEliminationChoisis") or {},
             "phaseFinalePourBareme": grille.get("phaseFinalePourBareme") or {},
+            "scoresElimination": grille.get("scoresElimination") or {},
             "bonus": grille.get("bonus") or {},
             "sourceFichier": path.name,
         }

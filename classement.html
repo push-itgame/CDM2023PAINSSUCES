@@ -121,8 +121,21 @@ function scoreGroupMatches(predMatchs, realMatchs) {
   return Math.round(pts * 10) / 10;
 }
 
+function buildPredBareme(participant) {
+  const p = participant.phaseFinalePourBareme || {};
+  const e2 = participant.etape2Tableau || participant.etape2 || {};
+  return {
+    liste32QualifiesIssuesPoules: (p.liste32QualifiesIssuesPoules?.length ? p.liste32QualifiesIssuesPoules : e2.r32) || [],
+    vainqueursSeiziemePourHuitiemes16: (p.vainqueursSeiziemePourHuitiemes16?.length ? p.vainqueursSeiziemePourHuitiemes16 : e2.r16) || [],
+    vainqueursHuitiemesPourQuarts8: (p.vainqueursHuitiemesPourQuarts8?.length ? p.vainqueursHuitiemesPourQuarts8 : e2.qf) || [],
+    vainqueursQuartsPourDemis4: (p.vainqueursQuartsPourDemis4?.length ? p.vainqueursQuartsPourDemis4 : e2.sf) || [],
+    finalistesChoisis: (p.finalistesChoisis?.length ? p.finalistesChoisis : e2.finalists) || [],
+    vainqueurFinal: p.vainqueurFinal || e2.winner || '',
+  };
+}
+
 function scoreTableau(participant, resultats) {
-  const pred = participant.phaseFinalePourBareme || {};
+  const pred = buildPredBareme(participant);
   const real = resultats.phaseFinalePourBareme || {};
   const list32Pred = pred.liste32QualifiesIssuesPoules?.length
     ? pred.liste32QualifiesIssuesPoules
