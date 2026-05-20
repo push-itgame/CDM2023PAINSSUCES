@@ -125,6 +125,14 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
 }
 .token-status.ok { color: var(--green); border-color: rgba(39,174,96,0.35); background: rgba(39,174,96,0.08); }
 .token-status.wait { color: var(--muted); }
+.token-banner {
+  display: block; width: 100%; margin-bottom: .75rem; padding: .7rem .85rem; border-radius: 6px;
+  border: 1px solid rgba(231,76,60,0.45); background: rgba(231,76,60,0.12); color: #f5b7b1;
+  font-size: .78rem; line-height: 1.45; text-align: left; cursor: pointer;
+}
+.token-banner strong { color: #fff; }
+.org-tabs button.needs-token { border-color: rgba(231,76,60,0.55); color: #f5b7b1; animation: pulse-tab 2s ease-in-out infinite; }
+@keyframes pulse-tab { 0%,100% { opacity: 1; } 50% { opacity: .72; } }
 @media (min-width: 640px) {
   .match-row { grid-template-columns: 2.8rem 1fr auto 1fr; }
   h1 { font-size: 2.2rem; }
@@ -145,6 +153,9 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
   </div>
 
   <div id="admin-panel" class="hidden">
+    <button type="button" class="token-banner hidden" id="token-banner">
+      <strong>Token GitHub requis.</strong> Appuyez ici → onglet <strong>Publier</strong> → collez votre <strong>github_pat_…</strong> → Enregistrer token.
+    </button>
     <nav class="org-tabs" id="org-tabs">
       <button type="button" data-panel="etape" class="active">Étape</button>
       <button type="button" data-panel="poules">Poules</button>
@@ -784,16 +795,32 @@ function getGhToken() {
 
 function updateTokenStatus() {
   const el = document.getElementById('token-status');
-  if (!el) return;
+  const banner = document.getElementById('token-banner');
+  const publishTab = document.querySelector('#org-tabs button[data-panel="publish"]');
   const saved = localStorage.getItem('cdm_org_gh_token') || '';
   const field = document.getElementById('gh-token')?.value.trim() || '';
-  if (saved || field) {
-    el.textContent = 'Token : enregistré sur cet appareil — vous pouvez publier.';
-    el.className = 'token-status ok';
-  } else {
-    el.textContent = 'Token : non enregistré — collez votre github_pat_… puis Enregistrer token.';
-    el.className = 'token-status wait';
+  const hasToken = !!(saved || field);
+  if (el) {
+    if (hasToken) {
+      el.textContent = 'Token : enregistré sur cet appareil — vous pouvez publier.';
+      el.className = 'token-status ok';
+    } else {
+      el.textContent = 'Token : non enregistré — collez votre github_pat_… dans le champ ci-dessous.';
+      el.className = 'token-status wait';
+    }
   }
+  if (banner) banner.classList.toggle('hidden', hasToken);
+  if (publishTab) publishTab.classList.toggle('needs-token', !hasToken);
+}
+
+function goToTokenSetup() {
+  switchPanel('publish');
+  const inp = document.getElementById('gh-token');
+  if (inp) {
+    inp.focus();
+    inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  showMsg('Collez votre token GitHub ici, puis Enregistrer token.', true);
 }
 
 function showMsg(text, isErr) {
@@ -818,7 +845,7 @@ function downloadJson() {
 async function publishToGitHub() {
   const token = getGhToken();
   if (!token) {
-    showMsg('Collez votre token GitHub ci-dessus, appuyez Enregistrer token, puis Publier.', true);
+    goToTokenSetup();
     return;
   }
   try {
@@ -891,9 +918,12 @@ function showAdmin() {
   document.getElementById('admin-panel').classList.remove('hidden');
   document.getElementById('sticky-bar').classList.remove('hidden');
   renderAll();
+  updateTokenStatus();
+  if (!localStorage.getItem('cdm_org_gh_token')) switchPanel('publish');
 }
 
 document.getElementById('btn-login').addEventListener('click', tryLogin);
+document.getElementById('token-banner').addEventListener('click', goToTokenSetup);
 document.getElementById('org-pin').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
 document.getElementById('btn-download').addEventListener('click', downloadJson);
 document.getElementById('btn-download-sticky').addEventListener('click', downloadJson);
