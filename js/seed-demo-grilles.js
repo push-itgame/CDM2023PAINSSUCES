@@ -17,7 +17,7 @@
       bonus: { meilleureAttaque: 'France', matchs00: '4', nationsA9pts: '5', nbCSC: '2', meilleurButeur: 'K. Mbappé', meilleurJoueur: 'Pedri', meilleurGardien: 'M. Maignan', nbButs: '155', nbCartonsRouges: '6', nbProlongations: '3' },
     },
     {
-      identite: { prenom: 'Lucas', nom: 'Bernard', email: 'lucas.demo@painssucés.test', equipe: 'Pains sucés B' },
+      identite: { prenom: 'Lucas', nom: 'Bernard', email: 'lucas.demo@demo.local', equipe: 'Pains sucés B' },
       matchs: {
         'Match 3': m(0, 0), 'Match 5': m(1, 1), 'Match 26': m(2, 0), 'Match 27': m(1, 0),
         'Match 49': m(2, 0), 'Match 50': m(1, 0), 'Match 10': m(2, 0), 'Match 12': m(1, 0),
@@ -26,7 +26,7 @@
       bonus: { meilleureAttaque: 'Espagne', matchs00: '6', nationsA9pts: '4', nbCSC: '4', meilleurButeur: 'L. Messi', meilleurJoueur: 'J. Bellingham', meilleurGardien: 'A. Becker', nbButs: '148', nbCartonsRouges: '8', nbProlongations: '5' },
     },
     {
-      identite: { prenom: 'Emma', nom: 'Dupont', email: 'emma.demo@painssucés.test', equipe: 'Tactiques FC' },
+      identite: { prenom: 'Emma', nom: 'Dupont', email: 'emma.demo@demo.local', equipe: 'Tactiques FC' },
       matchs: {
         'Match 17': m(2, 1), 'Match 18': m(0, 0), 'Match 43': m(1, 0), 'Match 42': m(2, 0),
         'Match 61': m(1, 2), 'Match 62': m(2, 1), 'Match 19': m(3, 1), 'Match 20': m(1, 0),
