@@ -248,30 +248,7 @@ table.lb th.col-detail, table.lb td.col-detail { width: 4.75rem; text-align: cen
   color: var(--gold);
   margin-bottom: .75rem;
 }
-.my-score-form { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
-.my-score-form input {
-  flex: 1;
-  min-width: 200px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: .55rem .65rem;
-  border-radius: 3px;
-  font-family: inherit;
-  font-size: .88rem;
-}
-.my-score-form button {
-  font-family: 'DM Mono', monospace;
-  font-size: .68rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  background: rgba(200,168,75,0.15);
-  border: 1px solid var(--border);
-  color: var(--gold);
-  padding: .55rem .85rem;
-  border-radius: 3px;
-  cursor: pointer;
-}
+.my-score-card.hidden { display: none; }
 .my-score-summary {
   display: flex;
   flex-wrap: wrap;
@@ -291,7 +268,6 @@ table.lb th.col-detail, table.lb td.col-detail { width: 4.75rem; text-align: cen
   color: var(--gold);
   font-weight: 600;
 }
-.my-score-hint { font-size: .78rem; color: var(--muted); margin-top: .65rem; line-height: 1.45; }
 table.lb tr.lb-row-me td {
   background: rgba(200,168,75,0.12) !important;
   border-bottom-color: rgba(200,168,75,0.25);
@@ -383,14 +359,8 @@ table.lb tr.lb-row-me .rank { color: var(--gold-light); }
 <main class="container">
   <div id="live-scores-root" class="live-scores-widget" aria-live="polite"></div>
 
-  <div class="my-score-card" id="myScoreCard">
-    <h2>Votre score en direct</h2>
-    <div class="my-score-form">
-      <input type="email" id="myEmailInput" placeholder="Votre e-mail d'inscription" autocomplete="email">
-      <button type="button" id="btnMyEmail">Afficher mon score</button>
-    </div>
-    <div id="myScoreSummary" class="my-score-summary" hidden></div>
-    <p class="my-score-hint">Entrez votre <strong>e-mail</strong> (pas votre prénom). Même e-mail que sur la grille.</p>
+  <div class="my-score-card hidden" id="myScoreCard" aria-live="polite">
+    <div id="myScoreSummary" class="my-score-summary"></div>
   </div>
 
   <p class="meta" id="metaLine">Chargement…</p>
@@ -442,28 +412,31 @@ function renderTable(rows, etape) {
 }
 
 function renderMyScoreSummary(rows) {
+  const card = document.getElementById('myScoreCard');
   const el = document.getElementById('myScoreSummary');
-  if (!el || !highlightEmail) {
-    if (el) el.hidden = true;
+  if (!el || !card) return;
+  if (!highlightEmail) {
+    card.classList.add('hidden');
     return;
   }
   const norm = normalizeTeam(highlightEmail);
   const idx = rows.findIndex(r => normalizeTeam(r.email) === norm);
   if (idx < 0) {
-    el.innerHTML = '<span style="color:var(--muted)">Aucune grille trouvée pour cet e-mail. Vérifiez l’orthographe ou envoyez votre grille.</span>';
-    el.hidden = false;
+    el.innerHTML = '<span style="color:var(--muted)">Grille non trouvée pour l’e-mail mémorisé sur cet appareil.</span> '
+      + `<a class="lb-link" href="mon-score.html?email=${encodeURIComponent(highlightEmail)}">Vérifier sur Mon score →</a>`;
+    card.classList.remove('hidden');
     return;
   }
   const r = rows[idx];
   const detailLink = r.email
-    ? `<a class="lb-link" href="mon-score.html?email=${encodeURIComponent(r.email)}">Voir le détail →</a>`
+    ? `<a class="lb-link" href="mon-score.html?email=${encodeURIComponent(r.email)}">Détail match par match →</a>`
     : '';
   el.innerHTML = `
     <span class="rank-big">#${idx + 1}</span>
-    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${formatScoreCell(r.poules, r.visible?.poules)} · Ph. fin. tab. ${formatScoreCell(r.tableauE2, r.visible?.tableauE2)} · Ph. fin. scores ${formatScoreCell(r.finales, r.visible?.finales)} · Bonus ${formatScoreCell(r.bonus, r.visible?.bonus)}</span></span>
+    <span><strong>${escapeHtml(r.label)}</strong> <span style="color:var(--gold);font-size:.75rem">← vous</span><br><span style="color:var(--muted);font-size:.8rem">Poules ${formatScoreCell(r.poules, r.visible?.poules)} · Ph. fin. tab. ${formatScoreCell(r.tableauE2, r.visible?.tableauE2)} · Ph. fin. scores ${formatScoreCell(r.finales, r.visible?.finales)} · Bonus ${formatScoreCell(r.bonus, r.visible?.bonus)}</span></span>
     <span class="pts-big">${r.total} pts</span>
     ${detailLink}`;
-  el.hidden = false;
+  card.classList.remove('hidden');
 }
 
 function loadStoredEmail() {
@@ -477,11 +450,6 @@ function loadStoredEmail() {
     }
   } catch (e) { /* ignore */ }
   return '';
-}
-
-function saveHighlightEmail(email) {
-  highlightEmail = (email || '').trim();
-  try { localStorage.setItem(LS_EMAIL_KEY, highlightEmail); } catch (e) { /* ignore */ }
 }
 
 function escapeHtml(s) {
@@ -516,7 +484,7 @@ async function refresh() {
     const rows = participants.map(p => {
       const id = p.identite || {};
       const label = [id.prenom, id.nom].filter(Boolean).join(' ') || 'Anonyme';
-      const sub = id.equipe || id.email || '';
+      const sub = id.equipe || '';
       const sc = scoreParticipant(p, resultats);
       const email = (id.email || '').trim();
       return { label, sub, email, ...sc };
@@ -527,6 +495,11 @@ async function refresh() {
       + participants.length + ' participant(s). Score progressif (0 = rien · 1 = poules · 2 = tableau · 7 = bonus compétition).';
     content.innerHTML = renderTable(rows, etape);
     renderMyScoreSummary(rows);
+    if (highlightEmail && document.querySelector('.lb-row-me')) {
+      requestAnimationFrame(() => {
+        document.querySelector('.lb-row-me')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    }
   } catch (e) {
     errEl.textContent = 'Erreur de chargement : ' + e.message + '. Ouvrez la page via un serveur local si les JSON sont bloqués (file://).';
     errEl.hidden = false;
@@ -537,18 +510,7 @@ async function refresh() {
 
 document.getElementById('btnRefresh').addEventListener('click', e => { e.preventDefault(); refresh(); });
 
-const emailInput = document.getElementById('myEmailInput');
-const btnMyEmail = document.getElementById('btnMyEmail');
 highlightEmail = loadStoredEmail();
-if (emailInput && highlightEmail) emailInput.value = highlightEmail;
-
-function applyMyEmail() {
-  saveHighlightEmail(emailInput?.value || '');
-  refresh();
-}
-
-btnMyEmail?.addEventListener('click', applyMyEmail);
-emailInput?.addEventListener('keydown', e => { if (e.key === 'Enter') applyMyEmail(); });
 
 if (window.CDM_LIVE_SCORES?.mount) CDM_LIVE_SCORES.mount('live-scores-root');
 

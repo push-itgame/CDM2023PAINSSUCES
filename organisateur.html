@@ -143,6 +143,40 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
 .token-banner strong { color: #fff; }
 .org-tabs button.needs-token { border-color: rgba(231,76,60,0.55); color: #f5b7b1; animation: pulse-tab 2s ease-in-out infinite; }
 @keyframes pulse-tab { 0%,100% { opacity: 1; } 50% { opacity: .72; } }
+.reset-bar {
+  margin-top: 1rem; padding-top: .85rem; border-top: 1px solid rgba(255,255,255,0.08);
+}
+.reset-bar .hint { margin-top: .35rem; margin-bottom: 0; }
+.undo-banner {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .55rem;
+  padding: .65rem .85rem; margin-bottom: .75rem; border-radius: 6px;
+  border: 1px solid rgba(200,168,75,0.35); background: rgba(200,168,75,0.08);
+  font-size: .78rem; line-height: 1.45;
+}
+.undo-banner.hidden { display: none !important; }
+.undo-banner strong { color: var(--gold); }
+.reset-section-bar {
+  display: flex; flex-wrap: wrap; gap: .4rem; margin: .45rem 0 .65rem;
+}
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center;
+  padding: 1rem; background: rgba(0,0,0,0.72); backdrop-filter: blur(4px);
+}
+.confirm-overlay.hidden { display: none !important; }
+.confirm-box {
+  width: min(100%, 420px); background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.1rem 1.15rem;
+}
+.confirm-box h3 { font-size: .95rem; color: #e88; margin-bottom: .55rem; }
+.confirm-box p { font-size: .82rem; line-height: 1.55; color: var(--text); margin-bottom: .65rem; }
+.confirm-box label.check-row {
+  display: flex; align-items: flex-start; gap: .45rem; font-size: .78rem; color: var(--text);
+  margin-bottom: .65rem; cursor: pointer;
+}
+.confirm-box label.check-row input { width: auto; margin-top: .15rem; flex-shrink: 0; }
+.confirm-box .typed-row { margin-bottom: .75rem; }
+.confirm-box .typed-row label { font-size: .72rem; margin-bottom: .25rem; }
+.confirm-box .confirm-actions { display: flex; flex-wrap: wrap; gap: .45rem; justify-content: flex-end; }
 @media (min-width: 640px) {
   .match-row { grid-template-columns: 2.8rem 1fr auto 1fr; }
   h1 { font-size: 2.2rem; }
@@ -166,6 +200,10 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
     <button type="button" class="token-banner hidden" id="token-banner">
       <strong>Token GitHub requis.</strong> Appuyez ici → onglet <strong>Publier</strong> → collez votre <strong>github_pat_…</strong> → Enregistrer token.
     </button>
+    <div id="undo-banner" class="undo-banner hidden">
+      <span>Dernière action : <strong id="undo-label">—</strong> — annulable tant que vous n’avez pas publié.</span>
+      <button type="button" class="btn" id="btn-undo">↩ Annuler</button>
+    </div>
     <nav class="org-tabs" id="org-tabs">
       <button type="button" data-panel="etape" class="active">Étape</button>
       <button type="button" data-panel="poules">Poules</button>
@@ -181,29 +219,60 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
       <p class="hint">Les joueurs voient les scores KO des étapes ≤ à cette valeur.</p>
       <div class="etape-btns" id="etape-picker"></div>
       <p class="hint"><strong>0</strong> rien · <strong>1</strong> poules (scores + verrou grilles) · <strong>2</strong> tableau · <strong>3</strong> seizièmes · <strong>4</strong> huitièmes · <strong>5</strong> quarts · <strong>6</strong> demis · <strong>7</strong> finale + bonus compétition</p>
+      <div class="reset-bar">
+        <div class="actions">
+          <button type="button" class="btn" id="btn-reset-etape-draft">Remettre brouillon étape à 0</button>
+        </div>
+        <p class="hint">Ne vide pas les scores — change seulement l’étape affichée avant publication.</p>
+      </div>
     </div>
 
     <div id="panel-poules" class="org-panel card">
       <h2>Scores poules (72 matchs)</h2>
       <p class="hint">Saisissez les scores réels. Le classement et le tableau officiel seront recalculés à la publication.</p>
       <div id="poules-root"></div>
+      <div class="reset-bar">
+        <div class="actions">
+          <button type="button" class="btn btn-danger" id="btn-reset-poules">Vider scores poules</button>
+        </div>
+        <p class="hint">Les champs redeviennent vides (pas 0-0). Option pour vider aussi tableau, scores KO et bonus poules.</p>
+      </div>
     </div>
 
     <div id="panel-ko-teams" class="org-panel card">
       <h2>Phase finale — tableau (officiel)</h2>
       <p class="hint">Affrontements réels M73–M104 avant de débloquer l’étape correspondante.</p>
       <div id="match-sections"></div>
+      <div class="reset-bar">
+        <div class="actions">
+          <button type="button" class="btn btn-danger" id="btn-reset-ko-tableau">Vider affrontements tableau</button>
+        </div>
+        <p class="hint">Efface les équipes M73–M104. Option pour vider aussi les scores KO saisis.</p>
+      </div>
     </div>
 
     <div id="panel-ko-scores" class="org-panel card">
       <h2>Phase finale — scores (officiel)</h2>
       <p class="hint">Scores réels M73–M104. En cas d’égalité, indiquez le vainqueur aux tirs au but.</p>
       <div id="ko-scores-root"></div>
+      <div class="reset-bar">
+        <div class="actions">
+          <button type="button" class="btn btn-danger" id="btn-reset-ko-scores-all">Vider tous les scores KO</button>
+        </div>
+        <p class="hint">Par tour : boutons sous chaque section. Les champs vides = match non publié.</p>
+      </div>
     </div>
 
     <div id="panel-bonus" class="org-panel card">
       <h2>Réponses bonus officielles</h2>
       <div id="bonus-root"></div>
+      <div class="reset-bar">
+        <div class="actions">
+          <button type="button" class="btn btn-danger" id="btn-reset-bonus-poules">Vider bonus poules</button>
+          <button type="button" class="btn btn-danger" id="btn-reset-bonus-comp">Vider bonus compétition</button>
+          <button type="button" class="btn btn-danger" id="btn-reset-bonus-all">Vider tout le bonus</button>
+        </div>
+      </div>
     </div>
 
     <div id="panel-profils" class="org-panel card">
@@ -253,6 +322,25 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
   <div class="actions">
     <button type="button" class="btn btn-primary" id="btn-publish-sticky">Publier</button>
     <button type="button" class="btn" id="btn-download-sticky">Télécharger</button>
+  </div>
+</div>
+
+<div id="confirm-overlay" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="confirm-box">
+    <h3 id="confirm-title">Confirmer</h3>
+    <p id="confirm-message"></p>
+    <label class="check-row hidden" id="confirm-cascade-wrap">
+      <input type="checkbox" id="confirm-cascade">
+      <span id="confirm-cascade-text"></span>
+    </label>
+    <div class="typed-row hidden" id="confirm-typed-wrap">
+      <label for="confirm-typed">Tapez <strong>VIDER</strong> pour confirmer</label>
+      <input type="text" id="confirm-typed" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="confirm-actions">
+      <button type="button" class="btn" id="confirm-cancel">Annuler</button>
+      <button type="button" class="btn btn-danger" id="confirm-ok">Confirmer</button>
+    </div>
   </div>
 </div>
 
@@ -349,6 +437,12 @@ const BONUS_FIELDS = [
 let state = null;
 let draftEtape = 0;
 let engineCache = { R32_SIDE: {}, list32: [] };
+let undoSnapshot = null;
+let confirmResolve = null;
+
+const BONUS_POULES_KEYS = ['meilleureAttaque', 'matchs00', 'nationsA9pts', 'nbCSC'];
+const BONUS_COMP_KEYS = ['meilleurButeur', 'meilleurJoueur', 'meilleurGardien', 'nbButs', 'nbCartonsRouges', 'nbProlongations'];
+const RESET_TYPED = 'VIDER';
 
 async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -588,6 +682,260 @@ function syncDerivedFields() {
     troisiemePlaceChoix: third,
     vainqueurFinal: winner,
   };
+}
+
+function updateUndoUI() {
+  const banner = document.getElementById('undo-banner');
+  const label = document.getElementById('undo-label');
+  if (!banner || !label) return;
+  if (undoSnapshot) {
+    label.textContent = undoSnapshot.label;
+    banner.classList.remove('hidden');
+  } else {
+    banner.classList.add('hidden');
+    label.textContent = '—';
+  }
+}
+
+function pushUndo(label) {
+  undoSnapshot = {
+    label,
+    state: JSON.parse(JSON.stringify(state)),
+    draftEtape,
+  };
+  updateUndoUI();
+}
+
+function restoreUndo() {
+  if (!undoSnapshot) return;
+  state = JSON.parse(JSON.stringify(undoSnapshot.state));
+  draftEtape = undoSnapshot.draftEtape;
+  undoSnapshot = null;
+  updateUndoUI();
+  renderAll();
+  showMsg('Dernière action annulée.');
+}
+
+function clearUndo() {
+  undoSnapshot = null;
+  updateUndoUI();
+}
+
+function openConfirmDialog(opts) {
+  return new Promise(resolve => {
+    confirmResolve = resolve;
+    const overlay = document.getElementById('confirm-overlay');
+    const titleEl = document.getElementById('confirm-title');
+    const msgEl = document.getElementById('confirm-message');
+    const cascadeWrap = document.getElementById('confirm-cascade-wrap');
+    const cascadeText = document.getElementById('confirm-cascade-text');
+    const cascadeCb = document.getElementById('confirm-cascade');
+    const typedWrap = document.getElementById('confirm-typed-wrap');
+    const typedInp = document.getElementById('confirm-typed');
+    titleEl.textContent = opts.title || 'Confirmer';
+    msgEl.textContent = opts.message || '';
+    if (opts.cascadeText) {
+      cascadeWrap.classList.remove('hidden');
+      cascadeText.textContent = opts.cascadeText;
+      cascadeCb.checked = !!opts.cascadeDefault;
+    } else {
+      cascadeWrap.classList.add('hidden');
+      cascadeCb.checked = false;
+    }
+    if (opts.requireTyped) {
+      typedWrap.classList.remove('hidden');
+      typedInp.value = '';
+    } else {
+      typedWrap.classList.add('hidden');
+      typedInp.value = '';
+    }
+    overlay.classList.remove('hidden');
+    if (opts.requireTyped) typedInp.focus();
+    else document.getElementById('confirm-ok').focus();
+  });
+}
+
+function closeConfirmDialog(result) {
+  document.getElementById('confirm-overlay').classList.add('hidden');
+  const fn = confirmResolve;
+  confirmResolve = null;
+  if (fn) fn(result);
+}
+
+function clearKoScoreKeys(mid) {
+  const keys = [matchKey(mid), String(mid), 'M' + mid];
+  keys.forEach(k => {
+    delete state.scoresElimination?.[k];
+    delete state.vainqueursTableauElimination?.[k];
+    delete state.vainqueursTableauElimination?.[String(mid)];
+  });
+}
+
+function clearKoScoresRange(min, max) {
+  if (!state.scoresElimination) state.scoresElimination = {};
+  if (!state.vainqueursTableauElimination) state.vainqueursTableauElimination = {};
+  for (let m = min; m <= max; m++) clearKoScoreKeys(m);
+}
+
+function clearDownstreamFromPoules() {
+  state.equipesQualifiees32Liste = [];
+  state.seiziemeParMatchR32 = {};
+  state.phaseFinalePourBareme = {};
+  if (!state.matchsEliminationOfficiels) state.matchsEliminationOfficiels = {};
+  for (let m = 73; m <= 104; m++) {
+    state.matchsEliminationOfficiels[String(m)] = { home: '', away: '' };
+  }
+  state.scoresElimination = {};
+  state.vainqueursTableauElimination = {};
+  BONUS_POULES_KEYS.forEach(k => { delete state.bonus[k]; });
+}
+
+function resetPoulesScores(cascade) {
+  for (const rows of Object.values(GROUPS)) {
+    for (const [num, home, away] of rows) {
+      setPouleScore(num, home, away, '', '');
+    }
+  }
+  if (cascade) clearDownstreamFromPoules();
+  syncDerivedFields();
+}
+
+function resetKoTableau(cascadeScores) {
+  if (!state.matchsEliminationOfficiels) state.matchsEliminationOfficiels = {};
+  for (let m = 73; m <= 104; m++) {
+    state.matchsEliminationOfficiels[String(m)] = { home: '', away: '' };
+  }
+  if (cascadeScores) {
+    state.scoresElimination = {};
+    state.vainqueursTableauElimination = {};
+  }
+  syncDerivedFields();
+}
+
+function resetBonusKeys(keys) {
+  if (!state.bonus) state.bonus = {};
+  keys.forEach(k => { delete state.bonus[k]; });
+}
+
+async function runReset(action) {
+  let confirmed = null;
+  if (action === 'etape-draft') {
+    if (!confirm('Remettre le brouillon d’étape à 0 ?\n\nLes scores saisis ne seront pas effacés. Pensez à publier après modification.')) return;
+    pushUndo('Brouillon étape → 0');
+    draftEtape = 0;
+    renderEtapePicker();
+    showMsg('Brouillon étape remis à 0. Publiez pour appliquer sur le site.');
+    return;
+  }
+  if (action === 'poules') {
+    confirmed = await openConfirmDialog({
+      title: 'Vider les scores poules',
+      message: 'Les 72 scores poules seront effacés (champs vides, pas 0-0). Les joueurs ne verront plus de points poules pour ces matchs après publication.',
+      cascadeText: 'Aussi vider tableau officiel, scores KO et bonus poules (recommandé si vous repartez de zéro)',
+      cascadeDefault: true,
+      requireTyped: true,
+    });
+    if (!confirmed?.ok) return;
+    if (confirmed.typed !== RESET_TYPED) {
+      showMsg('Confirmation incorrecte — tapez VIDER.', true);
+      return;
+    }
+    pushUndo('Scores poules vidés' + (confirmed.cascade ? ' (+ aval)' : ''));
+    resetPoulesScores(confirmed.cascade);
+    renderAll();
+    showMsg('Scores poules vidés.' + (confirmed.cascade ? ' Tableau, KO et bonus poules aussi.' : '') + ' Publiez pour appliquer.');
+    return;
+  }
+  if (action === 'ko-tableau') {
+    confirmed = await openConfirmDialog({
+      title: 'Vider le tableau officiel',
+      message: 'Tous les affrontements M73–M104 seront effacés.',
+      cascadeText: 'Aussi vider les scores KO et vainqueurs TAB',
+      cascadeDefault: true,
+      requireTyped: true,
+    });
+    if (!confirmed?.ok) return;
+    if (confirmed.typed !== RESET_TYPED) {
+      showMsg('Confirmation incorrecte — tapez VIDER.', true);
+      return;
+    }
+    pushUndo('Tableau officiel vidé' + (confirmed.cascade ? ' (+ scores KO)' : ''));
+    resetKoTableau(confirmed.cascade);
+    renderAll();
+    showMsg('Affrontements tableau vidés.' + (confirmed.cascade ? ' Scores KO aussi.' : ''));
+    return;
+  }
+  if (action === 'ko-scores-all') {
+    confirmed = await openConfirmDialog({
+      title: 'Vider tous les scores KO',
+      message: 'Scores M73–M104 et vainqueurs aux TAB effacés. Les affrontements (équipes) restent.',
+      requireTyped: true,
+    });
+    if (!confirmed?.ok) return;
+    if (confirmed.typed !== RESET_TYPED) {
+      showMsg('Confirmation incorrecte — tapez VIDER.', true);
+      return;
+    }
+    pushUndo('Tous scores KO vidés');
+    clearKoScoresRange(73, 104);
+    syncDerivedFields();
+    renderAll();
+    showMsg('Tous les scores KO vidés.');
+    return;
+  }
+  if (action.startsWith('ko-round:')) {
+    const parts = action.split(':');
+    const min = Number(parts[1]);
+    const max = Number(parts[2]);
+    const title = parts.slice(3).join(':');
+    const hasDownstream = max < 104;
+    confirmed = await openConfirmDialog({
+      title: 'Vider ' + title,
+      message: 'Scores M' + min + '–M' + max + ' effacés.',
+      cascadeText: hasDownstream ? 'Aussi vider les tours suivants (M' + (max + 1) + '–M104)' : '',
+      cascadeDefault: hasDownstream,
+    });
+    if (!confirmed?.ok) return;
+    const end = confirmed.cascade && hasDownstream ? 104 : max;
+    pushUndo(title + ' vidé' + (end > max ? ' (+ suivants)' : ''));
+    clearKoScoresRange(min, end);
+    syncDerivedFields();
+    renderKoScores();
+    showMsg(title + ' vidé' + (end > max ? ' et tours suivants.' : '.'));
+    return;
+  }
+  if (action === 'bonus-poules') {
+    if (!confirm('Vider les 4 réponses bonus poules ?')) return;
+    pushUndo('Bonus poules vidés');
+    resetBonusKeys(BONUS_POULES_KEYS);
+    renderBonus();
+    showMsg('Bonus poules vidés.');
+    return;
+  }
+  if (action === 'bonus-comp') {
+    if (!confirm('Vider les 6 réponses bonus compétition ?')) return;
+    pushUndo('Bonus compétition vidés');
+    resetBonusKeys(BONUS_COMP_KEYS);
+    renderBonus();
+    showMsg('Bonus compétition vidés.');
+    return;
+  }
+  if (action === 'bonus-all') {
+    confirmed = await openConfirmDialog({
+      title: 'Vider tout le bonus',
+      message: 'Les 10 réponses bonus officielles seront effacées.',
+      requireTyped: true,
+    });
+    if (!confirmed?.ok) return;
+    if (confirmed.typed !== RESET_TYPED) {
+      showMsg('Confirmation incorrecte — tapez VIDER.', true);
+      return;
+    }
+    pushUndo('Tout le bonus vidé');
+    resetBonusKeys([...BONUS_POULES_KEYS, ...BONUS_COMP_KEYS]);
+    renderBonus();
+    showMsg('Tout le bonus vidé.');
+  }
 }
 
 async function loadState() {
@@ -837,6 +1185,17 @@ function renderKoScores() {
     h.className = 'section-head';
     h.textContent = def.title;
     root.appendChild(h);
+    const resetBar = document.createElement('div');
+    resetBar.className = 'reset-section-bar';
+    const resetBtn = document.createElement('button');
+    resetBtn.type = 'button';
+    resetBtn.className = 'btn btn-danger';
+    resetBtn.textContent = 'Vider ' + def.title.split(' (')[0].toLowerCase();
+    resetBtn.addEventListener('click', () => {
+      runReset('ko-round:' + def.min + ':' + def.max + ':' + def.title);
+    });
+    resetBar.appendChild(resetBtn);
+    root.appendChild(resetBar);
     const grid = document.createElement('div');
     grid.className = 'match-grid';
     for (let m = def.min; m <= def.max; m++) {
@@ -1025,6 +1384,7 @@ async function publishToGitHub() {
     }
     localStorage.setItem('cdm_org_gh_token', token);
     updateTokenStatus();
+    clearUndo();
     showMsg('Publié ! Attendez 1–2 min puis ouvrez le classement ou la grille pour vérifier.');
   } catch (e) {
     showMsg('Erreur : ' + (e.message || e), true);
@@ -1069,6 +1429,7 @@ function showAdmin() {
   document.getElementById('admin-panel').classList.remove('hidden');
   document.getElementById('sticky-bar').classList.remove('hidden');
   renderAll();
+  updateUndoUI();
   updateTokenStatus();
   if (!localStorage.getItem('cdm_org_gh_token')) switchPanel('publish');
 }
@@ -1101,6 +1462,31 @@ document.getElementById('btn-clear-token').addEventListener('click', () => {
 document.getElementById('btn-logout').addEventListener('click', () => {
   clearSession();
   location.reload();
+});
+document.getElementById('btn-undo').addEventListener('click', restoreUndo);
+document.getElementById('btn-reset-etape-draft').addEventListener('click', () => runReset('etape-draft'));
+document.getElementById('btn-reset-poules').addEventListener('click', () => runReset('poules'));
+document.getElementById('btn-reset-ko-tableau').addEventListener('click', () => runReset('ko-tableau'));
+document.getElementById('btn-reset-ko-scores-all').addEventListener('click', () => runReset('ko-scores-all'));
+document.getElementById('btn-reset-bonus-poules').addEventListener('click', () => runReset('bonus-poules'));
+document.getElementById('btn-reset-bonus-comp').addEventListener('click', () => runReset('bonus-comp'));
+document.getElementById('btn-reset-bonus-all').addEventListener('click', () => runReset('bonus-all'));
+document.getElementById('confirm-cancel').addEventListener('click', () => closeConfirmDialog(null));
+document.getElementById('confirm-ok').addEventListener('click', () => {
+  const cascadeWrap = document.getElementById('confirm-cascade-wrap');
+  const typedWrap = document.getElementById('confirm-typed-wrap');
+  closeConfirmDialog({
+    ok: true,
+    cascade: !cascadeWrap.classList.contains('hidden') && document.getElementById('confirm-cascade').checked,
+    typed: typedWrap.classList.contains('hidden') ? '' : document.getElementById('confirm-typed').value.trim(),
+  });
+});
+document.getElementById('confirm-overlay').addEventListener('click', e => {
+  if (e.target.id === 'confirm-overlay') closeConfirmDialog(null);
+});
+document.getElementById('confirm-typed').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('confirm-ok').click();
+  if (e.key === 'Escape') closeConfirmDialog(null);
 });
 document.querySelectorAll('#org-tabs button').forEach(btn => {
   btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
