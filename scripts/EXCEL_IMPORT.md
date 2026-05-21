@@ -31,7 +31,7 @@ python scripts/merge_grilles.py
 
 | Feuille | Contenu |
 |---------|---------|
-| **Poules** | Identité (J2–J4), scores matchs 1–72 (cols J/K) |
+| **Poules** | Identité (K2–K4, repli J ou Grille H), scores matchs 1–72 (cols J/K) |
 | **Phase Finale** | Tableau éliminatoire (cols C, F, I, L, O, R), bonus (T57–T68) |
 | **Grille** | Repli bonus via colonne I (si T vide) |
 

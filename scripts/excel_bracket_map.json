@@ -48,8 +48,11 @@
   },
   "identite": {
     "sheet": "Poules",
-    "nom_complet": "J2",
-    "email": "J3",
-    "equipe": "J4"
+    "nom_complet": "K2",
+    "nom_complet_fallbacks": ["J2", "Grille!H2"],
+    "email": "K3",
+    "email_fallbacks": ["J3", "Grille!H3"],
+    "equipe": "K4",
+    "equipe_fallbacks": ["J4", "Grille!H4"]
   }
 }

@@ -127,6 +127,8 @@ def normalize_team(value) -> str:
 def normalize_bonus(value) -> str:
     if value is None:
         return ""
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
     s = str(value).strip()
     if not s or s in SKIP_VALUES:
         return ""
@@ -148,16 +150,43 @@ def _ident_cell(ident_cfg: dict, key: str, default: str) -> str:
     return raw or default
 
 
-def read_identite(ws_poules, ident_cfg: dict) -> dict:
-    nom_complet = (cell_str(ws_poules, _ident_cell(ident_cfg, "nom_complet", "J2")) or "").strip()
+def _first_nonempty(*values) -> str:
+    for v in values:
+        if v is None:
+            continue
+        s = str(v).strip()
+        if s and s not in SKIP_VALUES:
+            return s
+    return ""
+
+
+def _cell_from_ref(wb_sheets: dict, ref: str):
+    """Lit 'K2' sur Poules ou 'Grille!H2'."""
+    if "!" in ref:
+        sheet, addr = ref.split("!", 1)
+        ws = wb_sheets.get(sheet)
+        return cell_str(ws, addr) if ws else None
+    return cell_str(wb_sheets.get("Poules"), ref)
+
+
+def read_identite(wb_sheets: dict, ident_cfg: dict) -> dict:
+    def pick(key: str, default: str, fallbacks_key: str) -> str:
+        primary = _ident_cell(ident_cfg, key, default)
+        refs = [primary] + list(ident_cfg.get(fallbacks_key) or [])
+        vals = [_cell_from_ref(wb_sheets, r) for r in refs]
+        return _first_nonempty(*vals)
+
+    nom_complet = pick("nom_complet", "K2", "nom_complet_fallbacks")
     parts = nom_complet.split(None, 1) if nom_complet else []
     prenom = parts[0] if parts else ""
     nom = parts[1] if len(parts) > 1 else ""
+    email = pick("email", "K3", "email_fallbacks").lower()
+    equipe = pick("equipe", "K4", "equipe_fallbacks")
     return {
         "prenom": prenom,
         "nom": nom,
-        "email": (cell_str(ws_poules, _ident_cell(ident_cfg, "email", "J3")) or "").strip(),
-        "equipe": (cell_str(ws_poules, _ident_cell(ident_cfg, "equipe", "J4")) or "").strip(),
+        "email": email,
+        "equipe": equipe,
     }
 
 
@@ -285,7 +314,10 @@ def convert(xlsx_path: Path, *, cell_map_path: Path = CELL_MAP, bracket_map_path
     ws_pf = wb["Phase Finale"]
     ws_grille = wb["Grille"]
 
-    identite = read_identite(ws_poules, bracket_map.get("identite") or cell_map.get("identite", {}))
+    identite = read_identite(
+        {"Poules": ws_poules, "Grille": ws_grille},
+        bracket_map.get("identite") or cell_map.get("identite", {}),
+    )
     matchs = read_poules_matches(ws_poules, cell_map.get("poules_matches") or [])
     etape2, bareme, etape2_pick, vainqueurs = read_bracket(ws_pf, bracket_map)
     bonus = read_bonus(ws_pf, ws_grille, bracket_map.get("bonus") or {})
