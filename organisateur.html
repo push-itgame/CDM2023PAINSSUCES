@@ -208,10 +208,10 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
 
     <div id="panel-profils" class="org-panel card">
       <h2>Grilles Supabase</h2>
-      <p class="hint">Profils envoyés via le site (table <code>grilles</code> Supabase). Les anciens profils fichier <code>participants.json</code> ont été retirés.</p>
+      <p class="hint">Grilles Supabase complètes (72 poules + phase finale tableau + scores KO + bonus). Trois stratégies : <strong>Cursor Agent</strong> (Argentine), <strong>Sophie</strong> (Espagne), <strong>Lucas</strong> (Brésil).</p>
       <div class="actions">
         <button type="button" class="btn" id="btn-refresh-profils">Actualiser</button>
-        <button type="button" class="btn btn-primary" id="btn-seed-demos">Créer 3 profils démo Supabase</button>
+        <button type="button" class="btn btn-primary" id="btn-seed-demos">Créer / mettre à jour 3 profils démo</button>
       </div>
       <div id="profils-root" class="profil-list"></div>
       <p class="err" id="profils-err" hidden></p>
@@ -716,10 +716,10 @@ async function seedDemoProfils() {
     errEl.hidden = false;
     return;
   }
-  if (!confirm('Créer / mettre à jour 3 grilles démo dans Supabase (Sophie, Lucas, Emma) ?')) return;
+  if (!confirm('Créer / mettre à jour les 3 grilles démo complètes (Cursor, Sophie, Lucas) dans Supabase ?')) return;
   try {
-    const emails = await CDM_SEED_DEMOS.seedDemoGrilles();
-    showMsg('Profils démo créés : ' + emails.join(', '));
+    const rows = await CDM_SEED_DEMOS.seedDemoGrilles();
+    showMsg('Profils démo OK : ' + rows.map(r => r.label + ' (' + r.email + ')').join(' · '));
     await renderProfils();
   } catch (e) {
     errEl.textContent = 'Seed impossible : ' + (e.message || e);
