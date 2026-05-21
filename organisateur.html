@@ -169,8 +169,8 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
     <nav class="org-tabs" id="org-tabs">
       <button type="button" data-panel="etape" class="active">Étape</button>
       <button type="button" data-panel="poules">Poules</button>
-      <button type="button" data-panel="ko-teams">KO équipes</button>
-      <button type="button" data-panel="ko-scores">KO scores</button>
+      <button type="button" data-panel="ko-teams">Phase finale — tableau</button>
+      <button type="button" data-panel="ko-scores">Phase finale — scores</button>
       <button type="button" data-panel="bonus">Bonus</button>
       <button type="button" data-panel="profils">Profils</button>
       <button type="button" data-panel="publish">Publier</button>
@@ -190,14 +190,14 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
     </div>
 
     <div id="panel-ko-teams" class="org-panel card">
-      <h2>Affrontements officiels KO</h2>
-      <p class="hint">Équipes réelles avant de débloquer l'étape correspondante.</p>
+      <h2>Phase finale — tableau (officiel)</h2>
+      <p class="hint">Affrontements réels M73–M104 avant de débloquer l’étape correspondante.</p>
       <div id="match-sections"></div>
     </div>
 
     <div id="panel-ko-scores" class="org-panel card">
-      <h2>Scores KO officiels</h2>
-      <p class="hint">M73–M104. En cas d'égalité, indiquez le vainqueur aux tirs au but.</p>
+      <h2>Phase finale — scores (officiel)</h2>
+      <p class="hint">Scores réels M73–M104. En cas d’égalité, indiquez le vainqueur aux tirs au but.</p>
       <div id="ko-scores-root"></div>
     </div>
 
@@ -208,9 +208,10 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
 
     <div id="panel-profils" class="org-panel card">
       <h2>Grilles Supabase</h2>
-      <p class="hint">Profils envoyés via le site (table <code>grilles</code>). La suppression est définitive — le joueur devra renvoyer sa grille.</p>
+      <p class="hint">Profils envoyés via le site (table <code>grilles</code> Supabase). Les anciens profils fichier <code>participants.json</code> ont été retirés.</p>
       <div class="actions">
         <button type="button" class="btn" id="btn-refresh-profils">Actualiser</button>
+        <button type="button" class="btn btn-primary" id="btn-seed-demos">Créer 3 profils démo Supabase</button>
       </div>
       <div id="profils-root" class="profil-list"></div>
       <p class="err" id="profils-err" hidden></p>
@@ -257,6 +258,7 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
 
 <script src="js/config.js"></script>
 <script src="js/supabase-api.js"></script>
+<script src="js/seed-demo-grilles.js"></script>
 <script>
 const ORG_PIN_HASH = 'b5fba5acc2c2dfaf6003166625a8de638260a920e1143d7eba941aa8ca259b7d';
 const ORG_SESSION_DAYS = 30;
@@ -706,6 +708,25 @@ async function deleteProfil(email) {
   }
 }
 
+async function seedDemoProfils() {
+  const errEl = document.getElementById('profils-err');
+  errEl.hidden = true;
+  if (!window.CDM_SEED_DEMOS?.seedDemoGrilles) {
+    errEl.textContent = 'Module seed-demo-grilles.js indisponible.';
+    errEl.hidden = false;
+    return;
+  }
+  if (!confirm('Créer / mettre à jour 3 grilles démo dans Supabase (Sophie, Lucas, Emma) ?')) return;
+  try {
+    const emails = await CDM_SEED_DEMOS.seedDemoGrilles();
+    showMsg('Profils démo créés : ' + emails.join(', '));
+    await renderProfils();
+  } catch (e) {
+    errEl.textContent = 'Seed impossible : ' + (e.message || e);
+    errEl.hidden = false;
+  }
+}
+
 function escapeHtml(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -1062,6 +1083,7 @@ document.getElementById('btn-publish-sticky').addEventListener('click', publishT
 document.getElementById('btn-preview').addEventListener('click', applyPreview);
 document.getElementById('btn-clear-preview').addEventListener('click', clearPreview);
 document.getElementById('btn-refresh-profils').addEventListener('click', renderProfils);
+document.getElementById('btn-seed-demos').addEventListener('click', seedDemoProfils);
 document.getElementById('btn-save-token').addEventListener('click', () => {
   const t = document.getElementById('gh-token').value.trim();
   if (t) {

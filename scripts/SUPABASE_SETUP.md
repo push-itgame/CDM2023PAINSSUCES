@@ -65,7 +65,9 @@ npx supabase functions deploy admin-grilles
 
 > `ORGANIZER_PIN_HASH` = SHA-256 du code organisateur (même valeur que dans `organisateur.html`).
 
-2. Sur le site : `organisateur.html` → PIN → onglet **Profils** → **Supprimer**.
+2. Sur le site : `organisateur.html` → PIN → onglet **Profils** → **Supprimer** ou **Créer 3 profils démo Supabase**.
+
+Les profils fichier `data/participants.json` ne sont plus utilisés (table vide). Les démos passent uniquement par Supabase.
 
 La suppression passe par la service role (jamais exposée au navigateur). Pas de policy DELETE publique sur la table.
 
