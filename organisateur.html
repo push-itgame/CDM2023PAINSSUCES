@@ -1324,6 +1324,7 @@ function renderBonus() {
 
 function buildExportJson() {
   syncDerivedFields();
+  ['meilleurButeur', 'meilleurJoueur', 'meilleurGardien'].forEach(k => commitOrgBonusField(k));
   state.etapeDebloquee = draftEtape;
   state.meta = state.meta || {};
   state.meta.misAJour = new Date().toISOString().slice(0, 10);

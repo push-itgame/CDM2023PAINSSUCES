@@ -240,6 +240,9 @@
     const r = String(resultats.bonus?.[key] ?? '').trim();
     const p = String(predVal ?? '').trim();
     if (!p || !r) return { status: 'miss', pts: 0 };
+    if (normalizeTeam(p) === 'autre' || normalizeTeam(r) === 'autre') {
+      return { status: 'miss', pts: 0 };
+    }
     if (key === 'nbButs') {
       const pn = parseIntSafe(p), rn = parseIntSafe(r);
       if (pn != null && rn != null && Math.abs(pn - rn) <= BONUS_NUMERIC_TOLERANCE) {
