@@ -1628,6 +1628,21 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   color: #1a1a22;
 }
 .bonus-answer:focus { border-color: var(--gold); }
+.bonus-q-picker { flex-wrap: wrap; align-items: center; }
+.bonus-other-input {
+  flex: 1 1 100%;
+  min-width: 12rem;
+  margin-top: .35rem;
+  padding: .55rem .65rem;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: .88rem;
+}
+.bonus-other-input:focus { border-color: var(--gold); outline: none; }
+.bonus-other-input.hidden { display: none !important; }
 
 /* ───── RULES ───── */
 .rules-content { font-size: .88rem; line-height: 1.7; color: var(--text); }
@@ -2074,20 +2089,23 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 
   <div class="bonus-card">
     <h3>🌍 Intégralité de la Compétition</h3>
-    <div class="bonus-q">
+    <div class="bonus-q bonus-q-picker">
       <label>Qui terminera meilleur buteur de la compétition ?</label>
       <span class="pts">25 pts</span>
       <select class="bonus-answer" id="b5"><option value="">— Choisir —</option></select>
+      <input type="text" class="bonus-other-input hidden" id="b5-other" maxlength="80" placeholder="Précisez le nom du joueur" autocomplete="off">
     </div>
-    <div class="bonus-q">
+    <div class="bonus-q bonus-q-picker">
       <label>Qui sera désigné meilleur joueur de la compétition ?</label>
       <span class="pts">25 pts</span>
       <select class="bonus-answer" id="b6"><option value="">— Choisir —</option></select>
+      <input type="text" class="bonus-other-input hidden" id="b6-other" maxlength="80" placeholder="Précisez le nom du joueur" autocomplete="off">
     </div>
-    <div class="bonus-q">
+    <div class="bonus-q bonus-q-picker">
       <label>Qui sera désigné meilleur gardien de la compétition ?</label>
       <span class="pts">25 pts</span>
       <select class="bonus-answer" id="b7"><option value="">— Choisir —</option></select>
+      <input type="text" class="bonus-other-input hidden" id="b7-other" maxlength="80" placeholder="Précisez le nom du gardien" autocomplete="off">
     </div>
     <div class="bonus-q">
       <label>Combien de buts seront marqués ? (±3 buts, prolongations incluses)</label>
@@ -2259,6 +2277,65 @@ let scoreSheetTarget = null;
 
 let OFFICIAL = { etapeDebloquee: 0, matchsEliminationOfficiels: {} };
 const ORG_PIN_HASH = 'b5fba5acc2c2dfaf6003166625a8de638260a920e1143d7eba941aa8ca259b7d';
+const BONUS_OTHER_CHOICE = 'Autre';
+const BONUS_PICKER_IDS = ['b5', 'b6', 'b7'];
+
+function bonusCatalogForId(id) {
+  if (id === 'b5' || id === 'b6') return SCORERS;
+  if (id === 'b7') return GOALKEEPERS;
+  return [];
+}
+
+function getBonusStoredValue(id) {
+  const sel = document.getElementById(id);
+  if (!sel) return '';
+  if (sel.value === BONUS_OTHER_CHOICE) {
+    return (document.getElementById(id + '-other')?.value || '').trim();
+  }
+  return (sel.value || '').trim();
+}
+
+function setBonusFieldFromStored(id, storedVal) {
+  const sel = document.getElementById(id);
+  const other = document.getElementById(id + '-other');
+  if (!sel) return;
+  const v = String(storedVal || '').trim();
+  const list = bonusCatalogForId(id).filter(x => x !== BONUS_OTHER_CHOICE);
+  if (!v) {
+    sel.value = '';
+    if (other) { other.value = ''; other.classList.add('hidden'); }
+    return;
+  }
+  if (list.includes(v)) {
+    sel.value = v;
+    if (other) { other.value = ''; other.classList.add('hidden'); }
+  } else {
+    sel.value = BONUS_OTHER_CHOICE;
+    if (other) { other.value = v; other.classList.remove('hidden'); }
+  }
+}
+
+function syncBonusOtherVisibility(id) {
+  const sel = document.getElementById(id);
+  const other = document.getElementById(id + '-other');
+  if (!sel || !other) return;
+  const show = sel.value === BONUS_OTHER_CHOICE;
+  other.classList.toggle('hidden', !show);
+  other.disabled = !!sel.disabled;
+  if (!show) other.value = '';
+}
+
+function wireBonusOtherPickers() {
+  BONUS_PICKER_IDS.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.addEventListener('change', () => {
+      syncBonusOtherVisibility(id);
+      saveState();
+    });
+    document.getElementById(id + '-other')?.addEventListener('input', saveState);
+  });
+}
 const ETAPE2_DEADLINE = new Date('2026-06-11T23:59:59');
 const ETAPE_KO = [
   { n: 3, title: 'Étape 3 — Seizièmes de finale (16 matchs)', deadline: '28/06/2026', min: 73, max: 88 },
@@ -2903,7 +2980,7 @@ function syncStageLockUI() {
   const et2LockNote = document.getElementById('etape2-lock-banner');
   if (et2LockNote) et2LockNote.hidden = !et2Locked;
 
-  document.querySelectorAll('#tab-bonus .bonus-answer').forEach(el => {
+  document.querySelectorAll('#tab-bonus .bonus-answer, #tab-bonus .bonus-other-input').forEach(el => {
     el.disabled = bonusLocked;
   });
   const bonusLock = document.getElementById('bonus-lock-banner');
@@ -3241,8 +3318,9 @@ function renderBracketLadderPretty() {
 function countBonusFilled() {
   let n = 0;
   for (let i = 1; i <= 10; i++) {
-    const el = document.getElementById('b' + i);
-    if (el && String(el.value ?? '').trim() !== '') n++;
+    const id = 'b' + i;
+    const val = BONUS_PICKER_IDS.includes(id) ? getBonusStoredValue(id) : (document.getElementById(id)?.value || '').trim();
+    if (val !== '') n++;
   }
   return n;
 }
@@ -3486,7 +3564,8 @@ function applyPronosticFeedback() {
     ptsEl.classList.remove('pred-hit');
     const def = S.BONUS_DEFS.find(b => b.id === inp.id);
     if (!def) return;
-    const ev = S.evalBonusItem(def.key, inp.value, OFFICIAL);
+    const predVal = BONUS_PICKER_IDS.includes(inp.id) ? getBonusStoredValue(inp.id) : inp.value;
+    const ev = S.evalBonusItem(def.key, predVal, OFFICIAL);
     if (ev.status === 'hit') ptsEl.classList.add('pred-hit');
   });
 
@@ -3963,9 +4042,9 @@ function saveState() {
       b2: document.getElementById('b2')?.value || '',
       b3: document.getElementById('b3')?.value || '',
       b4: document.getElementById('b4')?.value || '',
-      b5: document.getElementById('b5')?.value || '',
-      b6: document.getElementById('b6')?.value || '',
-      b7: document.getElementById('b7')?.value || '',
+      b5: getBonusStoredValue('b5'),
+      b6: getBonusStoredValue('b6'),
+      b7: getBonusStoredValue('b7'),
       b8: document.getElementById('b8')?.value || '',
       b9: document.getElementById('b9')?.value || '',
       b10: document.getElementById('b10')?.value || '',
@@ -4018,6 +4097,10 @@ function loadState() {
       });
     }
     Object.entries(state.bonus || {}).forEach(([k, v]) => {
+      if (BONUS_PICKER_IDS.includes(k)) {
+        setBonusFieldFromStored(k, v);
+        return;
+      }
       const el = document.getElementById(k);
       if (el && v !== '') el.value = v;
     });
@@ -4086,9 +4169,9 @@ function buildGrillePayload() {
       matchs00: document.getElementById('b2').value,
       nationsA9pts: document.getElementById('b3').value,
       nbCSC: document.getElementById('b4').value,
-      meilleurButeur: document.getElementById('b5').value,
-      meilleurJoueur: document.getElementById('b6').value,
-      meilleurGardien: document.getElementById('b7').value,
+      meilleurButeur: getBonusStoredValue('b5'),
+      meilleurJoueur: getBonusStoredValue('b6'),
+      meilleurGardien: getBonusStoredValue('b7'),
       nbButs: document.getElementById('b8').value,
       nbCartonsRouges: document.getElementById('b9').value,
       nbProlongations: document.getElementById('b10').value,
@@ -4167,8 +4250,10 @@ async function submitGrille() {
 // ─── INIT ────────────────────────────────────────────────────────────────────
 buildGroups();
 populateSelects();
+wireBonusOtherPickers();
 initScoreSheet();
 loadState();
+BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
 wireAutoSave();
 updateProgress();
 if (location.hash) {

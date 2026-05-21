@@ -88,6 +88,11 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
 .bonus-row { display: grid; gap: .35rem; padding: .65rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .bonus-row:last-child { border-bottom: none; }
 .bonus-row label { margin: 0; font-size: .8rem; color: var(--text); }
+.bonus-other-input {
+  width: 100%; margin-top: .35rem; padding: .5rem .6rem; border-radius: 4px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; font-size: .88rem;
+}
+.bonus-other-input.hidden { display: none !important; }
 .sticky-bar {
   position: sticky; bottom: 0; left: 0; right: 0; padding: .75rem 1rem;
   background: rgba(10,10,15,0.95); border-top: 1px solid var(--border);
@@ -439,6 +444,33 @@ let draftEtape = 0;
 let engineCache = { R32_SIDE: {}, list32: [] };
 let undoSnapshot = null;
 let confirmResolve = null;
+
+const BONUS_OTHER_CHOICE = 'Autre';
+
+function bonusCatalogForField(type) {
+  return type === 'keepers' ? GOALKEEPERS : SCORERS;
+}
+
+function resolvedOrgBonusValue(key) {
+  const sel = document.querySelector(`select[data-bonus="${key}"]`);
+  const other = document.querySelector(`input[data-bonus-other="${key}"]`);
+  if (!sel) return state.bonus[key] || '';
+  if (sel.value === BONUS_OTHER_CHOICE) return (other?.value || '').trim();
+  return (sel.value || '').trim();
+}
+
+function syncOrgBonusOther(key) {
+  const sel = document.querySelector(`select[data-bonus="${key}"]`);
+  const other = document.querySelector(`input[data-bonus-other="${key}"]`);
+  if (!sel || !other) return;
+  const show = sel.value === BONUS_OTHER_CHOICE;
+  other.classList.toggle('hidden', !show);
+  if (!show) other.value = '';
+}
+
+function commitOrgBonusField(key) {
+  state.bonus[key] = resolvedOrgBonusValue(key);
+}
 
 const BONUS_POULES_KEYS = ['meilleureAttaque', 'matchs00', 'nationsA9pts', 'nbCSC'];
 const BONUS_COMP_KEYS = ['meilleurButeur', 'meilleurJoueur', 'meilleurGardien', 'nbButs', 'nbCartonsRouges', 'nbProlongations'];
@@ -1259,14 +1291,17 @@ function renderBonus() {
   BONUS_FIELDS.forEach(f => {
     const row = document.createElement('div');
     row.className = 'bonus-row';
-    const val = state.bonus[f.key] || '';
+    const val = (state.bonus[f.key] || '').trim();
     let input = '';
     if (f.type === 'nations') {
       input = `<select data-bonus="${f.key}"><option value="">— Choisir —</option>${NATIONS.map(n => `<option value="${escapeAttr(n)}"${val === n ? ' selected' : ''}>${escapeAttr(n)}</option>`).join('')}</select>`;
-    } else if (f.type === 'scorers') {
-      input = `<select data-bonus="${f.key}"><option value="">— Choisir —</option>${SCORERS.map(n => `<option value="${escapeAttr(n)}"${val === n ? ' selected' : ''}>${escapeAttr(n)}</option>`).join('')}</select>`;
-    } else if (f.type === 'keepers') {
-      input = `<select data-bonus="${f.key}"><option value="">— Choisir —</option>${GOALKEEPERS.map(n => `<option value="${escapeAttr(n)}"${val === n ? ' selected' : ''}>${escapeAttr(n)}</option>`).join('')}</select>`;
+    } else if (f.type === 'scorers' || f.type === 'keepers') {
+      const catalog = bonusCatalogForField(f.type).filter(n => n !== BONUS_OTHER_CHOICE);
+      const inList = catalog.includes(val);
+      const selVal = inList ? val : (val ? BONUS_OTHER_CHOICE : '');
+      const opts = bonusCatalogForField(f.type).map(n => `<option value="${escapeAttr(n)}"${selVal === n ? ' selected' : ''}>${escapeAttr(n)}</option>`).join('');
+      input = `<select data-bonus="${f.key}"><option value="">— Choisir —</option>${opts}</select>`
+        + `<input type="text" class="bonus-other-input${inList || !val ? ' hidden' : ''}" data-bonus-other="${f.key}" maxlength="80" placeholder="Précisez le nom" value="${escapeAttr(inList ? '' : val)}">`;
     } else {
       input = `<input type="number" data-bonus="${f.key}" min="0" max="${f.max || 999}" value="${escapeAttr(val)}">`;
     }
@@ -1275,11 +1310,15 @@ function renderBonus() {
   });
   root.querySelectorAll('[data-bonus]').forEach(el => {
     el.addEventListener('change', () => {
-      state.bonus[el.dataset.bonus] = el.value;
+      if (el.tagName === 'SELECT' && el.dataset.bonus) syncOrgBonusOther(el.dataset.bonus);
+      commitOrgBonusField(el.dataset.bonus);
     });
     el.addEventListener('input', () => {
-      state.bonus[el.dataset.bonus] = el.value;
+      commitOrgBonusField(el.dataset.bonus);
     });
+  });
+  root.querySelectorAll('[data-bonus-other]').forEach(el => {
+    el.addEventListener('input', () => commitOrgBonusField(el.dataset.bonusOther));
   });
 }
 
