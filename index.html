@@ -2206,7 +2206,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 
 <script src="js/config.js"></script>
 <script src="js/supabase-api.js"></script>
-<script src="js/scoring.js"></script>
+<script src="js/scoring.js?v=3"></script>
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const NATIONS = [
@@ -2845,16 +2845,16 @@ function syncScoreToDom(id) {
   if (el && scoreValues[id] !== undefined) el.value = scoreValues[id];
 }
 
-function isEtape2Locked() {
-  return effectiveEtapeDebloquee() >= 3 || new Date() > ETAPE2_DEADLINE;
+function isPoulesLocked() {
+  return effectiveEtapeDebloquee() >= 1 || new Date() > ETAPE2_DEADLINE;
 }
 
-function isPoulesLocked() {
-  return isEtape2Locked();
+function isEtape2Locked() {
+  return effectiveEtapeDebloquee() >= 2 || new Date() > ETAPE2_DEADLINE;
 }
 
 function isBonusLocked() {
-  return isPoulesLocked();
+  return effectiveEtapeDebloquee() >= 2 || new Date() > ETAPE2_DEADLINE;
 }
 
 function isOrganizerSessionActive() {
@@ -3459,8 +3459,10 @@ function applyPronosticFeedback() {
   document.querySelectorAll('.match-card[data-match]').forEach(card => {
     card.classList.remove('pred-hit');
     card.querySelector('.pred-pts-badge')?.remove();
-    if (!S.poulesOfficialComplete(OFFICIAL)) return;
+    if (effectiveEtapeDebloquee() < 1) return;
     const num = card.dataset.match;
+    const offM = OFFICIAL.matchs?.['Match ' + num];
+    if (!offM || S.parseIntSafe(offM.scoreHome) == null) return;
     const h = getScoreRaw('m' + num + '-h');
     const a = getScoreRaw('m' + num + '-a');
     if (h === '' || a === '') return;

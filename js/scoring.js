@@ -5,6 +5,8 @@
 (function (global) {
   const BONUS_NUMERIC_TOLERANCE = 3;
   const BONUS_COMPETITION_ETAPE = 7;
+  const POULES_ETAPE = 1;
+  const TABLEAU_ETAPE = 2;
   const KO_MATCH_MIN = 73;
   const KO_MATCH_MAX = 104;
 
@@ -100,8 +102,8 @@
   }
 
   function isColumnVisible(col, etape) {
-    if (col === 'poules') return true;
-    if (col === 'tableauE2') return etape >= 2;
+    if (col === 'poules') return etape >= POULES_ETAPE;
+    if (col === 'tableauE2') return etape >= TABLEAU_ETAPE;
     if (col === 'finales') return etape >= 3;
     if (col === 'bonus') return etape >= 2;
     if (col === 'bonusCompetition') return etape >= BONUS_COMPETITION_ETAPE;
@@ -264,7 +266,9 @@
     };
   }
 
-  function scoreGroupMatches(predMatchs, realMatchs) {
+  function scoreGroupMatches(predMatchs, realMatchs, etapeOverride, resultats) {
+    const etape = resultats ? getEtape(resultats, etapeOverride) : (etapeOverride ?? 0);
+    if (etape < POULES_ETAPE) return 0;
     let pts = 0;
     for (const [key, real] of Object.entries(realMatchs || {})) {
       const d = scorePouleMatchDetail((predMatchs || {})[key], real);
@@ -285,7 +289,7 @@
 
   function scoreParticipant(participant, resultats, etapeOverride) {
     const etape = getEtape(resultats, etapeOverride);
-    const poules = scoreGroupMatches(participant.matchs, resultats.matchs);
+    const poules = scoreGroupMatches(participant.matchs, resultats.matchs, etape, resultats);
     const tableauE2 = scoreTableauOnly(participant, resultats, etape);
     const finales = scoreEliminationKO(participant, resultats, etape);
     const bonus = scoreBonusAll(getParticipantBonus(participant), resultats, etape);
@@ -299,6 +303,7 @@
       total,
       etape,
       visible: {
+        poules: isColumnVisible('poules', etape),
         tableauE2: isColumnVisible('tableauE2', etape),
         finales: isColumnVisible('finales', etape),
         bonus: isColumnVisible('bonus', etape),
@@ -396,6 +401,8 @@
   global.CDM_SCORING = {
     BONUS_DEFS,
     BONUS_COMPETITION_ETAPE,
+    POULES_ETAPE,
+    TABLEAU_ETAPE,
     TABLEAU_ROUNDS,
     TABLEAU_ROUND_UNLOCK,
     KO_ETAPE_DEFS,

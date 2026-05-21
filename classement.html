@@ -399,12 +399,13 @@ table.lb tr.lb-row-me .rank { color: var(--gold-light); }
 </main>
 <script src="js/config.js"></script>
 <script src="js/supabase-api.js"></script>
-<script src="js/scoring.js"></script>
+<script src="js/scoring.js?v=3"></script>
 <script src="js/live-scores.js"></script>
 <script>
 const LS_EMAIL_KEY = 'cdm2026_email';
 let highlightEmail = '';
-const { scoreParticipant, normalizeTeam, formatScoreCell } = CDM_SCORING;
+const formatScoreCell = CDM_SCORING.formatScoreCell || ((v, vis) => (vis ? v : '—'));
+const { scoreParticipant, normalizeTeam } = CDM_SCORING;
 
 function renderTable(rows, etape) {
   if (!rows.length) {
@@ -420,7 +421,7 @@ function renderTable(rows, etape) {
     <tr class="${isMe ? 'lb-row-me' : ''}">
       <td class="rank">${i + 1}</td>
       <td><div class="name">${escapeHtml(r.label)}${isMe ? ' <span style="color:var(--gold);font-size:.75rem">← vous</span>' : ''}</div><div class="sub">${escapeHtml(r.sub || '')}</div></td>
-      <td class="pts">${r.poules}</td>
+      <td class="pts${r.visible?.poules ? '' : ' pts-muted'}">${formatScoreCell(r.poules, r.visible?.poules)}</td>
       <td class="pts${r.visible?.tableauE2 ? '' : ' pts-muted'}">${formatScoreCell(r.tableauE2, r.visible?.tableauE2 !== false)}</td>
       <td class="pts${r.visible?.finales ? '' : ' pts-muted'}">${formatScoreCell(r.finales, r.visible?.finales)}</td>
       <td class="pts${r.visible?.bonusCompetition ? '' : ' pts-muted'}">${formatScoreCell(r.bonus, r.visible?.bonus)}</td>
@@ -459,7 +460,7 @@ function renderMyScoreSummary(rows) {
     : '';
   el.innerHTML = `
     <span class="rank-big">#${idx + 1}</span>
-    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${r.poules} · Ph. fin. tab. ${formatScoreCell(r.tableauE2, r.visible?.tableauE2 !== false)} · Ph. fin. scores ${formatScoreCell(r.finales, r.visible?.finales)} · Bonus ${formatScoreCell(r.bonus, r.visible?.bonus)}</span></span>
+    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${formatScoreCell(r.poules, r.visible?.poules)} · Ph. fin. tab. ${formatScoreCell(r.tableauE2, r.visible?.tableauE2)} · Ph. fin. scores ${formatScoreCell(r.finales, r.visible?.finales)} · Bonus ${formatScoreCell(r.bonus, r.visible?.bonus)}</span></span>
     <span class="pts-big">${r.total} pts</span>
     ${detailLink}`;
   el.hidden = false;
@@ -522,11 +523,8 @@ async function refresh() {
     }).sort((a, b) => b.total - a.total || a.label.localeCompare(b.label, 'fr'));
 
     const maj = resultats.meta?.misAJour || 'non renseignée';
-    const src = window.CDM_SUPABASE?.isConfigured?.()
-      ? 'grilles Supabase + archive GitHub'
-      : 'participants.json';
     metaEl.innerHTML = 'Étape officielle : <strong>' + etape + '</strong> · Dernière MAJ : <strong>' + escapeHtml(maj) + '</strong> — '
-      + participants.length + ' participant(s) (' + escapeHtml(src) + '). Score progressif (bonus compétition à l’étape 7).';
+      + participants.length + ' participant(s). Score progressif (0 = rien · 1 = poules · 2 = tableau · 7 = bonus compétition).';
     content.innerHTML = renderTable(rows, etape);
     renderMyScoreSummary(rows);
   } catch (e) {

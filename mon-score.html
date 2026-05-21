@@ -193,7 +193,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 </main>
 <script src="js/config.js"></script>
 <script src="js/supabase-api.js"></script>
-<script src="js/scoring.js"></script>
+<script src="js/scoring.js?v=3"></script>
 <script>
 const GROUPS = {
   "Groupe A": [[1,"Mexique","Afrique du Sud"],[2,"Corée du Sud","Rép. Tchèque"],[25,"Rép. Tchèque","Afrique du Sud"],[28,"Mexique","Corée du Sud"],[53,"Rép. Tchèque","Mexique"],[54,"Afrique du Sud","Corée du Sud"]],
@@ -364,10 +364,10 @@ function renderParticipant(participant, resultats) {
     <div class="summary">
       <h2>${escapeHtml(label)}</h2>
       <div class="sub">${escapeHtml(id.equipe || id.email || '')}</div>
-      <p class="etape-note">Étape officielle ${sc.etape} — score progressif (bonus compétition à l’étape 7).</p>
+      <p class="etape-note">Étape officielle ${sc.etape} — 0 = rien · 1 = poules · 2 = tableau · 7 = bonus compétition.</p>
       <div class="summary-grid">
-        <div><span>Poules</span>${fmtCell(sc.poules, true)}</div>
-        <div><span>Ph. fin. tableau</span>${fmtCell(sc.tableauE2, v.tableauE2 !== false)}</div>
+        <div><span>Poules</span>${fmtCell(sc.poules, v.poules)}</div>
+        <div><span>Ph. fin. tableau</span>${fmtCell(sc.tableauE2, v.tableauE2)}</div>
         <div><span>Ph. fin. scores</span>${fmtCell(sc.finales, v.finales)}</div>
         <div><span>Bonus</span>${fmtCell(sc.bonus, v.bonus)}</div>
         <div><span>Total</span><strong>${sc.total}</strong></div>
