@@ -231,6 +231,7 @@ table.lb th.col-detail, table.lb td.col-detail { width: 4.75rem; text-align: cen
 .name { font-weight: 600; }
 .sub { font-size: .78rem; color: var(--muted); }
 .pts { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--gold); }
+.pts-muted { color: var(--muted) !important; opacity: .65; font-weight: 500; }
 .total { font-size: 1rem; }
 .err { color: #E74C3C; margin-top: 1rem; font-size: .85rem; }
 .my-score-card {
@@ -389,7 +390,7 @@ table.lb tr.lb-row-me .rank { color: var(--gold-light); }
       <button type="button" id="btnMyEmail">Afficher mon score</button>
     </div>
     <div id="myScoreSummary" class="my-score-summary" hidden></div>
-    <p class="my-score-hint">Même e-mail que sur la grille. Enregistré localement sur cet appareil.</p>
+    <p class="my-score-hint">Entrez votre <strong>e-mail</strong> (pas votre prénom). Même e-mail que sur la grille.</p>
   </div>
 
   <p class="meta" id="metaLine">Chargement…</p>
@@ -403,9 +404,9 @@ table.lb tr.lb-row-me .rank { color: var(--gold-light); }
 <script>
 const LS_EMAIL_KEY = 'cdm2026_email';
 let highlightEmail = '';
-const { scoreParticipant, normalizeTeam } = CDM_SCORING;
+const { scoreParticipant, normalizeTeam, formatScoreCell } = CDM_SCORING;
 
-function renderTable(rows) {
+function renderTable(rows, etape) {
   if (!rows.length) {
     return '<div class="empty"><p>Aucun participant pour le moment.</p><p style="margin-top:.75rem">Les joueurs envoient leur grille depuis l’onglet <strong>📤 Envoyer</strong>.</p></div>';
   }
@@ -420,9 +421,9 @@ function renderTable(rows) {
       <td class="rank">${i + 1}</td>
       <td><div class="name">${escapeHtml(r.label)}${isMe ? ' <span style="color:var(--gold);font-size:.75rem">← vous</span>' : ''}</div><div class="sub">${escapeHtml(r.sub || '')}</div></td>
       <td class="pts">${r.poules}</td>
-      <td class="pts">${r.tableauE2}</td>
-      <td class="pts">${r.finales}</td>
-      <td class="pts">${r.bonus}</td>
+      <td class="pts${r.visible?.tableauE2 ? '' : ' pts-muted'}">${formatScoreCell(r.tableauE2, r.visible?.tableauE2 !== false)}</td>
+      <td class="pts${r.visible?.finales ? '' : ' pts-muted'}">${formatScoreCell(r.finales, r.visible?.finales)}</td>
+      <td class="pts${r.visible?.bonusCompetition ? '' : ' pts-muted'}">${formatScoreCell(r.bonus, r.visible?.bonus)}</td>
       <td class="pts total">${r.total}</td>
       <td class="col-detail">${detail}</td>
     </tr>`;
@@ -458,7 +459,7 @@ function renderMyScoreSummary(rows) {
     : '';
   el.innerHTML = `
     <span class="rank-big">#${idx + 1}</span>
-    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${r.poules} · Ph. fin. tab. ${r.tableauE2} · Ph. fin. scores ${r.finales} · Bonus ${r.bonus}</span></span>
+    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${r.poules} · Ph. fin. tab. ${formatScoreCell(r.tableauE2, r.visible?.tableauE2 !== false)} · Ph. fin. scores ${formatScoreCell(r.finales, r.visible?.finales)} · Bonus ${formatScoreCell(r.bonus, r.visible?.bonus)}</span></span>
     <span class="pts-big">${r.total} pts</span>
     ${detailLink}`;
   el.hidden = false;
@@ -510,6 +511,7 @@ async function refresh() {
       loadParticipants(),
       loadJson('data/resultats.json'),
     ]);
+    const etape = resultats.etapeDebloquee || 0;
     const rows = participants.map(p => {
       const id = p.identite || {};
       const label = [id.prenom, id.nom].filter(Boolean).join(' ') || 'Anonyme';
@@ -523,9 +525,9 @@ async function refresh() {
     const src = window.CDM_SUPABASE?.isConfigured?.()
       ? 'grilles Supabase + archive GitHub'
       : 'participants.json';
-    metaEl.innerHTML = 'Dernière mise à jour officielle : <strong>' + escapeHtml(maj) + '</strong> — '
-      + participants.length + ' participant(s) (' + escapeHtml(src) + '). Rafraîchissement auto toutes les 5 min.';
-    content.innerHTML = renderTable(rows);
+    metaEl.innerHTML = 'Étape officielle : <strong>' + etape + '</strong> · Dernière MAJ : <strong>' + escapeHtml(maj) + '</strong> — '
+      + participants.length + ' participant(s) (' + escapeHtml(src) + '). Score progressif (bonus compétition à l’étape 7).';
+    content.innerHTML = renderTable(rows, etape);
     renderMyScoreSummary(rows);
   } catch (e) {
     errEl.textContent = 'Erreur de chargement : ' + e.message + '. Ouvrez la page via un serveur local si les JSON sont bloqués (file://).';

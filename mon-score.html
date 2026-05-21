@@ -141,17 +141,49 @@ header h1 {
   padding: 1.5rem; text-align: center; color: var(--muted); font-size: .9rem;
 }
 .err { color: #E74C3C; border-color: rgba(231,76,60,0.35); text-align: left; }
+nav {
+  display: flex; overflow-x: auto; border-bottom: 1px solid var(--border);
+  background: var(--surface); position: sticky; top: 0; z-index: 100;
+}
+nav::-webkit-scrollbar { height: 0; }
+nav .tab-link {
+  flex-shrink: 0; color: var(--muted); font-family: 'DM Mono', monospace;
+  font-size: .72rem; letter-spacing: .15em; text-transform: uppercase;
+  padding: 1rem 1.5rem; text-decoration: none; border-bottom: 2px solid transparent;
+  transition: all .2s; display: inline-flex; align-items: center; white-space: nowrap;
+}
+nav .tab-link:hover { color: var(--gold); border-color: var(--gold); }
+nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
+.badge-deadline {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.4);
+  color: #E74C3C; font-family: 'DM Mono', monospace; font-size: .7rem;
+  letter-spacing: .1em; padding: .3rem .75rem; border-radius: 2px; margin-top: 1rem;
+}
+.summary-grid .muted-val { color: var(--muted); opacity: .7; }
+.etape-note { font-size: .78rem; color: var(--muted); margin: -.25rem 0 .85rem; }
+@media (max-width: 520px) {
+  nav .tab-link { padding: .8rem .85rem; font-size: .62rem; letter-spacing: .1em; }
+}
 </style>
 </head>
 <body>
 <header>
   <h1>Mon score</h1>
   <p class="subtitle">CDM 2026 · édition Pains sucés</p>
-  <div class="top-actions">
-    <a href="index.html">← Grille</a>
-    <a href="classement.html">Classement</a>
-  </div>
+  <div class="badge-deadline">⏱ Date limite : 11 juin 2026</div>
 </header>
+
+<nav id="tabs">
+  <a href="index.html" class="tab-link">👤 Inscription</a>
+  <a href="index.html#poules" class="tab-link">⚽ Poules</a>
+  <a href="index.html#tableau" class="tab-link">🎯 Phase finale — tableau</a>
+  <a href="index.html#scores-finales" class="tab-link">🎯 Phase finale — scores</a>
+  <a href="index.html#bonus" class="tab-link">🌟 Bonus</a>
+  <a href="index.html#envoyer" class="tab-link">📤 Envoyer</a>
+  <a href="index.html#regles" class="tab-link">📋 Règlement</a>
+  <a href="classement.html" class="tab-link">🏆 Classement</a>
+</nav>
 <main class="container">
   <form class="lookup" id="lookupForm">
     <input type="email" id="emailInput" placeholder="Votre e-mail d'inscription" required autocomplete="email">
@@ -179,6 +211,12 @@ const GROUPS = {
 };
 
 const S = CDM_SCORING;
+const { formatScoreCell } = S;
+
+function fmtCell(val, visible) {
+  if (!visible) return '<strong class="muted-val">—</strong>';
+  return '<strong>' + val + '</strong>';
+}
 
 function escapeHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -274,18 +312,25 @@ function renderFinalesSection(participant, resultats) {
 
 function renderBonusSection(participant, resultats) {
   const pred = S.getParticipantBonus(participant);
+  const etape = S.getEtape(resultats);
   return S.BONUS_DEFS.map(def => {
     const val = pred[def.key];
     const ev = S.evalBonusItem(def.key, val, resultats);
     const hitCls = ev.status === 'hit' ? ' pred-hit' : '';
     const ptsCls = ev.status === 'hit' ? ' pred-hit' : '';
     const real = resultats.bonus?.[def.key];
-    const sub = ev.status === 'pending'
-      ? 'En attente de validation officielle'
-      : (real ? `Officiel : ${escapeHtml(String(real))}` : '');
+    let sub = 'En attente de validation officielle';
+    if (ev.status !== 'pending') {
+      sub = real ? `Officiel : ${escapeHtml(String(real))}` : '';
+    } else if (def.unlock === 'competition' && etape < S.BONUS_COMPETITION_ETAPE) {
+      sub = 'Dévoilé en fin de compétition (étape 7)';
+    } else if (def.unlock === 'poules' && etape < 2) {
+      sub = 'Après la phase de groupes (étape 2)';
+    }
+    const ptsLabel = ev.status === 'pending' ? '25 pts' : (ev.status === 'hit' ? '+25' : '0');
     return `<div class="bonus-line${hitCls}">
       <div><strong>${escapeHtml(def.label)}</strong><br><span style="font-size:.78rem;color:var(--muted)">Votre réponse : ${escapeHtml(String(val || '—'))}${sub ? ' · ' + sub : ''}</span></div>
-      <span class="pts-tag${ptsCls ? ' ' + ptsCls : ''}">25 pts</span>
+      <span class="pts-tag${ptsCls ? ' ' + ptsCls : ''}">${ptsLabel}</span>
     </div>`;
   }).join('');
 }
@@ -306,6 +351,7 @@ function renderParticipant(participant, resultats) {
   const id = participant.identite || {};
   const label = [id.prenom, id.nom].filter(Boolean).join(' ') || 'Participant';
   const sc = S.scoreParticipant(participant, resultats);
+  const v = sc.visible || {};
 
   let groupsHtml = '';
   let i = 0;
@@ -318,11 +364,12 @@ function renderParticipant(participant, resultats) {
     <div class="summary">
       <h2>${escapeHtml(label)}</h2>
       <div class="sub">${escapeHtml(id.equipe || id.email || '')}</div>
+      <p class="etape-note">Étape officielle ${sc.etape} — score progressif (bonus compétition à l’étape 7).</p>
       <div class="summary-grid">
-        <div><span>Poules</span><strong>${sc.poules}</strong></div>
-        <div><span>Ph. fin. tableau</span><strong>${sc.tableauE2}</strong></div>
-        <div><span>Ph. fin. scores</span><strong>${sc.finales}</strong></div>
-        <div><span>Bonus</span><strong>${sc.bonus}</strong></div>
+        <div><span>Poules</span>${fmtCell(sc.poules, true)}</div>
+        <div><span>Ph. fin. tableau</span>${fmtCell(sc.tableauE2, v.tableauE2 !== false)}</div>
+        <div><span>Ph. fin. scores</span>${fmtCell(sc.finales, v.finales)}</div>
+        <div><span>Bonus</span>${fmtCell(sc.bonus, v.bonus)}</div>
         <div><span>Total</span><strong>${sc.total}</strong></div>
       </div>
     </div>
@@ -330,7 +377,7 @@ function renderParticipant(participant, resultats) {
     <p style="font-size:.82rem;color:var(--muted);margin:-.35rem 0 .85rem">Vert = bon pronostic (résultat officiel publié).</p>
     ${groupsHtml}
     <h2 class="section-title">Phase finale — tableau (étape 2)</h2>
-    ${renderTableauSection(participant, resultats)}
+    ${renderTableauSection(participant, resultats) || '<p style="font-size:.82rem;color:var(--muted)">Disponible à partir de l’étape 2 (32 qualifiés officiels).</p>'}
     <h2 class="section-title">Phase finale — scores (étapes 3 à 7)</h2>
     ${renderFinalesSection(participant, resultats)}
     <h2 class="section-title">Questions bonus</h2>

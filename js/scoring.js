@@ -1,8 +1,10 @@
 /**
  * Logique de points partagée (classement, mon-score, feedback grille).
+ * Le score respecte etapeDebloquee (progressif).
  */
 (function (global) {
   const BONUS_NUMERIC_TOLERANCE = 3;
+  const BONUS_COMPETITION_ETAPE = 7;
   const KO_MATCH_MIN = 73;
   const KO_MATCH_MAX = 104;
 
@@ -28,6 +30,24 @@
     { key: 'win', realKey: 'vainqueurFinal', predKey: 'vainqueurFinal', pts: 50, label: 'Vainqueur', single: true },
   ];
 
+  const TABLEAU_ROUND_UNLOCK = { l32: 2, r16: 3, qf: 4, sf: 5, fin: 6, win: 7 };
+
+  const KO_ETAPE_DEFS = [
+    { n: 3, min: 73, max: 88 },
+    { n: 4, min: 89, max: 96 },
+    { n: 5, min: 97, max: 100 },
+    { n: 6, min: 101, max: 102 },
+    { n: 7, min: 103, max: 104 },
+  ];
+
+  const BRACKET_ROUND_LABEL = {
+    r16: '16 huitièmes',
+    qf: '8 quarts',
+    sf: '4 demis',
+    fin: '2 finalistes',
+    win: 'Vainqueur',
+  };
+
   function parseIntSafe(v) {
     const n = parseInt(String(v ?? '').trim(), 10);
     return Number.isFinite(n) ? n : null;
@@ -44,6 +64,17 @@
     return 'D';
   }
 
+  function getEtape(resultats, etapeOverride) {
+    if (Number.isFinite(etapeOverride)) return etapeOverride;
+    return resultats?.etapeDebloquee || 0;
+  }
+
+  function koMidEtape(mid) {
+    const m = Number(mid);
+    const def = KO_ETAPE_DEFS.find(d => m >= d.min && m <= d.max);
+    return def ? def.n : null;
+  }
+
   function countOfficialPouleMatchs(resultats) {
     let n = 0;
     for (let i = 1; i <= 72; i++) {
@@ -57,11 +88,23 @@
     return countOfficialPouleMatchs(resultats) >= 72 || (resultats?.etapeDebloquee || 0) >= 2;
   }
 
-  function isBonusKeyUnlocked(key, resultats) {
+  function isBonusKeyUnlocked(key, resultats, etapeOverride) {
     const def = BONUS_DEFS.find(d => d.key === key);
     if (!def || !resultats?.bonus) return false;
     if (!(key in resultats.bonus)) return false;
-    if (def.unlock === 'poules') return poulesOfficialComplete(resultats);
+    const etape = getEtape(resultats, etapeOverride);
+    if (def.unlock === 'poules') {
+      return etape >= 2 && poulesOfficialComplete(resultats);
+    }
+    return etape >= BONUS_COMPETITION_ETAPE;
+  }
+
+  function isColumnVisible(col, etape) {
+    if (col === 'poules') return true;
+    if (col === 'tableauE2') return etape >= 2;
+    if (col === 'finales') return etape >= 3;
+    if (col === 'bonus') return etape >= 2;
+    if (col === 'bonusCompetition') return etape >= BONUS_COMPETITION_ETAPE;
     return true;
   }
 
@@ -106,30 +149,46 @@
     return pts;
   }
 
-  function scoreTableauOnly(participant, resultats) {
+  function scoreTableauOnly(participant, resultats, etapeOverride) {
+    const etape = getEtape(resultats, etapeOverride);
     const pred = buildPredBareme(participant);
     const real = resultats.phaseFinalePourBareme || {};
     const list32Real = real.liste32QualifiesIssuesPoules?.length
       ? real.liste32QualifiesIssuesPoules
       : (resultats.equipesQualifiees32Liste || []);
     let pts = 0;
-    pts += setIntersectionScore(pred.liste32QualifiesIssuesPoules, list32Real, 3);
-    pts += setIntersectionScore(pred.vainqueursSeiziemePourHuitiemes16, real.vainqueursSeiziemePourHuitiemes16, 5);
-    pts += setIntersectionScore(pred.vainqueursHuitiemesPourQuarts8, real.vainqueursHuitiemesPourQuarts8, 12);
-    pts += setIntersectionScore(pred.vainqueursQuartsPourDemis4, real.vainqueursQuartsPourDemis4, 20);
-    pts += setIntersectionScore(pred.finalistesChoisis, real.finalistesChoisis, 35);
-    if (normalizeTeam(pred.vainqueurFinal) && normalizeTeam(pred.vainqueurFinal) === normalizeTeam(real.vainqueurFinal)) {
-      pts += 50;
+    if (etape >= TABLEAU_ROUND_UNLOCK.l32) {
+      pts += setIntersectionScore(pred.liste32QualifiesIssuesPoules, list32Real, 3);
+    }
+    if (etape >= TABLEAU_ROUND_UNLOCK.r16) {
+      pts += setIntersectionScore(pred.vainqueursSeiziemePourHuitiemes16, real.vainqueursSeiziemePourHuitiemes16, 5);
+    }
+    if (etape >= TABLEAU_ROUND_UNLOCK.qf) {
+      pts += setIntersectionScore(pred.vainqueursHuitiemesPourQuarts8, real.vainqueursHuitiemesPourQuarts8, 12);
+    }
+    if (etape >= TABLEAU_ROUND_UNLOCK.sf) {
+      pts += setIntersectionScore(pred.vainqueursQuartsPourDemis4, real.vainqueursQuartsPourDemis4, 20);
+    }
+    if (etape >= TABLEAU_ROUND_UNLOCK.fin) {
+      pts += setIntersectionScore(pred.finalistesChoisis, real.finalistesChoisis, 35);
+    }
+    if (etape >= TABLEAU_ROUND_UNLOCK.win) {
+      if (normalizeTeam(pred.vainqueurFinal) && normalizeTeam(pred.vainqueurFinal) === normalizeTeam(real.vainqueurFinal)) {
+        pts += 50;
+      }
     }
     return pts;
   }
 
-  function scoreEliminationKO(participant, resultats) {
+  function scoreEliminationKO(participant, resultats, etapeOverride) {
+    const etape = getEtape(resultats, etapeOverride);
     const predWinners = participant.vainqueursTableauEliminationChoisis || participant.kosWinners || {};
     const realWinners = resultats.vainqueursTableauElimination || {};
     const realScores = resultats.scoresElimination || {};
     let pts = 0;
     for (let m = KO_MATCH_MIN; m <= KO_MATCH_MAX; m++) {
+      const midEtape = koMidEtape(m);
+      if (midEtape == null || midEtape > etape) continue;
       const key = 'Match ' + m;
       const realW = realWinners[key] || realWinners[String(m)] || realWinners['M' + m] || '';
       if (!realW) continue;
@@ -149,7 +208,10 @@
     return pts;
   }
 
-  function evalKoMatchDetail(participant, mid, resultats) {
+  function evalKoMatchDetail(participant, mid, resultats, etapeOverride) {
+    const etape = getEtape(resultats, etapeOverride);
+    const midEtape = koMidEtape(mid);
+    if (midEtape == null || midEtape > etape) return { status: 'pending', pts: 0 };
     const key = 'Match ' + mid;
     const realWinners = resultats.vainqueursTableauElimination || {};
     const realW = realWinners[key] || realWinners[String(mid)] || realWinners['M' + mid] || '';
@@ -171,8 +233,8 @@
     return { status: 'miss', pts: 0 };
   }
 
-  function evalBonusItem(key, predVal, resultats) {
-    if (!isBonusKeyUnlocked(key, resultats)) return { status: 'pending', pts: 0 };
+  function evalBonusItem(key, predVal, resultats, etapeOverride) {
+    if (!isBonusKeyUnlocked(key, resultats, etapeOverride)) return { status: 'pending', pts: 0 };
     const r = String(resultats.bonus?.[key] ?? '').trim();
     const p = String(predVal ?? '').trim();
     if (!p || !r) return { status: 'miss', pts: 0 };
@@ -211,71 +273,87 @@
     return Math.round(pts * 10) / 10;
   }
 
-  function scoreBonusAll(predBonus, resultats) {
+  function scoreBonusAll(predBonus, resultats, etapeOverride) {
     if (!predBonus || !resultats?.bonus) return 0;
     let pts = 0;
     for (const def of BONUS_DEFS) {
-      const ev = evalBonusItem(def.key, predBonus[def.key], resultats);
+      const ev = evalBonusItem(def.key, predBonus[def.key], resultats, etapeOverride);
       pts += ev.pts;
     }
     return pts;
   }
 
-  function scoreParticipant(participant, resultats) {
+  function scoreParticipant(participant, resultats, etapeOverride) {
+    const etape = getEtape(resultats, etapeOverride);
     const poules = scoreGroupMatches(participant.matchs, resultats.matchs);
-    const tableauE2 = scoreTableauOnly(participant, resultats);
-    const finales = scoreEliminationKO(participant, resultats);
-    const bonus = scoreBonusAll(getParticipantBonus(participant), resultats);
+    const tableauE2 = scoreTableauOnly(participant, resultats, etape);
+    const finales = scoreEliminationKO(participant, resultats, etape);
+    const bonus = scoreBonusAll(getParticipantBonus(participant), resultats, etape);
     const total = Math.round((poules + tableauE2 + finales + bonus) * 10) / 10;
-    return { poules, tableauE2, finales, tableau: tableauE2 + finales, bonus, total };
+    return {
+      poules,
+      tableauE2,
+      finales,
+      tableau: tableauE2 + finales,
+      bonus,
+      total,
+      etape,
+      visible: {
+        tableauE2: isColumnVisible('tableauE2', etape),
+        finales: isColumnVisible('finales', etape),
+        bonus: isColumnVisible('bonus', etape),
+        bonusCompetition: isColumnVisible('bonusCompetition', etape),
+      },
+    };
   }
 
-  function tableauRoundDetails(participant, resultats) {
+  function formatScoreCell(value, visible) {
+    if (!visible) return '—';
+    return value;
+  }
+
+  function tableauRoundDetails(participant, resultats, etapeOverride) {
+    const etape = getEtape(resultats, etapeOverride);
     const pred = buildPredBareme(participant);
     const real = resultats.phaseFinalePourBareme || {};
     const list32Real = real.liste32QualifiesIssuesPoules?.length
       ? real.liste32QualifiesIssuesPoules
       : (resultats.equipesQualifiees32Liste || []);
-    const hasOfficial = list32Real.length > 0 || (resultats.etapeDebloquee || 0) >= 3;
-    if (!hasOfficial) return [];
+    if (etape < 2 && !list32Real.length) return [];
 
-    const rounds = [
-      { label: '32 seizièmes', ptsEach: 3, pred: pred.liste32QualifiesIssuesPoules, real: list32Real },
-      { label: '16 huitièmes', ptsEach: 5, pred: pred.vainqueursSeiziemePourHuitiemes16, real: real.vainqueursSeiziemePourHuitiemes16 || [] },
-      { label: '8 quarts', ptsEach: 12, pred: pred.vainqueursHuitiemesPourQuarts8, real: real.vainqueursHuitiemesPourQuarts8 || [] },
-      { label: '4 demis', ptsEach: 20, pred: pred.vainqueursQuartsPourDemis4, real: real.vainqueursQuartsPourDemis4 || [] },
-      { label: '2 finalistes', ptsEach: 35, pred: pred.finalistesChoisis, real: real.finalistesChoisis || [] },
+    const roundDefs = [
+      { key: 'l32', label: '32 seizièmes', ptsEach: 3, pred: pred.liste32QualifiesIssuesPoules, real: list32Real },
+      { key: 'r16', label: '16 huitièmes', ptsEach: 5, pred: pred.vainqueursSeiziemePourHuitiemes16, real: real.vainqueursSeiziemePourHuitiemes16 || [] },
+      { key: 'qf', label: '8 quarts', ptsEach: 12, pred: pred.vainqueursHuitiemesPourQuarts8, real: real.vainqueursHuitiemesPourQuarts8 || [] },
+      { key: 'sf', label: '4 demis', ptsEach: 20, pred: pred.vainqueursQuartsPourDemis4, real: real.vainqueursQuartsPourDemis4 || [] },
+      { key: 'fin', label: '2 finalistes', ptsEach: 35, pred: pred.finalistesChoisis, real: real.finalistesChoisis || [] },
     ];
-    const items = rounds.map(r => {
+
+    const items = [];
+    for (const r of roundDefs) {
+      if (etape < TABLEAU_ROUND_UNLOCK[r.key]) continue;
       const realSet = new Set((r.real || []).map(normalizeTeam));
       const teams = (r.pred || []).map(t => ({
         name: t,
         hit: realSet.has(normalizeTeam(t)),
         pts: realSet.has(normalizeTeam(t)) ? r.ptsEach : 0,
       }));
-      return { ...r, teams, pts: teams.reduce((s, x) => s + x.pts, 0) };
-    });
-    const winHit = normalizeTeam(pred.vainqueurFinal) && normalizeTeam(pred.vainqueurFinal) === normalizeTeam(real.vainqueurFinal);
-    items.push({
-      label: 'Vainqueur',
-      ptsEach: 50,
-      pred: pred.vainqueurFinal ? [pred.vainqueurFinal] : [],
-      real: real.vainqueurFinal ? [real.vainqueurFinal] : [],
-      teams: pred.vainqueurFinal ? [{ name: pred.vainqueurFinal, hit: winHit, pts: winHit ? 50 : 0 }] : [],
-      pts: winHit ? 50 : 0,
-    });
+      items.push({ ...r, teams, pts: teams.reduce((s, x) => s + x.pts, 0) });
+    }
+
+    if (etape >= TABLEAU_ROUND_UNLOCK.win) {
+      const winHit = normalizeTeam(pred.vainqueurFinal) && normalizeTeam(pred.vainqueurFinal) === normalizeTeam(real.vainqueurFinal);
+      items.push({
+        label: 'Vainqueur',
+        ptsEach: 50,
+        pred: pred.vainqueurFinal ? [pred.vainqueurFinal] : [],
+        real: real.vainqueurFinal ? [real.vainqueurFinal] : [],
+        teams: pred.vainqueurFinal ? [{ name: pred.vainqueurFinal, hit: winHit, pts: winHit ? 50 : 0 }] : [],
+        pts: winHit ? 50 : 0,
+      });
+    }
     return items;
   }
-
-  const TABLEAU_ROUND_UNLOCK = { l32: 2, r16: 3, qf: 4, sf: 5, fin: 6, win: 7 };
-
-  const BRACKET_ROUND_LABEL = {
-    r16: '16 huitièmes',
-    qf: '8 quarts',
-    sf: '4 demis',
-    fin: '2 finalistes',
-    win: 'Vainqueur',
-  };
 
   function bracketMidToRoundKey(mid) {
     const m = Number(mid);
@@ -291,9 +369,9 @@
     const roundKey = bracketMidToRoundKey(mid);
     if (!roundKey || !participant) return { status: 'pending' };
     const unlock = TABLEAU_ROUND_UNLOCK[roundKey];
-    if ((etapeEffective ?? resultats.etapeDebloquee ?? 0) < unlock) return { status: 'pending' };
+    if ((etapeEffective ?? getEtape(resultats)) < unlock) return { status: 'pending' };
     const label = BRACKET_ROUND_LABEL[roundKey];
-    const rounds = tableauRoundDetails(participant, resultats);
+    const rounds = tableauRoundDetails(participant, resultats, etapeEffective);
     const rd = rounds.find(r => r.label === label);
     if (!rd) return { status: 'pending' };
     const hit = rd.teams.some(t => normalizeTeam(t.name) === normalizeTeam(team) && t.hit);
@@ -317,16 +395,22 @@
 
   global.CDM_SCORING = {
     BONUS_DEFS,
+    BONUS_COMPETITION_ETAPE,
     TABLEAU_ROUNDS,
     TABLEAU_ROUND_UNLOCK,
+    KO_ETAPE_DEFS,
     KO_MATCH_MIN,
     KO_MATCH_MAX,
     parseIntSafe,
     normalizeTeam,
     matchOutcome,
+    getEtape,
+    koMidEtape,
     countOfficialPouleMatchs,
     poulesOfficialComplete,
     isBonusKeyUnlocked,
+    isColumnVisible,
+    formatScoreCell,
     scorePouleMatchDetail,
     buildPredBareme,
     scoreTableauOnly,
