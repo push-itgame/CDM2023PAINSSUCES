@@ -1332,6 +1332,7 @@ body.grille-remote-locked #player-code-input {
   justify-content: center;
   gap: .45rem;
 }
+.grille-unlock-row[hidden] { display: none !important; }
 .grille-unlock-row input[type="password"] {
   width: 8.5rem;
   padding: .4rem .55rem;
@@ -4104,6 +4105,8 @@ function initScoreSheet() {
 
 function wireScorePickers(root) {
   root.querySelectorAll('.score-picker').forEach(picker => {
+    if (picker.dataset.wired) return;
+    picker.dataset.wired = '1';
     const inputId = picker.dataset.for;
     picker.querySelectorAll('.score-btn[data-val]').forEach(btn => {
       btn.addEventListener('click', () => {
