@@ -8,6 +8,7 @@ create table if not exists public.grilles (
   nom text not null default '',
   equipe text not null default '',
   payload jsonb not null default '{}'::jsonb,
+  code_hash text,
   updated_at timestamptz not null default now(),
   constraint grilles_email_unique unique (email)
 );

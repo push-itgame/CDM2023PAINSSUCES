@@ -41,6 +41,7 @@ python scripts/merge_grilles.py
 - Noms d'équipes normalisés vers l'orthographe du site (`Etats Unis` → `États-Unis`, etc.).
 - **Scores KO** (matchs 73–104) : non présents dans l'Excel actuel → `scoresElimination` vide.
 - E-mail **obligatoire** pour un envoi Supabase ultérieur.
+- **Code secret** : non présent dans l’Excel — le joueur le définit à la première connexion sur le site (bannière bleue) ou à la première inscription directe sur le site.
 
 ## Fichiers de mapping
 

@@ -1237,6 +1237,79 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   cursor: not-allowed;
 }
 .stage-locked .group-fold-head { cursor: pointer; }
+/* Grille chargée depuis Supabase (Excel / envoi précédent) — consultation */
+.grille-remote-banner {
+  font-size: .82rem;
+  color: #c8dce8;
+  background: rgba(52, 120, 160, 0.18);
+  border-bottom: 1px solid rgba(100, 160, 200, 0.28);
+  padding: .65rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .65rem;
+  line-height: 1.45;
+  text-align: center;
+}
+.grille-remote-banner strong { color: var(--text); }
+body.grille-remote-locked .score-picker,
+body.grille-remote-locked .score-btn,
+body.grille-remote-locked .score-btn-more,
+body.grille-remote-locked .bracket-team-box.clickable,
+body.grille-remote-locked .ko-tie-btn,
+body.grille-remote-locked .winner-pick-btn {
+  pointer-events: none !important;
+  opacity: .62;
+  cursor: not-allowed;
+}
+body.grille-remote-locked #tab-identity input,
+body.grille-remote-locked .bonus-answer,
+body.grille-remote-locked .bonus-other-input {
+  pointer-events: none;
+  opacity: .88;
+}
+body.grille-remote-locked #joueur-code {
+  pointer-events: none;
+  opacity: .88;
+}
+body.grille-remote-locked #btnSubmitGrille {
+  opacity: .4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+body.grille-remote-locked #btn-unlock-remote {
+  pointer-events: auto;
+  opacity: 1;
+}
+body.grille-remote-locked #player-code-input {
+  pointer-events: auto;
+  opacity: 1;
+}
+.grille-unlock-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+}
+.grille-unlock-row input[type="password"] {
+  width: 8.5rem;
+  padding: .4rem .55rem;
+  font-size: .88rem;
+  border-radius: 6px;
+  border: 1px solid rgba(100, 160, 200, 0.35);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  letter-spacing: .12em;
+  text-align: center;
+}
+.form-hint {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: .35rem;
+  line-height: 1.45;
+}
 .stage-lock-banner {
   font-size: .82rem;
   color: #9ab0c4;
@@ -1949,6 +2022,14 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   <a href="classement.html" class="tab-link">🏆 Classement</a>
 </nav>
 
+<div id="grille-remote-banner" class="grille-remote-banner" hidden>
+  <span id="grille-remote-banner-msg">📋 Grille enregistrée chargée (<strong>consultation seule</strong>).</span>
+  <div class="grille-unlock-row">
+    <input type="password" id="player-code-input" inputmode="numeric" autocomplete="current-password" placeholder="Code 4–6 chiffres" maxlength="6" aria-label="Code secret">
+    <button type="button" class="btn-etape2" id="btn-unlock-remote">Déverrouiller</button>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════ INSCRIPTION ════════════════════════════════════════ -->
 <div id="tab-identity" class="panel active">
 <div class="container">
@@ -1970,11 +2051,17 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
       <input type="email" id="email" placeholder="jean@example.com">
     </div>
     <div style="margin-top:1rem" class="form-group">
+      <label>Code secret <span style="font-weight:400;color:var(--muted)">(4 à 6 chiffres)</span></label>
+      <input type="password" id="joueur-code" inputmode="numeric" autocomplete="new-password" placeholder="Ex. 1234" maxlength="6">
+      <p class="form-hint">Choisi à la <strong style="color:var(--text)">première inscription</strong> — pour modifier votre grille plus tard. Ne le partagez pas.</p>
+    </div>
+    <div style="margin-top:1rem" class="form-group">
       <label>Équipe / Société / Nation supportée</label>
       <input type="text" id="equipe" placeholder="France, OL, …">
     </div>
     <p class="inscription-export-note" style="margin-top:.75rem;font-size:.85rem;color:var(--muted);line-height:1.6">
-      À la fin, onglet <strong style="color:var(--text)">📤 Envoyer</strong> : votre pronostic est enregistré automatiquement (e-mail obligatoire).
+      À la fin, onglet <strong style="color:var(--text)">📤 Envoyer</strong> : votre pronostic est enregistré (e-mail + code obligatoires).
+      Saisissez votre <strong style="color:var(--text)">e-mail</strong> pour retrouver une grille déjà enregistrée (Excel ou envoi précédent) — saisissez ensuite votre <strong style="color:var(--text)">code</strong> dans la bannière bleue pour modifier.
       Vous pouvez aussi <strong style="color:var(--text)">télécharger le JSON</strong> en secours.
       Suivez le <a href="classement.html" style="color:var(--gold)">classement live</a> ou <a href="mon-score.html" style="color:var(--gold)">voir votre score</a>.
     </p>
@@ -2422,6 +2509,27 @@ const ET2_ROUNDS = [
 let etape2 = { r32: [], r16: [], qf: [], sf: [], finalists: [], winner: '' };
 /** Vainqueurs pronostiqués par match (étape 2) — clés M73…M104 */
 let etape2Pick = {};
+/** Grille Supabase affichée en lecture seule jusqu'à déverrouillage par code */
+let remoteGrilleLocked = false;
+let remoteGrilleLoadedEmail = '';
+let remoteGrilleAuth = { exists: false, hasCode: false };
+let remoteFetchTimer = null;
+let remoteFetchInFlight = false;
+const PLAYER_AUTH_KEY = 'cdm_player_auth';
+const PLAYER_AUTH_TTL = 8 * 60 * 60 * 1000;
+
+const BONUS_FROM_PAYLOAD = {
+  b1: 'meilleureAttaque',
+  b2: 'matchs00',
+  b3: 'nationsA9pts',
+  b4: 'nbCSC',
+  b5: 'meilleurButeur',
+  b6: 'meilleurJoueur',
+  b7: 'meilleurGardien',
+  b8: 'nbButs',
+  b9: 'nbCartonsRouges',
+  b10: 'nbProlongations',
+};
 const BRACKET_R32_PAIRS = [[74, 77], [73, 75], [76, 78], [79, 80], [83, 84], [81, 82], [86, 88], [85, 87]];
 const BRACKET_R16_IDS = [89, 90, 91, 92, 93, 94, 95, 96];
 const BRACKET_QF_IDS = [97, 98, 99, 100];
@@ -3474,6 +3582,12 @@ function renderSendRecap() {
   };
 
   chk(!!email, !email, email ? `E-mail renseigné : ${escapeHtml(email)}` : 'E-mail obligatoire');
+  if (remoteGrilleAuth.exists && remoteGrilleAuth.hasCode && remoteGrilleLocked) {
+    chk(false, true, 'Code secret requis — bannière bleue en haut de page');
+  } else if (!remoteGrilleAuth.exists) {
+    const codeOk = validatePlayerCodeFormat(document.getElementById('joueur-code')?.value);
+    chk(codeOk, !codeOk, codeOk ? 'Code secret choisi' : 'Code secret 4–6 chiffres (onglet Inscription)');
+  }
   if (preComp) {
     chk(poulesN >= 72, poulesN > 0 && poulesN < 72, `Poules : ${poulesN}/72 matchs`);
     chk(et2, !et2 && poulesN >= 72, et2 ? 'Phase finale — tableau complète (32 → vainqueur)' : 'Phase finale — tableau incomplète (recommandé avant le 11/06)');
@@ -4125,6 +4239,246 @@ function saveState() {
   updateNavStepHighlight();
 }
 
+function validatePlayerCodeFormat(code) {
+  return /^[0-9]{4,6}$/.test(String(code || '').trim());
+}
+
+function savePlayerAuth(email, codeHash) {
+  try {
+    sessionStorage.setItem(PLAYER_AUTH_KEY, JSON.stringify({
+      email: String(email || '').trim().toLowerCase(),
+      codeHash,
+      until: Date.now() + PLAYER_AUTH_TTL,
+    }));
+  } catch (e) { /* private mode */ }
+}
+
+function getPlayerAuth(email) {
+  try {
+    const raw = sessionStorage.getItem(PLAYER_AUTH_KEY);
+    if (!raw) return null;
+    const auth = JSON.parse(raw);
+    if (Date.now() > auth.until) return null;
+    if (auth.email !== String(email || '').trim().toLowerCase()) return null;
+    return auth.codeHash || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearPlayerAuth() {
+  try { sessionStorage.removeItem(PLAYER_AUTH_KEY); } catch (e) { /* ignore */ }
+}
+
+function syncRemoteGrilleUI() {
+  document.body.classList.toggle('grille-remote-locked', remoteGrilleLocked);
+  const banner = document.getElementById('grille-remote-banner');
+  const msg = document.getElementById('grille-remote-banner-msg');
+  const unlockBtn = document.getElementById('btn-unlock-remote');
+  if (banner) banner.hidden = !remoteGrilleLocked;
+  if (msg) {
+    if (!remoteGrilleAuth.hasCode) {
+      msg.innerHTML = '📋 Grille importée ou enregistrée (<strong>consultation seule</strong>) — définissez votre <strong>code secret</strong> ci-dessous pour modifier sur le site.';
+    } else {
+      msg.innerHTML = '📋 Grille enregistrée (<strong>consultation seule</strong>) — entrez votre <strong>code secret</strong> pour modifier.';
+    }
+  }
+  if (unlockBtn) {
+    unlockBtn.textContent = remoteGrilleAuth.hasCode ? 'Déverrouiller' : 'Définir mon code';
+  }
+  const btn = document.getElementById('btnSubmitGrille');
+  if (btn) {
+    btn.title = remoteGrilleLocked
+      ? 'Déverrouillez avec votre code secret pour envoyer des changements'
+      : '';
+  }
+}
+
+function lockRemoteGrille(email, silent) {
+  remoteGrilleLocked = true;
+  remoteGrilleLoadedEmail = String(email || '').trim().toLowerCase();
+  syncRemoteGrilleUI();
+  if (!silent) showToast('Grille chargée — consultation seule (code requis pour modifier).');
+}
+
+function unlockRemoteGrille(silent) {
+  remoteGrilleLocked = false;
+  syncRemoteGrilleUI();
+  if (!silent) showToast('Grille déverrouillée — vous pouvez modifier et renvoyer.');
+}
+
+async function tryPlayerUnlock() {
+  const email = document.getElementById('email')?.value?.trim() || remoteGrilleLoadedEmail;
+  if (!isLikelyEmail(email)) {
+    showToast('E-mail invalide.', true);
+    return;
+  }
+  const code = document.getElementById('player-code-input')?.value?.trim() || '';
+  if (!validatePlayerCodeFormat(code)) {
+    showToast('Code secret : 4 à 6 chiffres.', true);
+    return;
+  }
+  const btn = document.getElementById('btn-unlock-remote');
+  const prev = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const codeHash = await CDM_SUPABASE.sha256(code);
+    if (remoteGrilleAuth.hasCode) {
+      const ok = await CDM_SUPABASE.verifyPlayerCodeHash(email, codeHash);
+      if (!ok) {
+        showToast('Code secret incorrect.', true);
+        return;
+      }
+    } else {
+      await CDM_SUPABASE.setPlayerCodeIfEmpty(email, code);
+      remoteGrilleAuth.hasCode = true;
+    }
+    savePlayerAuth(email, codeHash);
+    remoteGrilleLoadedEmail = email.toLowerCase();
+    unlockRemoteGrille();
+    document.getElementById('player-code-input').value = '';
+  } catch (e) {
+    showToast(e.message || 'Impossible de déverrouiller.', true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = prev || 'Déverrouiller'; }
+  }
+}
+
+function isLikelyEmail(s) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || '').trim());
+}
+
+function applyGrillePayload(data) {
+  if (!data) return;
+  const id = data.identite || {};
+  ['prenom', 'nom', 'email', 'equipe'].forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = id[k] || '';
+  });
+
+  Object.keys(scoreValues).forEach(k => { delete scoreValues[k]; });
+  Object.entries(data.matchs || {}).forEach(([key, m]) => {
+    const num = parseInt(String(key).replace(/^Match\s+/i, ''), 10);
+    if (!num || !m) return;
+    if (m.scoreHome !== '' && m.scoreHome != null) scoreValues['m' + num + '-h'] = String(m.scoreHome);
+    if (m.scoreAway !== '' && m.scoreAway != null) scoreValues['m' + num + '-a'] = String(m.scoreAway);
+  });
+
+  Object.keys(kosWinners).forEach(k => { delete kosWinners[k]; });
+  Object.entries(data.vainqueursTableauEliminationChoisis || {}).forEach(([k, v]) => {
+    if (v) kosWinners[Number(k)] = v;
+  });
+
+  etape2Pick = {};
+  Object.entries(data.etape2Pick || {}).forEach(([k, v]) => {
+    if (v) etape2Pick[Number(k)] = v;
+  });
+
+  const t2 = data.etape2Tableau || data.etape2 || {};
+  etape2.r32 = [...(t2.r32 || [])];
+  etape2.r16 = [...(t2.r16 || [])];
+  etape2.qf = [...(t2.qf || [])];
+  etape2.sf = [...(t2.sf || [])];
+  etape2.finalists = [...(t2.finalists || [])];
+  etape2.winner = t2.winner || '';
+
+  Object.entries(data.scoresElimination || {}).forEach(([key, s]) => {
+    const mid = parseInt(String(key).replace(/^Match\s+/i, ''), 10);
+    if (!mid || !s) return;
+    if (s.scoreHome !== '' && s.scoreHome != null) scoreValues[koInputId(mid, 'h')] = String(s.scoreHome);
+    if (s.scoreAway !== '' && s.scoreAway != null) scoreValues[koInputId(mid, 'a')] = String(s.scoreAway);
+    if (s.vainqueur && !kosWinners[mid]) kosWinners[mid] = s.vainqueur;
+  });
+
+  Object.entries(BONUS_FROM_PAYLOAD).forEach(([fieldId, payloadKey]) => {
+    const v = (data.bonus || {})[payloadKey];
+    if (v === undefined || v === null || v === '') return;
+    if (BONUS_PICKER_IDS.includes(fieldId)) setBonusFieldFromStored(fieldId, String(v));
+    else {
+      const el = document.getElementById(fieldId);
+      if (el) el.value = String(v);
+    }
+  });
+
+  wireScorePickers(document.getElementById('groups-container'));
+  for (const rows of Object.values(GROUPS)) {
+    for (const [num] of rows) {
+      syncScoreToDom('m' + num + '-h');
+      syncScoreToDom('m' + num + '-a');
+      updatePickerUI('m' + num + '-h');
+      updatePickerUI('m' + num + '-a');
+      updateMatchDisplayScore(num);
+    }
+  }
+  for (let mid = 73; mid <= 104; mid++) {
+    syncScoreToDom(koInputId(mid, 'h'));
+    syncScoreToDom(koInputId(mid, 'a'));
+    updatePickerUI(koInputId(mid, 'h'));
+    updatePickerUI(koInputId(mid, 'a'));
+    updateKoMatchDisplay(mid);
+  }
+  BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
+  fullRefreshDerived();
+}
+
+function scheduleRemoteGrilleFetch() {
+  clearTimeout(remoteFetchTimer);
+  remoteFetchTimer = setTimeout(() => {
+    const email = document.getElementById('email')?.value?.trim() || '';
+    if (!isLikelyEmail(email)) {
+      if (remoteGrilleLocked) {
+        remoteGrilleLocked = false;
+        remoteGrilleLoadedEmail = '';
+        remoteGrilleAuth = { exists: false, hasCode: false };
+        clearPlayerAuth();
+        syncRemoteGrilleUI();
+      }
+      return;
+    }
+    if (remoteGrilleLocked && email.toLowerCase() === remoteGrilleLoadedEmail) return;
+    tryFetchRemoteGrille(email);
+  }, 500);
+}
+
+async function tryFetchRemoteGrille(email, opts = {}) {
+  const em = (email || '').trim().toLowerCase();
+  if (!em || !window.CDM_SUPABASE?.isConfigured()) return;
+  if (remoteFetchInFlight) return;
+  remoteFetchInFlight = true;
+  try {
+    const [data, authInfo] = await Promise.all([
+      CDM_SUPABASE.fetchGrilleByEmail(em),
+      CDM_SUPABASE.fetchGrilleAuthInfo(em),
+    ]);
+    remoteGrilleAuth = authInfo;
+    if (!data) {
+      if (remoteGrilleLocked && em === remoteGrilleLoadedEmail) {
+        remoteGrilleLocked = false;
+        remoteGrilleLoadedEmail = '';
+        syncRemoteGrilleUI();
+      }
+      return;
+    }
+    applyGrillePayload(data);
+    remoteGrilleLoadedEmail = em;
+    const authHash = getPlayerAuth(em);
+    if (authHash && authInfo.hasCode && await CDM_SUPABASE.verifyPlayerCodeHash(em, authHash)) {
+      remoteGrilleLocked = false;
+      syncRemoteGrilleUI();
+      saveState();
+      if (!opts.silent) showToast('✅ Grille chargée — session active');
+    } else {
+      if (authHash && authInfo.hasCode) clearPlayerAuth();
+      lockRemoteGrille(em, opts.silent);
+      saveState();
+    }
+  } catch (e) {
+    if (!opts.silent) showToast('Impossible de charger la grille : ' + e.message, true);
+  } finally {
+    remoteFetchInFlight = false;
+  }
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -4180,6 +4534,12 @@ function wireAutoSave() {
     el.addEventListener('input', saveState);
     el.addEventListener('change', saveState);
   });
+  const emailEl = document.getElementById('email');
+  if (emailEl) {
+    emailEl.addEventListener('input', scheduleRemoteGrilleFetch);
+    emailEl.addEventListener('change', scheduleRemoteGrilleFetch);
+    emailEl.addEventListener('blur', scheduleRemoteGrilleFetch);
+  }
 }
 // ─── POPULATE SELECTS ────────────────────────────────────────────────────────
 function populateSelects() {
@@ -4288,6 +4648,10 @@ function exportData() {
 
 async function submitGrille() {
   const btn = document.getElementById('btnSubmitGrille');
+  if (remoteGrilleLocked) {
+    showToast('Grille verrouillée. Entrez votre code secret dans la bannière bleue.', true);
+    return;
+  }
   if (!window.CDM_SUPABASE?.isConfigured()) {
     showToast('Envoi indisponible : Supabase non configuré (voir scripts/SUPABASE_SETUP.md). Utilisez le JSON.', true);
     return;
@@ -4299,11 +4663,63 @@ async function submitGrille() {
     showToast('Erreur grille : ' + e.message, true);
     return;
   }
+  const email = (data.identite.email || '').trim().toLowerCase();
+  if (!email) {
+    showToast('E-mail obligatoire.', true);
+    return;
+  }
+
+  try {
+    remoteGrilleAuth = await CDM_SUPABASE.fetchGrilleAuthInfo(email);
+  } catch (e) { /* keep cached */ }
+
+  let authCodeHash = getPlayerAuth(email);
+  let newCodeHash = null;
+
+  if (!remoteGrilleAuth.exists) {
+    const code = document.getElementById('joueur-code')?.value?.trim() || '';
+    if (!validatePlayerCodeFormat(code)) {
+      showToast('Choisissez un code secret de 4 à 6 chiffres (onglet Inscription).', true);
+      goToTab('identity');
+      return;
+    }
+    newCodeHash = await CDM_SUPABASE.sha256(code);
+  } else if (remoteGrilleAuth.hasCode) {
+    if (!authCodeHash) {
+      const code = document.getElementById('player-code-input')?.value?.trim()
+        || document.getElementById('joueur-code')?.value?.trim() || '';
+      if (!validatePlayerCodeFormat(code)) {
+        showToast('Code secret requis pour modifier votre grille.', true);
+        lockRemoteGrille(email, true);
+        return;
+      }
+      authCodeHash = await CDM_SUPABASE.sha256(code);
+      if (!await CDM_SUPABASE.verifyPlayerCodeHash(email, authCodeHash)) {
+        showToast('Code secret incorrect.', true);
+        lockRemoteGrille(email, true);
+        return;
+      }
+      savePlayerAuth(email, authCodeHash);
+    }
+  } else {
+    authCodeHash = getPlayerAuth(email);
+    if (!authCodeHash) {
+      showToast('Définissez votre code via la bannière bleue avant d\'envoyer.', true);
+      lockRemoteGrille(email, true);
+      return;
+    }
+    newCodeHash = authCodeHash;
+  }
+
   const prev = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Envoi en cours…';
   try {
-    await CDM_SUPABASE.upsertGrille(data);
+    await CDM_SUPABASE.upsertGrille(data, { authCodeHash, newCodeHash });
+    remoteGrilleAuth = { exists: true, hasCode: true };
+    remoteGrilleLocked = false;
+    remoteGrilleLoadedEmail = email;
+    syncRemoteGrilleUI();
     showToast('✅ Grille envoyée — visible au classement');
   } catch (e) {
     showToast('Échec envoi : ' + e.message, true);
@@ -4321,6 +4737,15 @@ initScoreSheet();
 loadState();
 BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
 wireAutoSave();
+const unlockBtn = document.getElementById('btn-unlock-remote');
+unlockBtn?.addEventListener('click', tryPlayerUnlock);
+document.getElementById('player-code-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryPlayerUnlock();
+});
+document.getElementById('joueur-code')?.addEventListener('input', renderSendRecap);
+syncRemoteGrilleUI();
+const initEmail = document.getElementById('email')?.value?.trim();
+if (isLikelyEmail(initEmail)) tryFetchRemoteGrille(initEmail, { silent: true });
 updateProgress();
 if (location.hash) {
   const raw = location.hash.replace(/^#/, '');

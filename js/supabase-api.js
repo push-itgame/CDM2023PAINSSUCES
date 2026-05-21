@@ -18,32 +18,120 @@
     }, extra || {});
   }
 
+  function baseUrl() {
+    return cfg().supabaseUrl.replace(/\/$/, '');
+  }
+
+  async function sha256(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(text)));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function rpc(name, body) {
+    const res = await fetch(baseUrl() + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(body || {}),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = data.message || data.error || data.details || ('Supabase RPC ' + res.status);
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  const GRILLE_SELECT = 'email,prenom,nom,equipe,payload,updated_at';
+
   function rowToParticipant(row) {
+    return rowToFullGrille(row);
+  }
+
+  function rowToFullGrille(row) {
     const p = row.payload || {};
-    const identite = {
-      prenom: row.prenom || p.identite?.prenom || '',
-      nom: row.nom || p.identite?.nom || '',
-      email: row.email || p.identite?.email || '',
-      equipe: row.equipe || p.identite?.equipe || '',
-    };
     return {
-      identite,
+      ...p,
+      identite: {
+        prenom: row.prenom || p.identite?.prenom || '',
+        nom: row.nom || p.identite?.nom || '',
+        email: row.email || p.identite?.email || '',
+        equipe: row.equipe || p.identite?.equipe || '',
+      },
       matchs: p.matchs || {},
       equipesQualifiees32Liste: p.equipesQualifiees32Liste || [],
       etape2Tableau: p.etape2Tableau || p.etape2 || {},
+      etape2Pick: p.etape2Pick || {},
       vainqueursTableauEliminationChoisis: p.vainqueursTableauEliminationChoisis || {},
       phaseFinalePourBareme: p.phaseFinalePourBareme || {},
       scoresElimination: p.scoresElimination || {},
       bonus: p.bonus || {},
-      sourceFichier: 'supabase',
+      sourceFichier: p.sourceExcel || p.sourceFichier || 'supabase',
       updatedAt: row.updated_at || null,
     };
   }
 
+  async function fetchGrilleAuthInfo(email) {
+    if (!isConfigured()) return { exists: false, hasCode: false };
+    const em = String(email || '').trim().toLowerCase();
+    if (!em) return { exists: false, hasCode: false };
+    try {
+      const data = await rpc('grille_auth_info', { p_email: em });
+      return {
+        exists: !!data.exists,
+        hasCode: !!data.hasCode,
+      };
+    } catch (e) {
+      console.warn('grille_auth_info:', e);
+      return { exists: false, hasCode: false };
+    }
+  }
+
+  async function verifyPlayerCodeHash(email, codeHash) {
+    if (!isConfigured() || !codeHash) return false;
+    const em = String(email || '').trim().toLowerCase();
+    if (!em) return false;
+    try {
+      return !!await rpc('verify_player_code', { p_email: em, p_code_hash: codeHash });
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function verifyPlayerCode(email, codePlain) {
+    if (!codePlain) return false;
+    return verifyPlayerCodeHash(email, await sha256(String(codePlain)));
+  }
+
+  async function setPlayerCodeIfEmpty(email, codePlain) {
+    if (!isConfigured()) throw new Error('Supabase non configuré (js/config.js).');
+    const em = String(email || '').trim().toLowerCase();
+    if (!em) throw new Error('E-mail obligatoire.');
+    const codeHash = await sha256(String(codePlain));
+    return rpc('set_player_code_if_empty', { p_email: em, p_code_hash: codeHash });
+  }
+
+  async function fetchGrilleByEmail(email) {
+    if (!isConfigured()) return null;
+    const em = String(email || '').trim().toLowerCase();
+    if (!em) return null;
+    const url = baseUrl()
+      + '/rest/v1/grilles?email=eq.' + encodeURIComponent(em)
+      + '&select=' + encodeURIComponent(GRILLE_SELECT)
+      + '&limit=1';
+    const res = await fetch(url, { headers: headers() });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || ('Supabase ' + res.status));
+    }
+    const rows = await res.json();
+    return rows.length ? rowToFullGrille(rows[0]) : null;
+  }
+
   async function fetchAllGrilles() {
     if (!isConfigured()) return [];
-    const c = cfg();
-    const url = c.supabaseUrl.replace(/\/$/, '') + '/rest/v1/grilles?select=*&order=updated_at.desc';
+    const url = baseUrl()
+      + '/rest/v1/grilles?select=' + encodeURIComponent(GRILLE_SELECT)
+      + '&order=updated_at.desc';
     const res = await fetch(url, { headers: headers() });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -52,34 +140,39 @@
     return res.json();
   }
 
-  async function upsertGrille(data) {
+  async function upsertGrille(data, opts) {
     if (!isConfigured()) throw new Error('Supabase non configuré (js/config.js).');
     const email = (data.identite?.email || '').trim().toLowerCase();
     if (!email) throw new Error('E-mail obligatoire.');
     if (!(data.identite?.prenom || '').trim()) throw new Error('Prénom obligatoire.');
     if (!(data.identite?.nom || '').trim()) throw new Error('Nom obligatoire.');
 
-    const row = {
-      email,
-      prenom: data.identite.prenom.trim(),
-      nom: data.identite.nom.trim(),
-      equipe: (data.identite.equipe || '').trim(),
-      payload: data,
-      updated_at: new Date().toISOString(),
-    };
+    const options = opts || {};
+    let authCodeHash = options.authCodeHash || null;
+    let newCodeHash = options.newCodeHash || null;
 
-    const c = cfg();
-    const url = c.supabaseUrl.replace(/\/$/, '') + '/rest/v1/grilles?on_conflict=email';
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: headers({
-        Prefer: 'resolution=merge-duplicates,return=minimal',
-      }),
-      body: JSON.stringify(row),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || err.hint || ('Supabase ' + res.status));
+    if (options.codePlain && !newCodeHash) {
+      newCodeHash = await sha256(String(options.codePlain));
+    }
+    if (options.authCodePlain && !authCodeHash) {
+      authCodeHash = await sha256(String(options.authCodePlain));
+    }
+
+    try {
+      return await rpc('upsert_grille_player', {
+        p_email: email,
+        p_prenom: data.identite.prenom.trim(),
+        p_nom: data.identite.nom.trim(),
+        p_equipe: (data.identite.equipe || '').trim(),
+        p_payload: data,
+        p_new_code_hash: newCodeHash || null,
+        p_auth_code_hash: authCodeHash || null,
+      });
+    } catch (e) {
+      if (/function.*does not exist/i.test(e.message || '')) {
+        throw new Error('Migration code joueur requise — exécutez scripts/supabase_player_code.sql dans Supabase.');
+      }
+      throw e;
     }
   }
 
@@ -121,7 +214,7 @@
     const c = cfg();
     if (c.adminGrillesUrl) return c.adminGrillesUrl;
     if (!c.supabaseUrl) return '';
-    return c.supabaseUrl.replace(/\/$/, '') + '/functions/v1/admin-grilles';
+    return baseUrl() + '/functions/v1/admin-grilles';
   }
 
   async function deleteGrilleByEmail(email, pinHash) {
@@ -150,10 +243,17 @@
 
   window.CDM_SUPABASE = {
     isConfigured,
+    sha256,
     upsertGrille,
     fetchAllGrilles,
+    fetchGrilleByEmail,
+    fetchGrilleAuthInfo,
+    verifyPlayerCode,
+    verifyPlayerCodeHash,
+    setPlayerCodeIfEmpty,
     deleteGrilleByEmail,
     loadParticipantsMerged,
     rowToParticipant,
+    rowToFullGrille,
   };
 })();

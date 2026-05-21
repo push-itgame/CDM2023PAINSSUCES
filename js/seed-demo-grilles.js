@@ -15,6 +15,8 @@
     return res.json();
   }
 
+  const DEMO_PLAYER_CODE = '1234';
+
   async function seedDemoGrilles() {
     if (!window.CDM_SUPABASE?.isConfigured()) {
       throw new Error('Supabase non configuré (js/config.js).');
@@ -22,8 +24,11 @@
     const results = [];
     for (const { file, label } of SEED_FILES) {
       const data = await loadSeedFile(file);
-      await CDM_SUPABASE.upsertGrille(data);
-      results.push({ label, email: data.identite?.email || '?' });
+      await CDM_SUPABASE.upsertGrille(data, {
+        codePlain: DEMO_PLAYER_CODE,
+        authCodePlain: DEMO_PLAYER_CODE,
+      });
+      results.push({ label, email: data.identite?.email || '?', code: DEMO_PLAYER_CODE });
     }
     return results;
   }

@@ -11,6 +11,9 @@
 1. Menu **SQL Editor** → **New query**
 2. Coller tout le fichier `scripts/supabase_schema.sql`
 3. **Run** → Success
+4. **New query** → coller `scripts/supabase_player_code.sql` → **Run** (code secret joueur)
+
+> Projet déjà créé ? Exécutez seulement `supabase_player_code.sql` pour ajouter la colonne `code_hash` et les fonctions RPC.
 
 ## 3. Récupérer les clés
 
@@ -35,15 +38,24 @@ Puis commit + push GitHub (comme le reste du site).
 ## 5. Tester
 
 1. Ouvrir `index.html` sur le site
-2. Remplir **Inscription** (prénom, nom, **e-mail**)
+2. Remplir **Inscription** (prénom, nom, **e-mail**, **code secret** 4–6 chiffres)
 3. Quelques scores poules + bonus
 4. **Envoyer ma grille** → toast vert
 5. Ouvrir **classement.html** → votre nom apparaît
+6. Recharger la page, saisir l’e-mail → grille en lecture seule → entrer le **code** dans la bannière bleue → modifier
 
 ## Parcours joueur
 
-- Remplir la grille → **Envoyer ma grille** (1 clic)
-- Même e-mail = mise à jour de la grille (pas de doublon)
+- **Première fois** : remplir la grille + choisir un **code secret** → **Envoyer ma grille**
+- **Retour** : saisir l’**e-mail** → grille chargée en consultation → **code** dans la bannière bleue pour modifier
+- Même e-mail + bon code = mise à jour (pas de doublon)
+- Session active ~8 h après déverrouillage (onglet du navigateur)
+
+## Import Excel (organisateur)
+
+- Import script → Supabase **sans code** (`code_hash` vide)
+- Le joueur ouvre le site, saisit son e-mail → **Définir mon code** dans la bannière
+- Ou vous communiquez un code provisoire qu’il change ensuite sur le site
 
 ## Organisateur
 
@@ -79,3 +91,5 @@ La suppression passe par la service role (jamais exposée au navigateur). Pas de
 | `401` / `JWT` | Mauvaise anon key |
 | `relation grilles does not exist` | SQL schema non exécuté |
 | RLS error | Relancer `supabase_schema.sql` |
+| « Migration code joueur requise » | Exécuter `scripts/supabase_player_code.sql` |
+| « Code secret incorrect » | Mauvais code ou session expirée — resaisir dans la bannière |
