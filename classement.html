@@ -172,6 +172,15 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 }
 .page-subactions a:hover,
 .page-subactions button:hover { background: rgba(200,168,75,0.1); }
+.page-subactions a.page-subactions-primary {
+  background: rgba(200,168,75,0.2);
+  border-color: var(--gold);
+  font-weight: 600;
+  color: var(--gold-light, #e8d5a0);
+}
+.page-subactions a.page-subactions-primary:hover {
+  background: rgba(200,168,75,0.32);
+}
 .lb-link {
   font-family: 'DM Mono', monospace;
   font-size: .65rem;
@@ -352,7 +361,7 @@ table.lb tr.lb-row-me .rank { color: var(--gold-light); }
 </nav>
 
 <div class="page-subactions">
-  <a href="mon-score.html">Voir mon score</a>
+  <a href="mon-score.html" class="page-subactions-primary">Voir mon score</a>
   <button type="button" id="btnRefresh">Actualiser</button>
 </div>
 
@@ -422,9 +431,7 @@ function renderMyScoreSummary(rows) {
   const norm = normalizeTeam(highlightEmail);
   const idx = rows.findIndex(r => normalizeTeam(r.email) === norm);
   if (idx < 0) {
-    el.innerHTML = '<span style="color:var(--muted)">Grille non trouvée pour l’e-mail mémorisé sur cet appareil.</span> '
-      + `<a class="lb-link" href="mon-score.html?email=${encodeURIComponent(highlightEmail)}">Vérifier sur Mon score →</a>`;
-    card.classList.remove('hidden');
+    card.classList.add('hidden');
     return;
   }
   const r = rows[idx];
@@ -441,13 +448,14 @@ function renderMyScoreSummary(rows) {
 
 function loadStoredEmail() {
   try {
-    const direct = localStorage.getItem(LS_EMAIL_KEY);
-    if (direct) return direct.trim();
     const grid = localStorage.getItem('cdm2026_grid');
     if (grid) {
       const st = JSON.parse(grid);
-      return (st.identite?.email || '').trim();
+      const em = (st.identite?.email || '').trim();
+      if (em) return em;
     }
+    const direct = localStorage.getItem(LS_EMAIL_KEY);
+    if (direct) return direct.trim();
   } catch (e) { /* ignore */ }
   return '';
 }
