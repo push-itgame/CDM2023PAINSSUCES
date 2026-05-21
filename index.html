@@ -1263,11 +1263,43 @@ body.grille-remote-locked .winner-pick-btn {
   opacity: .62;
   cursor: not-allowed;
 }
-body.grille-remote-locked #tab-identity input,
+body.grille-remote-locked #tab-identity input:not(#email),
 body.grille-remote-locked .bonus-answer,
 body.grille-remote-locked .bonus-other-input {
   pointer-events: none;
   opacity: .88;
+}
+body.grille-remote-locked #email {
+  pointer-events: auto;
+  opacity: 1;
+}
+body.grille-remote-locked #btn-change-account {
+  pointer-events: auto;
+  opacity: 1;
+}
+.email-account-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+.email-account-row input[type="email"] {
+  flex: 1;
+  min-width: 12rem;
+}
+.btn-change-account {
+  padding: .45rem .75rem;
+  font-size: .78rem;
+  border-radius: 4px;
+  border: 1px solid rgba(100, 160, 200, 0.35);
+  background: rgba(52, 120, 160, 0.15);
+  color: #c8dce8;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-change-account:hover {
+  border-color: rgba(100, 160, 200, 0.55);
+  background: rgba(52, 120, 160, 0.28);
 }
 body.grille-remote-locked #joueur-code {
   pointer-events: none;
@@ -2036,7 +2068,8 @@ body.grille-remote-locked #player-code-input {
   <h2 class="section-title">Inscription / Connexion</h2>
   <p style="font-size:.85rem;color:var(--muted);margin:-.25rem 0 1rem;line-height:1.65">
     <strong style="color:var(--text)">Nouveau ?</strong> Remplissez vos infos et choisissez un code secret.<br>
-    <strong style="color:var(--text)">Déjà inscrit ?</strong> Saisissez votre e-mail — votre grille se charge ; entrez votre code dans la bannière bleue pour modifier.
+    <strong style="color:var(--text)">Déjà inscrit ?</strong> Saisissez votre e-mail — votre grille se charge en lecture seule ; entrez votre code dans la bannière bleue pour modifier.<br>
+    <strong style="color:var(--text)">Autre compte ?</strong> Modifiez l’e-mail ou cliquez <strong style="color:var(--text)">Changer de compte</strong>.
   </p>
   <div class="identity-card">
     <h2>Vos informations</h2>
@@ -2052,7 +2085,11 @@ body.grille-remote-locked #player-code-input {
     </div>
     <div style="margin-top:1rem" class="form-group">
       <label>Adresse e-mail</label>
-      <input type="email" id="email" placeholder="jean@example.com">
+      <div class="email-account-row">
+        <input type="email" id="email" placeholder="jean@example.com" autocomplete="email">
+        <button type="button" class="btn-change-account" id="btn-change-account">Changer de compte</button>
+      </div>
+      <p class="form-hint">L’e-mail reste modifiable pour consulter ou charger un autre compte.</p>
     </div>
     <div style="margin-top:1rem" class="form-group">
       <label>Code secret <span style="font-weight:400;color:var(--muted)">(4 à 6 chiffres)</span></label>
@@ -4274,6 +4311,85 @@ function clearPlayerAuth() {
   try { sessionStorage.removeItem(PLAYER_AUTH_KEY); } catch (e) { /* ignore */ }
 }
 
+function resetGrilleForNewAccount(keepEmail) {
+  const emailVal = keepEmail ? (document.getElementById('email')?.value || '') : '';
+  Object.keys(scoreValues).forEach(k => { delete scoreValues[k]; });
+  Object.keys(kosWinners).forEach(k => { delete kosWinners[k]; });
+  etape2Pick = {};
+  etape2 = { r32: [], r16: [], qf: [], sf: [], finalists: [], winner: '' };
+  ['prenom', 'nom', 'equipe'].forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = '';
+  });
+  if (!keepEmail) {
+    const emailEl = document.getElementById('email');
+    if (emailEl) emailEl.value = '';
+  } else if (emailVal) {
+    const emailEl = document.getElementById('email');
+    if (emailEl) emailEl.value = emailVal;
+  }
+  const jc = document.getElementById('joueur-code');
+  if (jc) jc.value = '';
+  const pc = document.getElementById('player-code-input');
+  if (pc) pc.value = '';
+  BONUS_PICKER_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+    const other = document.getElementById(id + '-other');
+    if (other) other.value = '';
+  });
+  ['b8', 'b9', 'b10'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  wireScorePickers(document.getElementById('groups-container'));
+  for (const rows of Object.values(GROUPS)) {
+    for (const [num] of rows) {
+      syncScoreToDom('m' + num + '-h');
+      syncScoreToDom('m' + num + '-a');
+      updatePickerUI('m' + num + '-h');
+      updatePickerUI('m' + num + '-a');
+      updateMatchDisplayScore(num);
+    }
+  }
+  for (let mid = 73; mid <= 104; mid++) {
+    syncScoreToDom(koInputId(mid, 'h'));
+    syncScoreToDom(koInputId(mid, 'a'));
+    updatePickerUI(koInputId(mid, 'h'));
+    updatePickerUI(koInputId(mid, 'a'));
+    updateKoMatchDisplay(mid);
+  }
+  BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
+  fullRefreshDerived();
+}
+
+function switchAccount() {
+  clearPlayerAuth();
+  remoteGrilleLocked = false;
+  remoteGrilleLoadedEmail = '';
+  remoteGrilleAuth = { exists: false, hasCode: false };
+  resetGrilleForNewAccount(false);
+  syncRemoteGrilleUI();
+  saveState();
+  document.getElementById('email')?.focus();
+  showToast('Saisissez un e-mail pour charger ou créer un compte.');
+}
+
+function prepareAccountEmailChange(nextEmail) {
+  const em = String(nextEmail || '').trim().toLowerCase();
+  if (em && em === remoteGrilleLoadedEmail) return;
+  clearPlayerAuth();
+  const pc = document.getElementById('player-code-input');
+  if (pc) pc.value = '';
+  if (remoteGrilleLoadedEmail) {
+    unlockRemoteGrille(true);
+    resetGrilleForNewAccount(true);
+  }
+  remoteGrilleLoadedEmail = '';
+  remoteGrilleAuth = { exists: false, hasCode: false };
+  syncRemoteGrilleUI();
+}
+
 function syncRemoteGrilleUI() {
   document.body.classList.toggle('grille-remote-locked', remoteGrilleLocked);
   const banner = document.getElementById('grille-remote-banner');
@@ -4430,16 +4546,13 @@ function scheduleRemoteGrilleFetch() {
   remoteFetchTimer = setTimeout(() => {
     const email = document.getElementById('email')?.value?.trim() || '';
     if (!isLikelyEmail(email)) {
-      if (remoteGrilleLocked) {
-        remoteGrilleLocked = false;
-        remoteGrilleLoadedEmail = '';
-        remoteGrilleAuth = { exists: false, hasCode: false };
-        clearPlayerAuth();
-        syncRemoteGrilleUI();
-      }
+      if (remoteGrilleLoadedEmail) prepareAccountEmailChange('');
+      remoteGrilleLocked = false;
+      syncRemoteGrilleUI();
       return;
     }
     if (remoteGrilleLocked && email.toLowerCase() === remoteGrilleLoadedEmail) return;
+    prepareAccountEmailChange(email);
     tryFetchRemoteGrille(email);
   }, 500);
 }
@@ -4456,11 +4569,11 @@ async function tryFetchRemoteGrille(email, opts = {}) {
     ]);
     remoteGrilleAuth = authInfo;
     if (!data) {
-      if (remoteGrilleLocked && em === remoteGrilleLoadedEmail) {
-        remoteGrilleLocked = false;
-        remoteGrilleLoadedEmail = '';
-        syncRemoteGrilleUI();
-      }
+      remoteGrilleLocked = false;
+      remoteGrilleLoadedEmail = em;
+      syncRemoteGrilleUI();
+      saveState();
+      if (!opts.silent) showToast('Aucune grille enregistrée pour cet e-mail — vous pouvez créer la vôtre.');
       return;
     }
     applyGrillePayload(data);
@@ -4741,6 +4854,7 @@ initScoreSheet();
 loadState();
 BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
 wireAutoSave();
+document.getElementById('btn-change-account')?.addEventListener('click', switchAccount);
 const unlockBtn = document.getElementById('btn-unlock-remote');
 unlockBtn?.addEventListener('click', tryPlayerUnlock);
 document.getElementById('player-code-input')?.addEventListener('keydown', e => {
