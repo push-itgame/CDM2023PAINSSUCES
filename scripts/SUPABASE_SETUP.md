@@ -38,7 +38,7 @@ Puis commit + push GitHub (comme le reste du site).
 ## 5. Tester
 
 1. Ouvrir `index.html` sur le site
-2. Remplir **Inscription** (prénom, nom, **e-mail**, **code secret** 4–6 chiffres)
+2. Remplir **Inscription / Connexion** (prénom, nom, **e-mail**, **code secret** 4–6 chiffres)
 3. Quelques scores poules + bonus
 4. **Envoyer ma grille** → toast vert
 5. Ouvrir **classement.html** → votre nom apparaît

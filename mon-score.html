@@ -175,7 +175,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 </header>
 
 <nav id="tabs">
-  <a href="index.html" class="tab-link">👤 Inscription</a>
+  <a href="index.html" class="tab-link">👤 Inscription / Connexion</a>
   <a href="index.html#poules" class="tab-link">⚽ Poules</a>
   <a href="index.html#tableau" class="tab-link">🎯 Phase finale — tableau</a>
   <a href="index.html#scores-finales" class="tab-link">🎯 Phase finale — scores</a>
@@ -429,7 +429,7 @@ async function showScore(email) {
     ]);
     const p = participants.find(x => ((x.identite || {}).email || '').trim().toLowerCase() === email);
     if (!p) {
-      content.innerHTML = '<div class="err">Aucune grille trouvée pour <strong>' + escapeHtml(email) + '</strong>. Vérifiez l’e-mail ou envoyez votre grille depuis la page d’inscription.</div>';
+      content.innerHTML = '<div class="err">Aucune grille trouvée pour <strong>' + escapeHtml(email) + '</strong>. Vérifiez l’e-mail ou inscrivez-vous depuis la page d’accueil.</div>';
       return;
     }
     content.innerHTML = renderParticipant(p, resultats);

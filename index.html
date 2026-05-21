@@ -2012,7 +2012,7 @@ body.grille-remote-locked #player-code-input {
 <div id="current-step-banner" class="stage-current-banner" hidden></div>
 
 <nav id="tabs">
-  <button class="active" data-tab="identity">👤 Inscription</button>
+  <button class="active" data-tab="identity">👤 Inscription / Connexion</button>
   <button data-tab="poules" data-step="1">⚽ Poules</button>
   <button data-tab="tableau" data-step="2">🎯 Phase finale — tableau</button>
   <button data-tab="scores-finales" data-step="3" class="tab-scores">🎯 Phase finale — scores</button>
@@ -2030,10 +2030,14 @@ body.grille-remote-locked #player-code-input {
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════ INSCRIPTION ════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════ INSCRIPTION / CONNEXION ════════════════════════════════════════ -->
 <div id="tab-identity" class="panel active">
 <div class="container">
-  <h2 class="section-title">Inscription</h2>
+  <h2 class="section-title">Inscription / Connexion</h2>
+  <p style="font-size:.85rem;color:var(--muted);margin:-.25rem 0 1rem;line-height:1.65">
+    <strong style="color:var(--text)">Nouveau ?</strong> Remplissez vos infos et choisissez un code secret.<br>
+    <strong style="color:var(--text)">Déjà inscrit ?</strong> Saisissez votre e-mail — votre grille se charge ; entrez votre code dans la bannière bleue pour modifier.
+  </p>
   <div class="identity-card">
     <h2>Vos informations</h2>
     <div class="form-row">
@@ -3571,7 +3575,7 @@ function renderSendRecap() {
   if (idLine) {
     idLine.innerHTML = email
       ? `<strong>${escapeHtml([prenom, nom].filter(Boolean).join(' ') || 'Participant')}</strong> · ${escapeHtml(email)}`
-      : 'Renseignez votre <strong>e-mail</strong> dans l’onglet Inscription (obligatoire pour l’envoi).';
+      : 'Renseignez votre <strong>e-mail</strong> dans l’onglet Inscription / Connexion (obligatoire pour l’envoi).';
   }
 
   const items = [];
@@ -3586,7 +3590,7 @@ function renderSendRecap() {
     chk(false, true, 'Code secret requis — bannière bleue en haut de page');
   } else if (!remoteGrilleAuth.exists) {
     const codeOk = validatePlayerCodeFormat(document.getElementById('joueur-code')?.value);
-    chk(codeOk, !codeOk, codeOk ? 'Code secret choisi' : 'Code secret 4–6 chiffres (onglet Inscription)');
+    chk(codeOk, !codeOk, codeOk ? 'Code secret choisi' : 'Code secret 4–6 chiffres (onglet Inscription / Connexion)');
   }
   if (preComp) {
     chk(poulesN >= 72, poulesN > 0 && poulesN < 72, `Poules : ${poulesN}/72 matchs`);
@@ -4679,7 +4683,7 @@ async function submitGrille() {
   if (!remoteGrilleAuth.exists) {
     const code = document.getElementById('joueur-code')?.value?.trim() || '';
     if (!validatePlayerCodeFormat(code)) {
-      showToast('Choisissez un code secret de 4 à 6 chiffres (onglet Inscription).', true);
+      showToast('Choisissez un code secret de 4 à 6 chiffres (onglet Inscription / Connexion).', true);
       goToTab('identity');
       return;
     }
