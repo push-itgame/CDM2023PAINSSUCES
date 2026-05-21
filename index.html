@@ -1252,6 +1252,13 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   line-height: 1.45;
   text-align: center;
 }
+.grille-remote-banner[hidden] { display: none !important; }
+.grille-remote-banner.grille-remote-banner-unlocked {
+  color: #a8e6c0;
+  background: rgba(39, 174, 96, 0.14);
+  border-bottom-color: rgba(39, 174, 96, 0.32);
+}
+.grille-remote-banner.grille-remote-banner-unlocked strong { color: #d4f5e0; }
 .grille-remote-banner strong { color: var(--text); }
 body.grille-remote-locked .score-picker,
 body.grille-remote-locked .score-btn,
@@ -2076,7 +2083,7 @@ body.grille-remote-locked #player-code-input {
 
 <div id="grille-remote-banner" class="grille-remote-banner" hidden>
   <span id="grille-remote-banner-msg">📋 Grille enregistrée chargée (<strong>consultation seule</strong>).</span>
-  <div class="grille-unlock-row">
+  <div class="grille-unlock-row" id="grille-unlock-row">
     <input type="password" id="player-code-input" inputmode="numeric" autocomplete="current-password" placeholder="Code 4–6 chiffres" maxlength="6" aria-label="Code secret">
     <button type="button" class="btn-etape2" id="btn-unlock-remote">Déverrouiller</button>
   </div>
@@ -4437,10 +4444,19 @@ function syncRemoteGrilleUI() {
   document.body.classList.toggle('grille-remote-locked', remoteGrilleLocked);
   const banner = document.getElementById('grille-remote-banner');
   const msg = document.getElementById('grille-remote-banner-msg');
+  const unlockRow = document.getElementById('grille-unlock-row');
   const unlockBtn = document.getElementById('btn-unlock-remote');
-  if (banner) banner.hidden = !remoteGrilleLocked;
+  const showUnlockedBanner = remoteGrilleAuth.exists && !remoteGrilleLocked;
+
+  if (banner) {
+    banner.hidden = !remoteGrilleAuth.exists;
+    banner.classList.toggle('grille-remote-banner-unlocked', showUnlockedBanner);
+  }
+  if (unlockRow) unlockRow.hidden = showUnlockedBanner;
   if (msg) {
-    if (!remoteGrilleAuth.hasCode) {
+    if (showUnlockedBanner) {
+      msg.innerHTML = '✅ <strong>Compte déverrouillé</strong> — vous pouvez modifier votre grille et renvoyer.';
+    } else if (!remoteGrilleAuth.hasCode) {
       msg.innerHTML = '📋 Grille importée ou enregistrée (<strong>consultation seule</strong>) — définissez votre <strong>code secret</strong> ci-dessous pour modifier sur le site.';
     } else {
       msg.innerHTML = '📋 Grille enregistrée (<strong>consultation seule</strong>) — entrez votre <strong>code secret</strong> pour modifier.';
