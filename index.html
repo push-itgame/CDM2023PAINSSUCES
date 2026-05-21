@@ -572,7 +572,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   font-size: .58rem;
   font-family: 'DM Mono', monospace;
   letter-spacing: .02em;
-  color: var(--muted);
+  color: var(--text);
   padding: 0;
 }
 .score-btn-more.has-val, .score-btn-more.selected {
@@ -1822,6 +1822,11 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
     flex-direction: column;
     align-items: stretch;
     gap: .5rem;
+  }
+  .tv-score-row .score-picker:first-of-type {
+    padding-bottom: .55rem;
+    margin-bottom: .1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
   .tv-score-sep {
     display: none;
