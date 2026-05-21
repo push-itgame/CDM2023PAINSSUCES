@@ -125,6 +125,16 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
 }
 .token-status.ok { color: var(--green); border-color: rgba(39,174,96,0.35); background: rgba(39,174,96,0.08); }
 .token-status.wait { color: var(--muted); }
+.profil-list { display: grid; gap: .45rem; margin-top: .5rem; }
+.profil-row {
+  display: grid; grid-template-columns: 1fr auto; gap: .5rem; align-items: center;
+  padding: .55rem .65rem; border-radius: 4px; background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.profil-row .meta { font-size: .78rem; line-height: 1.35; }
+.profil-row .meta strong { color: var(--text); font-weight: 600; }
+.profil-row .meta span { display: block; font-family: 'DM Mono', monospace; font-size: .65rem; color: var(--muted); }
+.profil-empty { font-size: .8rem; color: var(--muted); padding: .5rem 0; }
 .token-banner {
   display: block; width: 100%; margin-bottom: .75rem; padding: .7rem .85rem; border-radius: 6px;
   border: 1px solid rgba(231,76,60,0.45); background: rgba(231,76,60,0.12); color: #f5b7b1;
@@ -162,6 +172,7 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
       <button type="button" data-panel="ko-teams">KO équipes</button>
       <button type="button" data-panel="ko-scores">KO scores</button>
       <button type="button" data-panel="bonus">Bonus</button>
+      <button type="button" data-panel="profils">Profils</button>
       <button type="button" data-panel="publish">Publier</button>
     </nav>
 
@@ -193,6 +204,16 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
     <div id="panel-bonus" class="org-panel card">
       <h2>Réponses bonus officielles</h2>
       <div id="bonus-root"></div>
+    </div>
+
+    <div id="panel-profils" class="org-panel card">
+      <h2>Grilles Supabase</h2>
+      <p class="hint">Profils envoyés via le site (table <code>grilles</code>). La suppression est définitive — le joueur devra renvoyer sa grille.</p>
+      <div class="actions">
+        <button type="button" class="btn" id="btn-refresh-profils">Actualiser</button>
+      </div>
+      <div id="profils-root" class="profil-list"></div>
+      <p class="err" id="profils-err" hidden></p>
     </div>
 
     <div id="panel-publish" class="org-panel card">
@@ -234,6 +255,8 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
   </div>
 </div>
 
+<script src="js/config.js"></script>
+<script src="js/supabase-api.js"></script>
 <script>
 const ORG_PIN_HASH = 'b5fba5acc2c2dfaf6003166625a8de638260a920e1143d7eba941aa8ca259b7d';
 const ORG_SESSION_DAYS = 30;
@@ -608,6 +631,83 @@ function switchPanel(name) {
   document.querySelectorAll('.org-tabs button').forEach(b => b.classList.toggle('active', b.dataset.panel === name));
   document.querySelectorAll('.org-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'profils') renderProfils();
+}
+
+function formatProfilDate(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+  } catch (e) { return iso; }
+}
+
+async function renderProfils() {
+  const root = document.getElementById('profils-root');
+  const errEl = document.getElementById('profils-err');
+  errEl.hidden = true;
+  root.innerHTML = '<p class="profil-empty">Chargement…</p>';
+
+  if (!window.CDM_SUPABASE?.isConfigured()) {
+    root.innerHTML = '<p class="profil-empty">Supabase non configuré (<code>js/config.js</code>).</p>';
+    return;
+  }
+
+  try {
+    const rows = await CDM_SUPABASE.fetchAllGrilles();
+    if (!rows.length) {
+      root.innerHTML = '<p class="profil-empty">Aucune grille en base.</p>';
+      return;
+    }
+    root.innerHTML = rows.map(row => {
+      const name = [row.prenom, row.nom].filter(Boolean).join(' ') || '—';
+      const eq = row.equipe ? ' · ' + row.equipe : '';
+      const em = (row.email || '').replace(/"/g, '&quot;');
+      return `<div class="profil-row" data-email="${em}">
+        <div class="meta">
+          <strong>${escapeHtml(name)}${escapeHtml(eq)}</strong>
+          <span>${escapeHtml(row.email || '')} · ${formatProfilDate(row.updated_at)}</span>
+        </div>
+        <button type="button" class="btn btn-danger btn-del-profil" data-email="${em}">Supprimer</button>
+      </div>`;
+    }).join('');
+
+    root.querySelectorAll('.btn-del-profil').forEach(btn => {
+      btn.addEventListener('click', () => deleteProfil(btn.dataset.email));
+    });
+  } catch (e) {
+    root.innerHTML = '';
+    errEl.textContent = 'Erreur : ' + (e.message || e);
+    errEl.hidden = false;
+  }
+}
+
+async function deleteProfil(email) {
+  const em = (email || '').trim().toLowerCase();
+  if (!em) return;
+  if (!confirm('Supprimer définitivement la grille de ' + em + ' ?')) return;
+
+  const errEl = document.getElementById('profils-err');
+  errEl.hidden = true;
+
+  if (!window.CDM_SUPABASE?.deleteGrilleByEmail) {
+    errEl.textContent = 'API Supabase indisponible.';
+    errEl.hidden = false;
+    return;
+  }
+
+  try {
+    await CDM_SUPABASE.deleteGrilleByEmail(em, ORG_PIN_HASH);
+    showMsg('Grille supprimée : ' + em);
+    await renderProfils();
+  } catch (e) {
+    errEl.textContent = 'Suppression impossible : ' + (e.message || e)
+      + ' — déployez la Edge Function admin-grilles (voir scripts/SUPABASE_SETUP.md).';
+    errEl.hidden = false;
+  }
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function renderEtapePicker() {
@@ -961,6 +1061,7 @@ document.getElementById('btn-publish').addEventListener('click', publishToGitHub
 document.getElementById('btn-publish-sticky').addEventListener('click', publishToGitHub);
 document.getElementById('btn-preview').addEventListener('click', applyPreview);
 document.getElementById('btn-clear-preview').addEventListener('click', clearPreview);
+document.getElementById('btn-refresh-profils').addEventListener('click', renderProfils);
 document.getElementById('btn-save-token').addEventListener('click', () => {
   const t = document.getElementById('gh-token').value.trim();
   if (t) {

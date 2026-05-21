@@ -49,7 +49,25 @@ Puis commit + push GitHub (comme le reste du site).
 
 - **Résultats officiels** : toujours `organisateur.html` → Publier (`resultats.json`)
 - **Grilles joueurs** : Supabase automatique (plus besoin de `merge_grilles.py` sauf archive)
+- **Supprimer une grille** : `organisateur.html` → onglet **Profils** (PIN requis)
 - Tableau Supabase : **Table Editor** → `grilles` pour voir les JSON
+
+## Suppression de grilles (organisateur)
+
+1. Déployer la Edge Function **admin-grilles** (une fois) :
+
+```bash
+npx supabase login
+npx supabase link --project-ref qpkiwausbvedzmovfvxe
+npx supabase secrets set ORGANIZER_PIN_HASH=b5fba5acc2c2dfaf6003166625a8de638260a920e1143d7eba941aa8ca259b7d
+npx supabase functions deploy admin-grilles
+```
+
+> `ORGANIZER_PIN_HASH` = SHA-256 du code organisateur (même valeur que dans `organisateur.html`).
+
+2. Sur le site : `organisateur.html` → PIN → onglet **Profils** → **Supprimer**.
+
+La suppression passe par la service role (jamais exposée au navigateur). Pas de policy DELETE publique sur la table.
 
 ## Dépannage
 

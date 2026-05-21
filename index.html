@@ -3331,11 +3331,11 @@ function renderSendRecap() {
   chk(!!email, !email, email ? `E-mail renseigné : ${escapeHtml(email)}` : 'E-mail obligatoire');
   if (preComp) {
     chk(poulesN >= 72, poulesN > 0 && poulesN < 72, `Poules : ${poulesN}/72 matchs`);
-    chk(et2, !et2 && poulesN >= 72, et2 ? 'Tableau complet (32 → vainqueur)' : 'Tableau incomplet (recommandé avant le 11/06)');
+    chk(et2, !et2 && poulesN >= 72, et2 ? 'Phase finale — tableau complète (32 → vainqueur)' : 'Phase finale — tableau incomplète (recommandé avant le 11/06)');
     chk(bonusN >= 10, bonusN > 0 && bonusN < 10, `Bonus : ${bonusN}/10 (recommandé, non bloquant)`);
   } else {
     chk(poulesN >= 72, false, `Poules : ${poulesN}/72`);
-    chk(et2, false, et2 ? 'Tableau complété' : 'Tableau incomplet');
+    chk(et2, false, et2 ? 'Phase finale — tableau complétée' : 'Phase finale — tableau incomplète');
     chk(bonusN >= 10, bonusN > 0, `Bonus : ${bonusN}/10`);
   }
 
@@ -3345,7 +3345,7 @@ function renderSendRecap() {
     const warnings = [];
     if (!email) warnings.push('E-mail manquant — indispensable pour le classement.');
     if (preComp && poulesN < 72) warnings.push(`Poules incomplètes (${poulesN}/72) — vous pouvez quand même envoyer, mais complétez avant le 11/06.`);
-    if (preComp && !et2) warnings.push('Tableau incomplet — recommandé avant la date limite.');
+    if (preComp && !et2) warnings.push('Phase finale — tableau incomplète — recommandé avant la date limite.');
     if (preComp && bonusN < 10) warnings.push(`Bonus ${bonusN}/10 — optionnel mais 25 pts par bonne réponse.`);
     if (warnings.length) {
       attnEl.innerHTML = '<strong>Attention</strong> — ' + warnings.join(' ');
@@ -3452,11 +3452,6 @@ function fullRefreshDerived() {
   applyPronosticFeedback();
 }
 
-function getOfficialKoWinner(mid) {
-  const w = OFFICIAL.vainqueursTableauElimination || {};
-  return w['Match ' + mid] || w[String(mid)] || w['M' + mid] || '';
-}
-
 function applyPronosticFeedback() {
   if (!window.CDM_SCORING) return;
   const S = CDM_SCORING;
@@ -3499,19 +3494,11 @@ function applyPronosticFeedback() {
   document.querySelectorAll('[data-bracket-mid][data-bracket-team]').forEach(btn => {
     btn.classList.remove('pred-hit');
     if (!btn.classList.contains('is-winner-pick')) return;
+    if (!participant) return;
     const mid = Number(btn.dataset.bracketMid);
     const team = btn.dataset.bracketTeam || btn.textContent.trim();
-    const offW = getOfficialKoWinner(mid);
-    if (offW && S.normalizeTeam(offW) === S.normalizeTeam(team)) {
-      btn.classList.add('pred-hit');
-      return;
-    }
-    if ((OFFICIAL.etapeDebloquee || 0) >= 3 && participant) {
-      const rounds = S.tableauRoundDetails(participant, OFFICIAL);
-      const hitTeams = new Set();
-      rounds.forEach(r => r.teams.forEach(t => { if (t.hit) hitTeams.add(S.normalizeTeam(t.name)); }));
-      if (hitTeams.has(S.normalizeTeam(team))) btn.classList.add('pred-hit');
-    }
+    const d = S.evalBracketPickDetail(participant, mid, team, OFFICIAL, effectiveEtapeDebloquee());
+    if (d.status === 'hit') btn.classList.add('pred-hit');
   });
 
   document.querySelectorAll('.ko-match-card[data-ko-mid]').forEach(card => {

@@ -117,10 +117,42 @@
     return [...byKey.values()];
   }
 
+  function adminGrillesUrl() {
+    const c = cfg();
+    if (c.adminGrillesUrl) return c.adminGrillesUrl;
+    if (!c.supabaseUrl) return '';
+    return c.supabaseUrl.replace(/\/$/, '') + '/functions/v1/admin-grilles';
+  }
+
+  async function deleteGrilleByEmail(email, pinHash) {
+    if (!isConfigured()) throw new Error('Supabase non configuré (js/config.js).');
+    const em = String(email || '').trim().toLowerCase();
+    if (!em) throw new Error('E-mail obligatoire.');
+    if (!pinHash) throw new Error('Session organisateur requise.');
+
+    const url = adminGrillesUrl();
+    const c = cfg();
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        apikey: c.supabaseAnonKey,
+        Authorization: 'Bearer ' + c.supabaseAnonKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'delete', email: em, pinHash }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || ('Supabase ' + res.status));
+    }
+    return data;
+  }
+
   window.CDM_SUPABASE = {
     isConfigured,
     upsertGrille,
     fetchAllGrilles,
+    deleteGrilleByEmail,
     loadParticipantsMerged,
     rowToParticipant,
   };

@@ -267,6 +267,39 @@
     return items;
   }
 
+  const TABLEAU_ROUND_UNLOCK = { l32: 2, r16: 3, qf: 4, sf: 5, fin: 6, win: 7 };
+
+  const BRACKET_ROUND_LABEL = {
+    r16: '16 huitièmes',
+    qf: '8 quarts',
+    sf: '4 demis',
+    fin: '2 finalistes',
+    win: 'Vainqueur',
+  };
+
+  function bracketMidToRoundKey(mid) {
+    const m = Number(mid);
+    if (m >= 73 && m <= 88) return 'r16';
+    if (m >= 89 && m <= 96) return 'qf';
+    if (m >= 97 && m <= 100) return 'sf';
+    if (m >= 101 && m <= 102) return 'fin';
+    if (m === 104) return 'win';
+    return null;
+  }
+
+  function evalBracketPickDetail(participant, mid, team, resultats, etapeEffective) {
+    const roundKey = bracketMidToRoundKey(mid);
+    if (!roundKey || !participant) return { status: 'pending' };
+    const unlock = TABLEAU_ROUND_UNLOCK[roundKey];
+    if ((etapeEffective ?? resultats.etapeDebloquee ?? 0) < unlock) return { status: 'pending' };
+    const label = BRACKET_ROUND_LABEL[roundKey];
+    const rounds = tableauRoundDetails(participant, resultats);
+    const rd = rounds.find(r => r.label === label);
+    if (!rd) return { status: 'pending' };
+    const hit = rd.teams.some(t => normalizeTeam(t.name) === normalizeTeam(team) && t.hit);
+    return hit ? { status: 'hit' } : { status: 'miss' };
+  }
+
   function teamInOfficialTableauSet(team, roundKey, resultats) {
     const real = resultats.phaseFinalePourBareme || {};
     const list32 = real.liste32QualifiesIssuesPoules?.length ? real.liste32QualifiesIssuesPoules : (resultats.equipesQualifiees32Liste || []);
@@ -285,6 +318,7 @@
   global.CDM_SCORING = {
     BONUS_DEFS,
     TABLEAU_ROUNDS,
+    TABLEAU_ROUND_UNLOCK,
     KO_MATCH_MIN,
     KO_MATCH_MAX,
     parseIntSafe,
@@ -298,6 +332,8 @@
     scoreTableauOnly,
     scoreEliminationKO,
     evalKoMatchDetail,
+    evalBracketPickDetail,
+    bracketMidToRoundKey,
     evalBonusItem,
     getParticipantBonus,
     scoreGroupMatches,

@@ -458,7 +458,7 @@ function renderMyScoreSummary(rows) {
     : '';
   el.innerHTML = `
     <span class="rank-big">#${idx + 1}</span>
-    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${r.poules} · Tab. ${r.tableauE2} · Fin. ${r.finales} · Bonus ${r.bonus}</span></span>
+    <span><strong>${escapeHtml(r.label)}</strong><br><span style="color:var(--muted);font-size:.8rem">Poules ${r.poules} · Ph. fin. tab. ${r.tableauE2} · Ph. fin. scores ${r.finales} · Bonus ${r.bonus}</span></span>
     <span class="pts-big">${r.total} pts</span>
     ${detailLink}`;
   el.hidden = false;
