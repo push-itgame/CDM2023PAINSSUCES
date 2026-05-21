@@ -1,0 +1,753 @@
+{
+  "template": "CDM2026_Inscription.xlsx",
+  "sheets": [
+    "Reglement",
+    "Poules",
+    "Phase Finale",
+    "Grille"
+  ],
+  "identite": {
+    "nom_complet": {
+      "cell": "J2",
+      "value": null
+    },
+    "email": {
+      "cell": "J3",
+      "value": null
+    },
+    "equipe": {
+      "cell": "J4",
+      "value": null
+    }
+  },
+  "poules_score_cols": {
+    "scoreHome": "J",
+    "scoreAway": "K",
+    "homeTeam": "I",
+    "awayTeam": "L",
+    "matchNum": "B"
+  },
+  "poules_matches": [
+    {
+      "match": 1,
+      "row": 10,
+      "home": "Mexique",
+      "away": "Afrique du Sud",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 2,
+      "row": 11,
+      "home": "Corée du Sud",
+      "away": "Rép. Tchèque",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 25,
+      "row": 12,
+      "home": "Rép. Tchèque",
+      "away": "Afrique du Sud",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 28,
+      "row": 13,
+      "home": "Mexique",
+      "away": "Corée du Sud",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 53,
+      "row": 14,
+      "home": "Rép. Tchèque",
+      "away": "Mexique",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 54,
+      "row": 15,
+      "home": "Afrique du Sud",
+      "away": "Corée du Sud",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 3,
+      "row": 21,
+      "home": "Canada",
+      "away": "Bosnie Herzégovine",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 5,
+      "row": 22,
+      "home": "Qatar",
+      "away": "Suisse",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 26,
+      "row": 23,
+      "home": "Suisse",
+      "away": "Bosnie Herzégovine",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 27,
+      "row": 24,
+      "home": "Canada",
+      "away": "Qatar",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 49,
+      "row": 25,
+      "home": "Suisse",
+      "away": "Canada",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 50,
+      "row": 26,
+      "home": "Bosnie Herzégovine",
+      "away": "Qatar",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 6,
+      "row": 32,
+      "home": "Brésil",
+      "away": "Maroc",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 7,
+      "row": 33,
+      "home": "Haiti",
+      "away": "Ecosse",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 30,
+      "row": 34,
+      "home": "Ecosse",
+      "away": "Maroc",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 31,
+      "row": 35,
+      "home": "Brésil",
+      "away": "Haiti",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 51,
+      "row": 36,
+      "home": "Ecosse",
+      "away": "Brésil",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 52,
+      "row": 37,
+      "home": "Maroc",
+      "away": "Haiti",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 4,
+      "row": 43,
+      "home": "Etats Unis",
+      "away": "Paraguay",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 8,
+      "row": 44,
+      "home": "Australie",
+      "away": "Turquie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 32,
+      "row": 45,
+      "home": "Turquie",
+      "away": "Paraguay",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 29,
+      "row": 46,
+      "home": "Etats Unis",
+      "away": "Australie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 59,
+      "row": 47,
+      "home": "Turquie",
+      "away": "Etats Unis",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 60,
+      "row": 48,
+      "home": "Paraguay",
+      "away": "Australie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 9,
+      "row": 54,
+      "home": "Allemagne",
+      "away": "Curacao",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 11,
+      "row": 55,
+      "home": "Côte d'Ivoire",
+      "away": "Équateur",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 35,
+      "row": 56,
+      "home": "Équateur",
+      "away": "Curacao",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 34,
+      "row": 57,
+      "home": "Allemagne",
+      "away": "Côte d'Ivoire",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 55,
+      "row": 58,
+      "home": "Équateur",
+      "away": "Allemagne",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 56,
+      "row": 59,
+      "home": "Curacao",
+      "away": "Côte d'Ivoire",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 10,
+      "row": 65,
+      "home": "Pays-Bas",
+      "away": "Japon",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 12,
+      "row": 66,
+      "home": "Suède",
+      "away": "Tunisie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 36,
+      "row": 67,
+      "home": "Tunisie",
+      "away": "Japon",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 33,
+      "row": 68,
+      "home": "Pays-Bas",
+      "away": "Suède",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 57,
+      "row": 69,
+      "home": "Tunisie",
+      "away": "Pays-Bas",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 58,
+      "row": 70,
+      "home": "Japon",
+      "away": "Suède",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 14,
+      "row": 76,
+      "home": "Belgique",
+      "away": "Egypte",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 16,
+      "row": 77,
+      "home": "Iran",
+      "away": "Nouvelle Zélande",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 40,
+      "row": 78,
+      "home": "Nouvelle Zélande",
+      "away": "Egypte",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 38,
+      "row": 79,
+      "home": "Belgique",
+      "away": "Iran",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 65,
+      "row": 80,
+      "home": "Nouvelle Zélande",
+      "away": "Belgique",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 66,
+      "row": 81,
+      "home": "Egypte",
+      "away": "Iran",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 13,
+      "row": 87,
+      "home": "Espagne",
+      "away": "Cap Vert",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 15,
+      "row": 88,
+      "home": "Arabie Saoudite",
+      "away": "Uruguay",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 39,
+      "row": 89,
+      "home": "Uruguay",
+      "away": "Cap Vert",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 37,
+      "row": 90,
+      "home": "Espagne",
+      "away": "Arabie Saoudite",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 63,
+      "row": 91,
+      "home": "Uruguay",
+      "away": "Espagne",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 64,
+      "row": 92,
+      "home": "Cap Vert",
+      "away": "Arabie Saoudite",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 17,
+      "row": 98,
+      "home": "France",
+      "away": "Sénégal",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 18,
+      "row": 99,
+      "home": "Irak",
+      "away": "Norvège",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 43,
+      "row": 100,
+      "home": "Norvège",
+      "away": "Sénégal",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 42,
+      "row": 101,
+      "home": "France",
+      "away": "Irak",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 61,
+      "row": 102,
+      "home": "Norvège",
+      "away": "France",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 62,
+      "row": 103,
+      "home": "Sénégal",
+      "away": "Irak",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 19,
+      "row": 109,
+      "home": "Argentine",
+      "away": "Algérie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 20,
+      "row": 110,
+      "home": "Autriche",
+      "away": "Jordanie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 44,
+      "row": 111,
+      "home": "Jordanie",
+      "away": "Algérie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 41,
+      "row": 112,
+      "home": "Argentine",
+      "away": "Autriche",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 71,
+      "row": 113,
+      "home": "Jordanie",
+      "away": "Argentine",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 72,
+      "row": 114,
+      "home": "Algérie",
+      "away": "Autriche",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 21,
+      "row": 120,
+      "home": "Portugal",
+      "away": "RD Congo",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 24,
+      "row": 121,
+      "home": "Ouzbékistan",
+      "away": "Colombie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 48,
+      "row": 122,
+      "home": "Colombie",
+      "away": "RD Congo",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 45,
+      "row": 123,
+      "home": "Portugal",
+      "away": "Ouzbékistan",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 69,
+      "row": 124,
+      "home": "Colombie",
+      "away": "Portugal",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 70,
+      "row": 125,
+      "home": "RD Congo",
+      "away": "Ouzbékistan",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 22,
+      "row": 131,
+      "home": "Angleterre",
+      "away": "Croatie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 23,
+      "row": 132,
+      "home": "Ghana",
+      "away": "Panama",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 47,
+      "row": 133,
+      "home": "Panama",
+      "away": "Croatie",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 46,
+      "row": 134,
+      "home": "Angleterre",
+      "away": "Ghana",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 67,
+      "row": 135,
+      "home": "Panama",
+      "away": "Angleterre",
+      "scoreHome": null,
+      "scoreAway": null
+    },
+    {
+      "match": 68,
+      "row": 136,
+      "home": "Croatie",
+      "away": "Ghana",
+      "scoreHome": null,
+      "scoreAway": null
+    }
+  ],
+  "sample_formula_note": "",
+  "phase_finale_bonus_hints": [
+    {
+      "row": 55,
+      "label": "QUESTIONS BONUS",
+      "value_col_p": null
+    },
+    {
+      "row": 56,
+      "label": "PHASE DE GROUPE",
+      "value_col_p": null
+    },
+    {
+      "row": 57,
+      "label": "Quelle nation aura la meilleure attaque à l'issue de la phase de Poules :",
+      "value_col_p": null
+    },
+    {
+      "row": 58,
+      "label": "Combien de matchs du premier tour se termineront sur le score de 0-0 :",
+      "value_col_p": null
+    },
+    {
+      "row": 59,
+      "label": "Combien de nations obtiendront 9 points :",
+      "value_col_p": null
+    },
+    {
+      "row": 60,
+      "label": "Nombre de CSC (phase de poule) :",
+      "value_col_p": null
+    },
+    {
+      "row": 62,
+      "label": "INTEGRALITE DE LA COMPETITION",
+      "value_col_p": null
+    },
+    {
+      "row": 63,
+      "label": "Qui terminera meilleur buteur de la compétition :",
+      "value_col_p": null
+    },
+    {
+      "row": 64,
+      "label": "Qui sera désigné meilleur joueur de la compétition :",
+      "value_col_p": null
+    },
+    {
+      "row": 65,
+      "label": "Qui sera désigné meilleur gardien de la compétition :",
+      "value_col_p": null
+    },
+    {
+      "row": 66,
+      "label": "Combien de buts seront marqués (+/- 3 buts près) (prolongations incluses) :",
+      "value_col_p": null
+    },
+    {
+      "row": 67,
+      "label": "Nombre total de cartons rouges :",
+      "value_col_p": null
+    },
+    {
+      "row": 68,
+      "label": "Combien de prolongations seront disputées (Min 0 / Max 32) :",
+      "value_col_p": null
+    },
+    {
+      "row": 71,
+      "label": "GRILLE INCOMPLETE",
+      "value_col_p": null
+    }
+  ],
+  "grille_hints": [
+    {
+      "row": 158,
+      "label": "Quart de Finaliste (4*Cote)",
+      "value_d": null
+    },
+    {
+      "row": 166,
+      "label": "Demi Finaliste (5*Cote)",
+      "value_d": null
+    },
+    {
+      "row": 170,
+      "label": "Finaliste (6*Cote)",
+      "value_d": null
+    },
+    {
+      "row": 172,
+      "label": "Vainqueur (7*Cote)",
+      "value_d": null
+    },
+    {
+      "row": 173,
+      "label": "Meilleure attaque (phase de poule)",
+      "value_d": null
+    },
+    {
+      "row": 174,
+      "label": "Nombre 0-0 (phase de poule)",
+      "value_d": null
+    },
+    {
+      "row": 175,
+      "label": "Nombre nations à 9 points",
+      "value_d": null
+    },
+    {
+      "row": 176,
+      "label": "Nombre de CSC (phase de poule)",
+      "value_d": null
+    },
+    {
+      "row": 177,
+      "label": "Meilleur buteur",
+      "value_d": null
+    },
+    {
+      "row": 178,
+      "label": "Meilleur joueur",
+      "value_d": null
+    },
+    {
+      "row": 179,
+      "label": "Meilleur gardien",
+      "value_d": null
+    },
+    {
+      "row": 180,
+      "label": "Nombre de buts total",
+      "value_d": null
+    },
+    {
+      "row": 181,
+      "label": "Nombre total de cartons rouges",
+      "value_d": null
+    },
+    {
+      "row": 182,
+      "label": "Nombre de prolongations disputées",
+      "value_d": null
+    }
+  ]
+}

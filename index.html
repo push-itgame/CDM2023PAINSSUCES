@@ -529,7 +529,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .35rem;
+  gap: .25rem;
 }
 .score-picker[data-team]::before {
   display: none;
@@ -564,15 +564,16 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   box-shadow: 0 0 12px rgba(200,168,75,0.35);
 }
 .score-btn-more {
-  width: auto;
-  min-width: 2.8rem;
-  height: 1.65rem;
-  border-radius: 999px;
-  font-size: .65rem;
+  width: 2.35rem;
+  min-width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  font-size: .58rem;
   font-family: 'DM Mono', monospace;
-  letter-spacing: .06em;
+  letter-spacing: .02em;
   color: var(--muted);
-  padding: 0 .55rem;
+  padding: 0;
 }
 .score-btn-more.has-val, .score-btn-more.selected {
   color: var(--gold);
@@ -609,18 +610,33 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 .tv-sb-team {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
   font-size: .78rem;
   font-weight: 600;
   line-height: 1.2;
+  color: var(--text);
+}
+.tv-sb-name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  color: var(--text);
 }
-.tv-sb-team.home { text-align: left; padding-right: .15rem; }
-.tv-sb-team.away { text-align: right; padding-left: .15rem; }
+.tv-sb-team.home { justify-content: flex-start; padding-right: .15rem; }
+.tv-sb-team.away { justify-content: flex-end; padding-left: .15rem; }
+.team-flag {
+  flex-shrink: 0;
+  display: block;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
+}
+.team-flag--md { width: 20px; height: 15px; }
+.team-flag--sm { width: 14px; height: 10px; border-radius: 1px; }
 .tv-sb-team.is-leading {
   color: var(--gold);
 }
@@ -715,6 +731,9 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
 }
 .ko-tie-btns { display: flex; gap: .35rem; justify-content: center; flex-wrap: wrap; }
 .ko-tie-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
   font-size: .72rem;
   padding: .35rem .65rem;
   border-radius: 999px;
@@ -1366,7 +1385,10 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   gap: .3rem;
 }
 .bracket-team-box {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .28rem;
   padding: .35rem .45rem;
   border-radius: 4px;
   background: rgba(90, 60, 140, 0.35);
@@ -1378,6 +1400,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   overflow-wrap: break-word;
   text-align: center;
 }
+.bracket-team-box .team-flag { flex-shrink: 0; }
 .bracket-team-box.is-winner-pick {
   border-color: rgba(200,168,75,0.55);
   background: rgba(200,168,75,0.18);
@@ -1809,7 +1832,7 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   }
   .score-picker-digits {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: .2rem;
     width: 100%;
     flex-wrap: unset;
@@ -1823,9 +1846,13 @@ nav .tab-link.active { color: var(--gold); border-color: var(--gold); }
   }
   .score-btn-more {
     width: 100%;
+    min-width: 0;
     max-width: none;
-    height: 1.7rem;
-    margin-top: .08rem;
+    height: auto;
+    aspect-ratio: 1;
+    max-height: 2.45rem;
+    font-size: .62rem;
+    margin-top: 0;
   }
   .bracket-ladder-scroll {
     max-height: min(70vh, 780px);
@@ -2265,6 +2292,41 @@ const GROUPS = {
   "Groupe K": [[21,"Portugal","RD Congo"],[24,"Ouzbékistan","Colombie"],[48,"Colombie","RD Congo"],[45,"Portugal","Ouzbékistan"],[69,"Colombie","Portugal"],[70,"RD Congo","Ouzbékistan"]],
   "Groupe L": [[22,"Angleterre","Croatie"],[23,"Ghana","Panama"],[47,"Panama","Croatie"],[46,"Angleterre","Ghana"],[67,"Panama","Angleterre"],[68,"Croatie","Ghana"]],
 };
+
+/** Codes flagcdn.com (w40) — Angleterre/Écosse : sous-drapeaux GB */
+const TEAM_FLAG = {
+  "Mexique": "mx", "Afrique du Sud": "za", "Corée du Sud": "kr", "Rép. Tchèque": "cz",
+  "Canada": "ca", "Bosnie Herzégovine": "ba", "Qatar": "qa", "Suisse": "ch",
+  "Brésil": "br", "Maroc": "ma", "Haïti": "ht", "Écosse": "gb-sct",
+  "États-Unis": "us", "Paraguay": "py", "Australie": "au", "Turquie": "tr",
+  "Allemagne": "de", "Curacao": "cw", "Côte d'Ivoire": "ci", "Équateur": "ec",
+  "Pays-Bas": "nl", "Japon": "jp", "Suède": "se", "Tunisie": "tn",
+  "Belgique": "be", "Égypte": "eg", "Iran": "ir", "Nouvelle Zélande": "nz",
+  "Espagne": "es", "Cap Vert": "cv", "Arabie Saoudite": "sa", "Uruguay": "uy",
+  "France": "fr", "Sénégal": "sn", "Irak": "iq", "Norvège": "no",
+  "Argentine": "ar", "Algérie": "dz", "Autriche": "at", "Jordanie": "jo",
+  "Portugal": "pt", "RD Congo": "cd", "Ouzbékistan": "uz", "Colombie": "co",
+  "Angleterre": "gb-eng", "Croatie": "hr", "Ghana": "gh", "Panama": "pa",
+};
+
+function teamFlagImg(name, size) {
+  if (!name || name === '—') return '';
+  const code = TEAM_FLAG[name];
+  if (!code) return '';
+  const sm = size === 'sm';
+  const w = sm ? 14 : 20;
+  const h = sm ? 10 : 15;
+  const cls = 'team-flag team-flag--' + (sm ? 'sm' : 'md');
+  return `<img class="${cls}" src="https://flagcdn.com/w40/${code}.png" alt="" width="${w}" height="${h}" loading="lazy" decoding="async">`;
+}
+
+function teamLabelHtml(name, side, size) {
+  const flag = teamFlagImg(name, size);
+  const label = escapeHtml(name);
+  if (!flag) return label;
+  if (side === 'away') return `<span class="tv-sb-name">${label}</span>${flag}`;
+  return `${flag}<span class="tv-sb-name">${label}</span>`;
+}
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 /** vainqueurs cliqués après les seizièmes (clé = numéro de match FIFA) */
@@ -3222,7 +3284,7 @@ function createOfficialScoreCard(mid, editable, isPast) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'ko-tie-btn' + (pick === t ? ' selected' : '');
-      b.textContent = t;
+      b.innerHTML = teamFlagImg(t, 'sm') + escapeHtml(t);
       b.addEventListener('click', () => pickKoTieWinner(mid, t));
       tie.querySelector('.ko-tie-btns').appendChild(b);
     });
@@ -3249,7 +3311,7 @@ function mkBracketTeamBtn(mid, team, locked) {
   const pick = etape2Pick[mid];
   const cls = 'bracket-team-box clickable' + (pick === team ? ' is-winner-pick' : '');
   const dis = locked ? ' disabled' : '';
-  return `<button type="button" class="${cls}" data-bracket-mid="${mid}" data-bracket-team="${escapeHtml(team)}"${dis}>${escapeHtml(team)}</button>`;
+  return `<button type="button" class="${cls}" data-bracket-mid="${mid}" data-bracket-team="${escapeHtml(team)}"${dis}>${teamFlagImg(team, 'sm')}${escapeHtml(team)}</button>`;
 }
 
 function wireBracketCard(card, mid) {
@@ -3658,13 +3720,13 @@ function formatDisplayScore(h, a) {
 function buildScoreboardHTML(id, home, away, hVal = '', aVal = '') {
   const empty = hVal === '' && aVal === '';
   return `<div class="tv-scoreboard${empty ? ' empty' : ''}" id="${id}" data-home="${escapeAttr(home)}" data-away="${escapeAttr(away)}">
-    <span class="tv-sb-team home">${escapeHtml(home)}</span>
+    <span class="tv-sb-team home">${teamLabelHtml(home, 'home', 'md')}</span>
     <div class="tv-sb-center">
       <span class="tv-sb-num tv-sb-home">${formatScoreLabel(hVal)}</span>
       <span class="tv-sb-sep">:</span>
       <span class="tv-sb-num tv-sb-away">${formatScoreLabel(aVal)}</span>
     </div>
-    <span class="tv-sb-team away">${escapeHtml(away)}</span>
+    <span class="tv-sb-team away">${teamLabelHtml(away, 'away', 'md')}</span>
   </div>`;
 }
 
@@ -3699,8 +3761,7 @@ function buildScorePickerHTML(inputId, variant = 'group', teamLabel = '') {
     `<button type="button" class="score-btn" data-val="${n}">${n}</button>`
   ).join('');
   return `<div class="score-picker score-picker--group" data-for="${inputId}"${teamAttr}>
-    <div class="score-picker-digits">${quickBtns}</div>
-    <button type="button" class="score-btn score-btn-more" data-action="more">5+</button>
+    <div class="score-picker-digits">${quickBtns}<button type="button" class="score-btn score-btn-more" data-action="more">${val !== '' && parseInt(val, 10) >= 5 ? formatScoreLabel(val) : '5+'}</button></div>
     <input type="hidden" class="score-value" id="${inputId}" value="${val}">
   </div>`;
 }

@@ -1,0 +1,55 @@
+{
+  "phase_finale": {
+    "r32_teams_col": "C",
+    "r32_teams_rows": [5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57, 59, 61, 63, 65, 67],
+    "r32_winners_col": "F",
+    "r32_winners_rows": [6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66],
+    "r32_match_order": [73, 76, 74, 75, 78, 77, 79, 80, 82, 81, 84, 83, 85, 88, 86, 87],
+    "r16_winners_col": "I",
+    "r16_winners_rows": [8, 16, 24, 32, 40, 48, 56, 64],
+    "r16_match_order": [89, 90, 91, 92, 93, 94, 95, 96],
+    "qf_winners_col": "L",
+    "qf_winners_rows": [12, 28, 44, 60],
+    "qf_match_order": [97, 98, 99, 100],
+    "sf_winners_col": "O",
+    "sf_winners_rows": [20, 52],
+    "sf_match_order": [101, 102],
+    "winner_col": "R",
+    "winner_row": 36,
+    "final_match": 104
+  },
+  "bonus": {
+    "sheet": "Phase Finale",
+    "cells": {
+      "meilleureAttaque": "T57",
+      "matchs00": "T58",
+      "nationsA9pts": "T59",
+      "nbCSC": "T60",
+      "meilleurButeur": "T63",
+      "meilleurJoueur": "T64",
+      "meilleurGardien": "T65",
+      "nbButs": "T66",
+      "nbCartonsRouges": "T67",
+      "nbProlongations": "T68"
+    },
+    "grille_fallback_rows": {
+      "meilleureAttaque": 173,
+      "matchs00": 174,
+      "nationsA9pts": 175,
+      "nbCSC": 176,
+      "meilleurButeur": 177,
+      "meilleurJoueur": 178,
+      "meilleurGardien": 179,
+      "nbButs": 180,
+      "nbCartonsRouges": 181,
+      "nbProlongations": 182
+    },
+    "grille_fallback_col": "I"
+  },
+  "identite": {
+    "sheet": "Poules",
+    "nom_complet": "J2",
+    "email": "J3",
+    "equipe": "J4"
+  }
+}
