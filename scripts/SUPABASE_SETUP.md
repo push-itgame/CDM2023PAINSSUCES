@@ -62,6 +62,7 @@ Puis commit + push GitHub (comme le reste du site).
 - **Résultats officiels** : toujours `organisateur.html` → Publier (`resultats.json`)
 - **Grilles joueurs** : Supabase automatique (plus besoin de `merge_grilles.py` sauf archive)
 - **Supprimer une grille** : `organisateur.html` → onglet **Profils** (PIN requis)
+- **Reset code joueur** (grille conservée) : **Profils** → **Reset code**
 - Tableau Supabase : **Table Editor** → `grilles` pour voir les JSON
 
 ## Suppression de grilles (organisateur)
@@ -77,7 +78,15 @@ npx supabase functions deploy admin-grilles
 
 > `ORGANIZER_PIN_HASH` = SHA-256 du code organisateur (même valeur que dans `organisateur.html`).
 
-2. Sur le site : `organisateur.html` → PIN → onglet **Profils** → **Supprimer** ou **Créer 3 profils démo Supabase**.
+2. Sur le site : `organisateur.html` → PIN → onglet **Profils** → **Reset code** ou **Supprimer** ou **Créer 3 profils démo Supabase**.
+
+Actions Edge Function `admin-grilles` : `delete`, `reset_code` (efface `code_hash` sans supprimer la grille).
+
+Après modification de la fonction, redéployer :
+
+```bash
+npx supabase functions deploy admin-grilles
+```
 
 Les profils fichier `data/participants.json` ne sont plus utilisés (table vide). Les démos passent uniquement par Supabase.
 
@@ -93,3 +102,4 @@ La suppression passe par la service role (jamais exposée au navigateur). Pas de
 | RLS error | Relancer `supabase_schema.sql` |
 | « Migration code joueur requise » | Exécuter `scripts/supabase_player_code.sql` |
 | « Code secret incorrect » | Mauvais code ou session expirée — resaisir dans la bannière |
+| « Migration change_player_code requise » | Exécuter `scripts/supabase_change_player_code.sql` |

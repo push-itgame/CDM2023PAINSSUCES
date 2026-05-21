@@ -69,5 +69,21 @@ serve(async (req) => {
     return json({ ok: true, deleted: count, email });
   }
 
+  if (body.action === 'reset_code') {
+    const { data, error } = await supabase
+      .from('grilles')
+      .update({ code_hash: null })
+      .eq('email', email)
+      .select('email');
+
+    if (error) {
+      return json({ error: error.message }, 500);
+    }
+    if (!data?.length) {
+      return json({ error: 'Aucune grille trouvée pour cet e-mail.' }, 404);
+    }
+    return json({ ok: true, reset: true, email });
+  }
+
   return json({ error: 'Action inconnue.' }, 400);
 });

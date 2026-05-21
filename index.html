@@ -1342,6 +1342,26 @@ body.grille-remote-locked #player-code-input {
   margin-top: .35rem;
   line-height: 1.45;
 }
+.change-code-section {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(200, 168, 75, 0.22);
+  background: rgba(200, 168, 75, 0.06);
+}
+.change-code-section h3 {
+  font-size: .92rem;
+  margin: 0 0 .5rem;
+  color: var(--text);
+}
+.change-code-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: .65rem;
+  margin-top: .65rem;
+}
+.change-code-grid .form-group { margin: 0; }
+.change-code-actions { margin-top: .75rem; }
 .stage-lock-banner {
   font-size: .82rem;
   color: #9ab0c4;
@@ -2100,6 +2120,29 @@ body.grille-remote-locked #player-code-input {
       <label>Équipe / Société / Nation supportée</label>
       <input type="text" id="equipe" placeholder="France, OL, …">
     </div>
+
+    <div id="change-code-section" class="change-code-section" hidden>
+      <h3>Changer mon code secret</h3>
+      <p class="form-hint" style="margin-top:0">Compte déverrouillé — code oublié ? Contactez l’organisateur pour un reset.</p>
+      <div class="change-code-grid">
+        <div class="form-group">
+          <label>Ancien code</label>
+          <input type="password" id="code-old" inputmode="numeric" autocomplete="off" placeholder="Actuel" maxlength="6">
+        </div>
+        <div class="form-group">
+          <label>Nouveau code</label>
+          <input type="password" id="code-new" inputmode="numeric" autocomplete="new-password" placeholder="4–6 chiffres" maxlength="6">
+        </div>
+        <div class="form-group">
+          <label>Confirmer</label>
+          <input type="password" id="code-new2" inputmode="numeric" autocomplete="new-password" placeholder="Répéter" maxlength="6">
+        </div>
+      </div>
+      <div class="change-code-actions">
+        <button type="button" class="btn-etape2" id="btn-change-code">Enregistrer le nouveau code</button>
+      </div>
+    </div>
+
     <p class="inscription-export-note" style="margin-top:.75rem;font-size:.85rem;color:var(--muted);line-height:1.6">
       À la fin, onglet <strong style="color:var(--text)">📤 Envoyer</strong> : votre pronostic est enregistré (e-mail + code obligatoires).
       Saisissez votre <strong style="color:var(--text)">e-mail</strong> pour retrouver une grille déjà enregistrée (Excel ou envoi précédent) — saisissez ensuite votre <strong style="color:var(--text)">code</strong> dans la bannière bleue pour modifier.
@@ -4412,6 +4455,10 @@ function syncRemoteGrilleUI() {
       ? 'Déverrouillez avec votre code secret pour envoyer des changements'
       : '';
   }
+  const changeSection = document.getElementById('change-code-section');
+  if (changeSection) {
+    changeSection.hidden = remoteGrilleLocked || !remoteGrilleAuth.exists || !remoteGrilleAuth.hasCode;
+  }
 }
 
 function lockRemoteGrille(email, silent) {
@@ -4425,6 +4472,50 @@ function unlockRemoteGrille(silent) {
   remoteGrilleLocked = false;
   syncRemoteGrilleUI();
   if (!silent) showToast('Grille déverrouillée — vous pouvez modifier et renvoyer.');
+}
+
+async function tryChangePlayerCode() {
+  if (remoteGrilleLocked) {
+    showToast('Déverrouillez votre compte avec le code actuel.', true);
+    return;
+  }
+  const email = document.getElementById('email')?.value?.trim() || remoteGrilleLoadedEmail;
+  if (!isLikelyEmail(email)) {
+    showToast('E-mail invalide.', true);
+    return;
+  }
+  const oldCode = document.getElementById('code-old')?.value?.trim() || '';
+  const newCode = document.getElementById('code-new')?.value?.trim() || '';
+  const newCode2 = document.getElementById('code-new2')?.value?.trim() || '';
+  if (!validatePlayerCodeFormat(oldCode) || !validatePlayerCodeFormat(newCode)) {
+    showToast('Codes : 4 à 6 chiffres (ancien et nouveau).', true);
+    return;
+  }
+  if (newCode !== newCode2) {
+    showToast('La confirmation du nouveau code ne correspond pas.', true);
+    return;
+  }
+  if (oldCode === newCode) {
+    showToast('Le nouveau code doit être différent de l\'ancien.', true);
+    return;
+  }
+  const btn = document.getElementById('btn-change-code');
+  const prev = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    await CDM_SUPABASE.changePlayerCode(email, oldCode, newCode);
+    const newHash = await CDM_SUPABASE.sha256(newCode);
+    savePlayerAuth(email, newHash);
+    ['code-old', 'code-new', 'code-new2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    showToast('✅ Code secret mis à jour');
+  } catch (e) {
+    showToast(e.message || 'Impossible de changer le code.', true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = prev || 'Enregistrer le nouveau code'; }
+  }
 }
 
 async function tryPlayerUnlock() {
@@ -4860,6 +4951,7 @@ unlockBtn?.addEventListener('click', tryPlayerUnlock);
 document.getElementById('player-code-input')?.addEventListener('keydown', e => {
   if (e.key === 'Enter') tryPlayerUnlock();
 });
+document.getElementById('btn-change-code')?.addEventListener('click', tryChangePlayerCode);
 document.getElementById('joueur-code')?.addEventListener('input', renderSendRecap);
 syncRemoteGrilleUI();
 const initEmail = document.getElementById('email')?.value?.trim();

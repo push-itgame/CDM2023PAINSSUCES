@@ -110,6 +110,49 @@
     return rpc('set_player_code_if_empty', { p_email: em, p_code_hash: codeHash });
   }
 
+  async function changePlayerCode(email, oldCodePlain, newCodePlain) {
+    if (!isConfigured()) throw new Error('Supabase non configuré (js/config.js).');
+    const em = String(email || '').trim().toLowerCase();
+    if (!em) throw new Error('E-mail obligatoire.');
+    if (!oldCodePlain || !newCodePlain) throw new Error('Ancien et nouveau code requis.');
+    try {
+      return await rpc('change_player_code', {
+        p_email: em,
+        p_auth_code_hash: await sha256(String(oldCodePlain)),
+        p_new_code_hash: await sha256(String(newCodePlain)),
+      });
+    } catch (e) {
+      if (/function.*does not exist/i.test(e.message || '')) {
+        throw new Error('Migration change_player_code requise — exécutez scripts/supabase_change_player_code.sql.');
+      }
+      throw e;
+    }
+  }
+
+  async function adminGrillesRequest(action, email, pinHash) {
+    if (!isConfigured()) throw new Error('Supabase non configuré (js/config.js).');
+    const em = String(email || '').trim().toLowerCase();
+    if (!em) throw new Error('E-mail obligatoire.');
+    if (!pinHash) throw new Error('Session organisateur requise.');
+
+    const url = adminGrillesUrl();
+    const c = cfg();
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        apikey: c.supabaseAnonKey,
+        Authorization: 'Bearer ' + c.supabaseAnonKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action, email: em, pinHash }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || ('Supabase ' + res.status));
+    }
+    return data;
+  }
+
   async function fetchGrilleByEmail(email) {
     if (!isConfigured()) return null;
     const em = String(email || '').trim().toLowerCase();
@@ -218,27 +261,11 @@
   }
 
   async function deleteGrilleByEmail(email, pinHash) {
-    if (!isConfigured()) throw new Error('Supabase non configuré (js/config.js).');
-    const em = String(email || '').trim().toLowerCase();
-    if (!em) throw new Error('E-mail obligatoire.');
-    if (!pinHash) throw new Error('Session organisateur requise.');
+    return adminGrillesRequest('delete', email, pinHash);
+  }
 
-    const url = adminGrillesUrl();
-    const c = cfg();
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        apikey: c.supabaseAnonKey,
-        Authorization: 'Bearer ' + c.supabaseAnonKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ action: 'delete', email: em, pinHash }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || ('Supabase ' + res.status));
-    }
-    return data;
+  async function resetPlayerCodeByEmail(email, pinHash) {
+    return adminGrillesRequest('reset_code', email, pinHash);
   }
 
   window.CDM_SUPABASE = {
@@ -251,7 +278,9 @@
     verifyPlayerCode,
     verifyPlayerCodeHash,
     setPlayerCodeIfEmpty,
+    changePlayerCode,
     deleteGrilleByEmail,
+    resetPlayerCodeByEmail,
     loadParticipantsMerged,
     rowToParticipant,
     rowToFullGrille,

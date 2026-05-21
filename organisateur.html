@@ -136,6 +136,8 @@ input[type="number"].score-in { width: 2.8rem; text-align: center; padding: .45r
   padding: .55rem .65rem; border-radius: 4px; background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.06);
 }
+.profil-actions { display: flex; flex-wrap: wrap; gap: .35rem; justify-content: flex-end; }
+.btn-reset-code { font-size: .72rem; padding: .35rem .55rem; background: rgba(52,120,160,0.12); border-color: rgba(100,160,200,0.35); color: #c8dce8; }
 .profil-row .meta { font-size: .78rem; line-height: 1.35; }
 .profil-row .meta strong { color: var(--text); font-weight: 600; }
 .profil-row .meta span { display: block; font-family: 'DM Mono', monospace; font-size: .65rem; color: var(--muted); }
@@ -1049,16 +1051,47 @@ async function renderProfils() {
           <strong>${escapeHtml(name)}${escapeHtml(eq)}</strong>
           <span>${escapeHtml(row.email || '')} · ${formatProfilDate(row.updated_at)}</span>
         </div>
-        <button type="button" class="btn btn-danger btn-del-profil" data-email="${em}">Supprimer</button>
+        <div class="profil-actions">
+          <button type="button" class="btn btn-reset-code btn-reset-code-profil" data-email="${em}">Reset code</button>
+          <button type="button" class="btn btn-danger btn-del-profil" data-email="${em}">Supprimer</button>
+        </div>
       </div>`;
     }).join('');
 
     root.querySelectorAll('.btn-del-profil').forEach(btn => {
       btn.addEventListener('click', () => deleteProfil(btn.dataset.email));
     });
+    root.querySelectorAll('.btn-reset-code-profil').forEach(btn => {
+      btn.addEventListener('click', () => resetProfilCode(btn.dataset.email));
+    });
   } catch (e) {
     root.innerHTML = '';
     errEl.textContent = 'Erreur : ' + (e.message || e);
+    errEl.hidden = false;
+  }
+}
+
+async function resetProfilCode(email) {
+  const em = (email || '').trim().toLowerCase();
+  if (!em) return;
+  if (!confirm('Effacer le code secret de ' + em + ' ?\nLa grille est conservée — le joueur pourra « Définir mon code » à la prochaine connexion.')) return;
+
+  const errEl = document.getElementById('profils-err');
+  errEl.hidden = true;
+
+  if (!window.CDM_SUPABASE?.resetPlayerCodeByEmail) {
+    errEl.textContent = 'API Supabase indisponible.';
+    errEl.hidden = false;
+    return;
+  }
+
+  try {
+    await CDM_SUPABASE.resetPlayerCodeByEmail(em, ORG_PIN_HASH);
+    showMsg('Code effacé : ' + em);
+    await renderProfils();
+  } catch (e) {
+    errEl.textContent = 'Reset code impossible : ' + (e.message || e)
+      + ' — redéployez admin-grilles (action reset_code) si besoin.';
     errEl.hidden = false;
   }
 }
