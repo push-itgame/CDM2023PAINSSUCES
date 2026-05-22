@@ -1423,6 +1423,8 @@ body.grille-remote-locked #player-code-input {
 }
 .bracket-ladder-pretty {
   --bracket-row-h: 4.75rem;
+  --bracket-line: rgba(200, 168, 75, 0.22);
+  --bracket-line-active: rgba(200, 168, 75, 0.55);
   display: grid;
   grid-template-columns: 168px 128px 108px 96px 88px;
   grid-template-rows: 2.25rem repeat(17, var(--bracket-row-h));
@@ -1438,12 +1440,34 @@ body.grille-remote-locked #player-code-input {
   position: relative;
   margin: 0 auto;
 }
+.bracket-ladder-pretty .bracket-connectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+.bracket-ladder-pretty .bracket-connectors path {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+.bracket-ladder-pretty .col-head,
+.bracket-ladder-pretty .bracket-r32-card,
+.bracket-ladder-pretty .bracket-ko-card {
+  position: relative;
+  z-index: 1;
+}
 .bracket-ladder-pretty .bracket-col-finale {
   margin-left: -.85rem;
 }
 .bracket-ladder-pretty .col-head.col-finale {
   margin-left: -.85rem;
 }
+.bracket-ladder-pretty .col-head .col-head-short { display: none; }
 .bracket-match-meta {
   font-family: 'DM Mono', monospace;
   font-size: .52rem;
@@ -1994,17 +2018,32 @@ body.grille-remote-locked #player-code-input {
   }
   .bracket-ladder-scroll {
     max-height: min(70vh, 780px);
-    padding: .2rem .35rem 1.5rem;
+    padding: .2rem .75rem 1.5rem .35rem;
   }
   .bracket-swipe-hint {
     display: block;
   }
   .bracket-ladder-pretty {
-    grid-template-columns: 140px 106px 92px 84px 76px;
+    grid-template-columns: 140px 106px 92px 88px 76px;
     grid-template-rows: 2rem repeat(17, 4.5rem);
     --bracket-row-h: 4.5rem;
     gap: .5rem .28rem;
     transform: none;
+    padding-right: .5rem;
+  }
+  .bracket-ladder-pretty .col-head {
+    font-size: .72rem;
+    letter-spacing: .06em;
+    padding-bottom: .28rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bracket-ladder-pretty .col-head .col-head-long { display: none; }
+  .bracket-ladder-pretty .col-head .col-head-short { display: inline; }
+  .bracket-ladder-pretty .bracket-col-finale,
+  .bracket-ladder-pretty .col-head.col-finale {
+    margin-left: 0;
   }
   .bracket-ladder-pretty .bracket-r32-card {
     align-self: start;
@@ -2626,27 +2665,33 @@ const BRACKET_R32_PAIRS = [[74, 77], [73, 75], [76, 78], [79, 80], [83, 84], [81
 const BRACKET_R16_IDS = [89, 90, 91, 92, 93, 94, 95, 96];
 const BRACKET_QF_IDS = [97, 98, 99, 100];
 const BRACKET_SF_IDS = [101, 102];
+/** Ordre visuel des blocs huitièmes (moitié haute 89–94 puis moitié basse 91–96), sans changer KO_*. */
+const BRACKET_VISUAL_BLOCK_ORDER = [0, 1, 4, 5, 2, 3, 6, 7];
 /** Lignes corps du tableau (8 blocs huitièmes × 2 + marge basse). */
 const BRACKET_BODY_ROWS = 17;
 
-/** Ligne grille pour le huitième d’index pi (0–7). */
+/** Ligne grille pour le huitième d’index pi visuel (0–7). */
 function bracketRowForR16Index(pi) {
   return pi * 2 + 2;
 }
 
+function bracketVisualPiForR16(r16Mid) {
+  const logicalPi = BRACKET_R16_IDS.indexOf(r16Mid);
+  return logicalPi >= 0 ? BRACKET_VISUAL_BLOCK_ORDER.indexOf(logicalPi) : -1;
+}
+
 /** Ligne + span grille pour un match KO à partir de ses feeders numériques. */
 function bracketSlotForFeeders(feederMids) {
-  const indices = feederMids.map(m => BRACKET_R16_IDS.indexOf(m)).filter(i => i >= 0);
-  if (indices.length < 2) {
-    const qfIdx = BRACKET_QF_IDS.indexOf(feederMids[0]);
-    if (qfIdx >= 0) {
+  const visualPis = feederMids.map(m => (m >= 89 && m <= 96 ? bracketVisualPiForR16(m) : -1)).filter(i => i >= 0);
+  if (visualPis.length < 2) {
+    if (feederMids[0] >= 97 && feederMids[0] <= 100 && KO_QF[feederMids[0]]) {
       const [a, b] = KO_QF[feederMids[0]];
       return bracketSlotForFeeders([a, b]);
     }
     return { row: 2, span: 4 };
   }
-  const minPi = Math.min(...indices);
-  const maxPi = Math.max(...indices);
+  const minPi = Math.min(...visualPis);
+  const maxPi = Math.max(...visualPis);
   return { row: bracketRowForR16Index(minPi), span: (maxPi - minPi + 1) * 2 };
 }
 
@@ -3531,6 +3576,7 @@ function createBracketMatchCard(mid, gridCol, gridRow, rowSpan, label) {
   const locked = isEtape2Locked();
   const card = document.createElement('div');
   const r32 = mid >= 73 && mid <= 88;
+  card.dataset.bracketCardMid = String(mid);
   card.className = (r32 ? 'bracket-r32-card' : 'bracket-ko-card') + (left && right ? '' : ' wait');
   if (!r32 && rowSpan && rowSpan >= 8) card.classList.add('bracket-ko-card--tall');
   card.style.gridColumn = String(gridCol);
@@ -3551,25 +3597,102 @@ function createBracketMatchCard(mid, gridCol, gridRow, rowSpan, label) {
   return card;
 }
 
+const BRACKET_COL_LABELS = [
+  { long: 'Seizièmes', short: '16es' },
+  { long: 'Huitièmes', short: '8es' },
+  { long: 'Quarts', short: 'Quarts' },
+  { long: 'Demi-finales', short: 'Demis' },
+  { long: 'Finale', short: 'Finale' },
+];
+let bracketConnectorResizeWired = false;
+
+function bracketCardAnchor(grid, mid, side) {
+  const card = grid.querySelector('[data-bracket-card-mid="' + mid + '"]');
+  if (!card) return null;
+  const gridRect = grid.getBoundingClientRect();
+  const r = card.getBoundingClientRect();
+  const x = side === 'right' ? r.right - gridRect.left : r.left - gridRect.left;
+  const y = r.top - gridRect.top + r.height / 2;
+  return { x, y };
+}
+
+function appendBracketConnectorPath(svg, d, active) {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  path.setAttribute('stroke', active ? 'var(--bracket-line-active)' : 'var(--bracket-line)');
+  svg.appendChild(path);
+}
+
+function drawBracketMergeConnector(svg, grid, midA, midB, midChild) {
+  const a = bracketCardAnchor(grid, midA, 'right');
+  const b = bracketCardAnchor(grid, midB, 'right');
+  const c = bracketCardAnchor(grid, midChild, 'left');
+  if (!a || !b || !c) return;
+  const forkX = Math.max(a.x, b.x) + (c.x - Math.max(a.x, b.x)) * 0.45;
+  const active = !!etape2Pick[midChild];
+  appendBracketConnectorPath(svg, 'M' + a.x + ' ' + a.y + ' H' + forkX, active);
+  appendBracketConnectorPath(svg, 'M' + b.x + ' ' + b.y + ' H' + forkX, active);
+  const trunkY = (a.y + b.y) / 2;
+  appendBracketConnectorPath(svg, 'M' + forkX + ' ' + Math.min(a.y, b.y) + ' V' + Math.max(a.y, b.y), active);
+  appendBracketConnectorPath(svg, 'M' + forkX + ' ' + trunkY + ' V' + c.y + ' H' + c.x, active);
+}
+
+function drawBracketConnectors() {
+  const grid = document.getElementById('etape2-bracket-ladder');
+  if (!grid) return;
+  const svg = grid.querySelector('.bracket-connectors');
+  if (!svg) return;
+  const w = grid.offsetWidth;
+  const h = grid.offsetHeight;
+  svg.setAttribute('width', String(w));
+  svg.setAttribute('height', String(h));
+  svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+  svg.innerHTML = '';
+  Object.entries(KO_R16).forEach(([r16, pair]) => {
+    drawBracketMergeConnector(svg, grid, pair[0], pair[1], Number(r16));
+  });
+  Object.entries(KO_QF).forEach(([qf, pair]) => {
+    drawBracketMergeConnector(svg, grid, pair[0], pair[1], Number(qf));
+  });
+  Object.entries(KO_SF).forEach(([sf, pair]) => {
+    drawBracketMergeConnector(svg, grid, pair[0], pair[1], Number(sf));
+  });
+  drawBracketMergeConnector(svg, grid, 101, 102, 104);
+}
+
+function wireBracketConnectorResize() {
+  if (bracketConnectorResizeWired) return;
+  bracketConnectorResizeWired = true;
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(drawBracketConnectors, 120);
+  });
+}
+
 function renderBracketLadderPretty() {
   const grid = document.getElementById('etape2-bracket-ladder');
   if (!grid) return;
   grid.innerHTML = '';
-  const cols = ['Seizièmes', 'Huitièmes', 'Quarts', 'Demi-finales', 'Finale'];
-  cols.forEach((t, ci) => {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.classList.add('bracket-connectors');
+  svg.setAttribute('aria-hidden', 'true');
+  grid.appendChild(svg);
+  BRACKET_COL_LABELS.forEach((t, ci) => {
     const h = document.createElement('div');
     h.className = 'col-head' + (ci === 4 ? ' col-finale bracket-col-finale' : '');
     h.style.gridColumn = String(ci + 1);
     h.style.gridRow = '1';
-    h.textContent = t;
+    h.innerHTML = '<span class="col-head-long">' + t.long + '</span><span class="col-head-short">' + t.short + '</span>';
     grid.appendChild(h);
   });
-  BRACKET_R32_PAIRS.forEach((pair, pi) => {
-    const r16Row = bracketRowForR16Index(pi);
+  BRACKET_VISUAL_BLOCK_ORDER.forEach((logicalPi, visualPi) => {
+    const pair = BRACKET_R32_PAIRS[logicalPi];
+    const r16Row = bracketRowForR16Index(visualPi);
     pair.forEach((mid, ji) => {
       grid.appendChild(createBracketMatchCard(mid, 1, r16Row + ji, null));
     });
-    grid.appendChild(createBracketMatchCard(BRACKET_R16_IDS[pi], 2, r16Row, 2));
+    grid.appendChild(createBracketMatchCard(BRACKET_R16_IDS[logicalPi], 2, r16Row, 2));
   });
   BRACKET_QF_IDS.forEach(qfMid => {
     const slot = bracketSlotForQf(qfMid);
@@ -3580,6 +3703,10 @@ function renderBracketLadderPretty() {
     grid.appendChild(createBracketMatchCard(sfMid, 4, slot.row, slot.span));
   });
   grid.appendChild(createBracketMatchCard(104, 5, 2, BRACKET_BODY_ROWS, 'Finale'));
+  wireBracketConnectorResize();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(drawBracketConnectors);
+  });
 }
 
 function countBonusFilled() {
