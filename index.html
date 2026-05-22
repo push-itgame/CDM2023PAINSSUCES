@@ -2210,7 +2210,7 @@ body.grille-remote-locked #player-code-input {
   </div>
 
   <div class="submit-wrap" style="padding-top:1.5rem">
-    <button class="btn-submit" onclick="goToTab('poules')">Commencer les pronostics →</button>
+    <button class="btn-submit" id="btn-begin-pronos" type="button">Commencer les pronostics →</button>
   </div>
 </div>
 </div>
@@ -2644,8 +2644,10 @@ let etape2Pick = {};
 let remoteGrilleLocked = false;
 let remoteGrilleLoadedEmail = '';
 let remoteGrilleAuth = { exists: false, hasCode: false };
+/** E-mail auquel appartiennent les pronos actuellement en mémoire. */
+let grilleOwnerEmail = '';
 let remoteFetchTimer = null;
-let remoteFetchInFlight = false;
+let remoteFetchGen = 0;
 const PLAYER_AUTH_KEY = 'cdm_player_auth';
 const PLAYER_AUTH_TTL = 8 * 60 * 60 * 1000;
 
@@ -4491,6 +4493,14 @@ function clearPlayerAuth() {
   try { sessionStorage.removeItem(PLAYER_AUTH_KEY); } catch (e) { /* ignore */ }
 }
 
+function getEmailFieldNormalized() {
+  return (document.getElementById('email')?.value || '').trim().toLowerCase();
+}
+
+function isRemoteFetchStale(requestedEmail, gen) {
+  return gen !== remoteFetchGen || getEmailFieldNormalized() !== requestedEmail;
+}
+
 function resetGrilleForNewAccount(keepEmail) {
   const emailVal = keepEmail ? (document.getElementById('email')?.value || '') : '';
   Object.keys(scoreValues).forEach(k => { delete scoreValues[k]; });
@@ -4541,10 +4551,12 @@ function resetGrilleForNewAccount(keepEmail) {
   }
   BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
   fullRefreshDerived();
+  grilleOwnerEmail = keepEmail && emailVal ? emailVal.trim().toLowerCase() : '';
 }
 
 function switchAccount() {
   clearPlayerAuth();
+  remoteFetchGen++;
   remoteGrilleLocked = false;
   remoteGrilleLoadedEmail = '';
   remoteGrilleAuth = { exists: false, hasCode: false };
@@ -4557,14 +4569,27 @@ function switchAccount() {
 
 function prepareAccountEmailChange(nextEmail) {
   const em = String(nextEmail || '').trim().toLowerCase();
-  if (em && em === remoteGrilleLoadedEmail) return;
+  const prevRemote = remoteGrilleLoadedEmail;
+  const prevOwner = grilleOwnerEmail;
+  if (em && em === prevRemote && em === prevOwner) return;
+
+  remoteFetchGen++;
   clearPlayerAuth();
   const pc = document.getElementById('player-code-input');
   if (pc) pc.value = '';
-  if (remoteGrilleLoadedEmail) {
-    unlockRemoteGrille(true);
-    resetGrilleForNewAccount(true);
+
+  const shouldReset =
+    (prevOwner && em !== prevOwner) ||
+    (prevRemote && em !== prevRemote) ||
+    (!em && !!prevOwner);
+
+  if (shouldReset) {
+    if (remoteGrilleLocked || prevRemote) unlockRemoteGrille(true);
+    resetGrilleForNewAccount(!!em);
+  } else if (em && em !== prevOwner) {
+    grilleOwnerEmail = em;
   }
+
   remoteGrilleLoadedEmail = '';
   remoteGrilleAuth = { exists: false, hasCode: false };
   syncRemoteGrilleUI();
@@ -4776,6 +4801,7 @@ function applyGrillePayload(data) {
   }
   BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
   fullRefreshDerived();
+  grilleOwnerEmail = (id.email || '').trim().toLowerCase();
 }
 
 function scheduleRemoteGrilleFetch() {
@@ -4797,39 +4823,69 @@ function scheduleRemoteGrilleFetch() {
 async function tryFetchRemoteGrille(email, opts = {}) {
   const em = (email || '').trim().toLowerCase();
   if (!em || !window.CDM_SUPABASE?.isConfigured()) return;
-  if (remoteFetchInFlight) return;
-  remoteFetchInFlight = true;
+  const gen = ++remoteFetchGen;
   try {
     const [data, authInfo] = await Promise.all([
       CDM_SUPABASE.fetchGrilleByEmail(em),
       CDM_SUPABASE.fetchGrilleAuthInfo(em),
     ]);
+    if (isRemoteFetchStale(em, gen)) return;
+
     remoteGrilleAuth = authInfo;
     if (!data) {
       remoteGrilleLocked = false;
       remoteGrilleLoadedEmail = em;
+      resetGrilleForNewAccount(true);
       syncRemoteGrilleUI();
       saveState();
       if (!opts.silent) showToast('Aucune grille enregistrée pour cet e-mail — vous pouvez créer la vôtre.');
       return;
     }
     applyGrillePayload(data);
+    if (isRemoteFetchStale(em, gen)) return;
     remoteGrilleLoadedEmail = em;
+    grilleOwnerEmail = em;
     const authHash = getPlayerAuth(em);
     if (authHash && authInfo.hasCode && await CDM_SUPABASE.verifyPlayerCodeHash(em, authHash)) {
+      if (isRemoteFetchStale(em, gen)) return;
       remoteGrilleLocked = false;
       syncRemoteGrilleUI();
       saveState();
       if (!opts.silent) showToast('✅ Grille chargée — session active');
     } else {
       if (authHash && authInfo.hasCode) clearPlayerAuth();
+      if (isRemoteFetchStale(em, gen)) return;
       lockRemoteGrille(em, opts.silent);
       saveState();
     }
   } catch (e) {
-    if (!opts.silent) showToast('Impossible de charger la grille : ' + e.message, true);
+    if (!isRemoteFetchStale(em, gen) && !opts.silent) {
+      showToast('Impossible de charger la grille : ' + e.message, true);
+    }
+  }
+}
+
+async function beginPronostics() {
+  const email = getEmailFieldNormalized();
+  if (!isLikelyEmail(email)) {
+    showToast('Indiquez votre e-mail avant de commencer.', true);
+    document.getElementById('email')?.focus();
+    return;
+  }
+  const btn = document.getElementById('btn-begin-pronos');
+  const prev = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = 'Chargement…'; }
+  try {
+    clearTimeout(remoteFetchTimer);
+    prepareAccountEmailChange(email);
+    await tryFetchRemoteGrille(email, { silent: true });
+    if (grilleOwnerEmail && grilleOwnerEmail !== email) {
+      resetGrilleForNewAccount(true);
+      saveState();
+    }
+    goToTab('poules');
   } finally {
-    remoteFetchInFlight = false;
+    if (btn) { btn.disabled = false; btn.textContent = prev || 'Commencer les pronostics →'; }
   }
 }
 
@@ -4878,6 +4934,7 @@ function loadState() {
       const el = document.getElementById(k);
       if (el && v !== '') el.value = v;
     });
+    grilleOwnerEmail = (id.email || '').trim().toLowerCase();
   } catch (e) { /* ignore corrupt state */ }
 }
 
@@ -5073,6 +5130,7 @@ async function submitGrille() {
     remoteGrilleAuth = { exists: true, hasCode: true };
     remoteGrilleLocked = false;
     remoteGrilleLoadedEmail = email;
+    grilleOwnerEmail = email;
     syncRemoteGrilleUI();
     showToast('✅ Grille envoyée — visible au classement');
   } catch (e) {
@@ -5092,6 +5150,7 @@ loadState();
 BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
 wireAutoSave();
 document.getElementById('btn-change-account')?.addEventListener('click', switchAccount);
+document.getElementById('btn-begin-pronos')?.addEventListener('click', beginPronostics);
 const unlockBtn = document.getElementById('btn-unlock-remote');
 unlockBtn?.addEventListener('click', tryPlayerUnlock);
 document.getElementById('player-code-input')?.addEventListener('keydown', e => {
