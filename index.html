@@ -1280,10 +1280,6 @@ body.grille-remote-locked #email {
   pointer-events: auto;
   opacity: 1;
 }
-body.grille-remote-locked #btn-change-account {
-  pointer-events: auto;
-  opacity: 1;
-}
 .email-account-row {
   display: flex;
   flex-wrap: wrap;
@@ -2136,7 +2132,7 @@ body.grille-remote-locked #player-code-input {
   <p style="font-size:.85rem;color:var(--muted);margin:-.25rem 0 1rem;line-height:1.65">
     <strong style="color:var(--text)">Nouveau ?</strong> Remplissez vos infos et choisissez un code secret.<br>
     <strong style="color:var(--text)">Déjà inscrit ?</strong> Saisissez votre e-mail — votre grille se charge en lecture seule ; entrez votre code dans la bannière bleue pour modifier.<br>
-    <strong style="color:var(--text)">Autre compte ?</strong> Modifiez l’e-mail ou cliquez <strong style="color:var(--text)">Changer de compte</strong>.
+    <strong style="color:var(--text)">Autre compte ?</strong> Changez l’e-mail : la grille correspondante se charge automatiquement (compte inconnu = grille vide).
   </p>
   <div class="identity-card">
     <h2>Vos informations</h2>
@@ -2152,11 +2148,8 @@ body.grille-remote-locked #player-code-input {
     </div>
     <div style="margin-top:1rem" class="form-group">
       <label>Adresse e-mail</label>
-      <div class="email-account-row">
-        <input type="email" id="email" placeholder="jean@example.com" autocomplete="email">
-        <button type="button" class="btn-change-account" id="btn-change-account">Changer de compte</button>
-      </div>
-      <p class="form-hint">L’e-mail reste modifiable pour consulter ou charger un autre compte.</p>
+      <input type="email" id="email" placeholder="jean@example.com" autocomplete="email">
+      <p class="form-hint">L’e-mail identifie votre compte : modifiez-le pour consulter ou remplir une autre grille.</p>
     </div>
     <div style="margin-top:1rem" class="form-group">
       <label>Code secret <span style="font-weight:400;color:var(--muted)">(4 à 6 chiffres)</span></label>
@@ -3233,7 +3226,14 @@ function koParentsHint(mid) {
 
 function syncScoreToDom(id) {
   const el = document.getElementById(id);
-  if (el && scoreValues[id] !== undefined) el.value = scoreValues[id];
+  if (el) el.value = scoreValues[id] ?? '';
+}
+
+function clearAllScoreDom() {
+  document.querySelectorAll('.score-value').forEach(inp => {
+    inp.value = '';
+    updatePickerUI(inp.id);
+  });
 }
 
 function isPoulesLocked() {
@@ -4024,8 +4024,20 @@ async function loadOfficialResultats() {
 // ─── TAB SWITCHING ───────────────────────────────────────────────────────────
 const TAB_HASH_ALIASES = { finale: 'tableau', etape2: 'tableau', scores: 'scores-finales', send: 'envoyer' };
 
+const PRONOSTIC_TABS = ['poules', 'tableau', 'scores-finales', 'bonus', 'envoyer'];
+
+function syncAccountForCurrentEmail() {
+  const email = getEmailFieldNormalized();
+  if (!isLikelyEmail(email)) return;
+  if (email === grilleOwnerEmail && email === remoteGrilleLoadedEmail) return;
+  clearTimeout(remoteFetchTimer);
+  prepareAccountEmailChange(email);
+  tryFetchRemoteGrille(email, { silent: true });
+}
+
 function goToTab(name) {
   name = TAB_HASH_ALIASES[name] || name;
+  if (PRONOSTIC_TABS.includes(name)) syncAccountForCurrentEmail();
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   const panel = document.getElementById('tab-' + name);
@@ -4423,11 +4435,13 @@ function updateProgress() {
 }
 
 // ─── LOCAL STORAGE ───────────────────────────────────────────────────────────
-function saveState() {
+function saveState(opts = {}) {
   const scores = { ...scoreValues };
-  document.querySelectorAll('.score-value').forEach(inp => {
-    if (inp.value !== '') scores[inp.id] = inp.value;
-  });
+  if (!opts.fromMemoryOnly) {
+    document.querySelectorAll('.score-value').forEach(inp => {
+      if (inp.value !== '') scores[inp.id] = inp.value;
+    });
+  }
   Object.assign(scoreValues, scores);
   const state = {
     scores,
@@ -4504,6 +4518,7 @@ function isRemoteFetchStale(requestedEmail, gen) {
 function resetGrilleForNewAccount(keepEmail) {
   const emailVal = keepEmail ? (document.getElementById('email')?.value || '') : '';
   Object.keys(scoreValues).forEach(k => { delete scoreValues[k]; });
+  clearAllScoreDom();
   Object.keys(kosWinners).forEach(k => { delete kosWinners[k]; });
   etape2Pick = {};
   etape2 = { r32: [], r16: [], qf: [], sf: [], finalists: [], winner: '' };
@@ -4554,19 +4569,6 @@ function resetGrilleForNewAccount(keepEmail) {
   grilleOwnerEmail = keepEmail && emailVal ? emailVal.trim().toLowerCase() : '';
 }
 
-function switchAccount() {
-  clearPlayerAuth();
-  remoteFetchGen++;
-  remoteGrilleLocked = false;
-  remoteGrilleLoadedEmail = '';
-  remoteGrilleAuth = { exists: false, hasCode: false };
-  resetGrilleForNewAccount(false);
-  syncRemoteGrilleUI();
-  saveState();
-  document.getElementById('email')?.focus();
-  showToast('Saisissez un e-mail pour charger ou créer un compte.');
-}
-
 function prepareAccountEmailChange(nextEmail) {
   const em = String(nextEmail || '').trim().toLowerCase();
   const prevRemote = remoteGrilleLoadedEmail;
@@ -4586,6 +4588,7 @@ function prepareAccountEmailChange(nextEmail) {
   if (shouldReset) {
     if (remoteGrilleLocked || prevRemote) unlockRemoteGrille(true);
     resetGrilleForNewAccount(!!em);
+    saveState({ fromMemoryOnly: true });
   } else if (em && em !== prevOwner) {
     grilleOwnerEmail = em;
   }
@@ -4806,18 +4809,22 @@ function applyGrillePayload(data) {
 
 function scheduleRemoteGrilleFetch() {
   clearTimeout(remoteFetchTimer);
-  remoteFetchTimer = setTimeout(() => {
-    const email = document.getElementById('email')?.value?.trim() || '';
-    if (!isLikelyEmail(email)) {
-      if (remoteGrilleLoadedEmail) prepareAccountEmailChange('');
-      remoteGrilleLocked = false;
-      syncRemoteGrilleUI();
-      return;
-    }
-    if (remoteGrilleLocked && email.toLowerCase() === remoteGrilleLoadedEmail) return;
+  const email = document.getElementById('email')?.value?.trim() || '';
+  if (!isLikelyEmail(email)) {
+    if (remoteGrilleLoadedEmail || grilleOwnerEmail) prepareAccountEmailChange('');
+    remoteGrilleLocked = false;
+    syncRemoteGrilleUI();
+    return;
+  }
+  const em = email.toLowerCase();
+  if (em !== grilleOwnerEmail || em !== remoteGrilleLoadedEmail) {
     prepareAccountEmailChange(email);
+  }
+  remoteFetchTimer = setTimeout(() => {
+    if (getEmailFieldNormalized() !== em) return;
+    if (remoteGrilleLocked && em === remoteGrilleLoadedEmail) return;
     tryFetchRemoteGrille(email);
-  }, 500);
+  }, 400);
 }
 
 async function tryFetchRemoteGrille(email, opts = {}) {
@@ -4837,7 +4844,7 @@ async function tryFetchRemoteGrille(email, opts = {}) {
       remoteGrilleLoadedEmail = em;
       resetGrilleForNewAccount(true);
       syncRemoteGrilleUI();
-      saveState();
+      saveState({ fromMemoryOnly: true });
       if (!opts.silent) showToast('Aucune grille enregistrée pour cet e-mail — vous pouvez créer la vôtre.');
       return;
     }
@@ -4881,7 +4888,7 @@ async function beginPronostics() {
     await tryFetchRemoteGrille(email, { silent: true });
     if (grilleOwnerEmail && grilleOwnerEmail !== email) {
       resetGrilleForNewAccount(true);
-      saveState();
+      saveState({ fromMemoryOnly: true });
     }
     goToTab('poules');
   } finally {
@@ -5149,7 +5156,6 @@ initScoreSheet();
 loadState();
 BONUS_PICKER_IDS.forEach(syncBonusOtherVisibility);
 wireAutoSave();
-document.getElementById('btn-change-account')?.addEventListener('click', switchAccount);
 document.getElementById('btn-begin-pronos')?.addEventListener('click', beginPronostics);
 const unlockBtn = document.getElementById('btn-unlock-remote');
 unlockBtn?.addEventListener('click', tryPlayerUnlock);
